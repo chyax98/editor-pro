@@ -57,7 +57,7 @@ export class EditorProSettingTab extends PluginSettingTab {
 
         new Setting(containerEl)
             .setName('开启斜杠命令')
-            .setDesc('支持通过 "/" 或中文顿号 "、" 触发命令菜单。支持全量拼音首字母搜索。')
+            .setDesc('支持通过 "/"、"、" 或反斜杠（\\）触发命令菜单；支持拼音首字母搜索（MVP）。')
             .addToggle(toggle => toggle
                 .setValue(this.plugin.settings.enableSlashCommand)
                 .onChange(async (value) => {
