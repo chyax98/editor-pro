@@ -161,6 +161,14 @@ export class App {
   }
 }
 
+export class Notice {
+    constructor(message: string) {}
+}
+
+export function debounce(func: Function, wait: number, immediate?: boolean) {
+    return func; // Execute immediately for tests
+}
+
 export class PluginSettingTab {}
 export class Setting {}
 export class MarkdownView {}

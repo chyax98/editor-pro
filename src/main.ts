@@ -1,4 +1,4 @@
-import { Editor, MarkdownView, Plugin, Menu } from 'obsidian';
+import { Editor, MarkdownView, Plugin, Menu, Notice } from 'obsidian';
 import { smartToggle } from './features/formatting/smart-toggle';
 import { toggleTask } from './features/formatting/task-toggle';
 import { wrapWithCallout, wrapWithCodeBlock, wrapWithQuote } from './features/callout/wrap-callout';
@@ -8,7 +8,9 @@ import { generateTable, generateDate, insertRow, deleteRow } from './utils/markd
 import { YamlManager } from './features/yaml/auto-update';
 import { handleTableNavigation } from './features/table/table-navigation';
 import { checkSmartInput } from './features/smart-input/input-handler';
-import { aggregateTasks } from './features/task/aggregator';
+import { getTaskColumn, moveTaskToColumn } from './features/kanban/kanban-logic';
+import { setDueDate } from './features/kanban/due-date';
+import { archiveCompletedTasks } from './features/kanban/archive';
 import { DEFAULT_SETTINGS, MyPluginSettings, EditorProSettingTab } from "./settings";
 
 export default class MyPlugin extends Plugin {
@@ -22,12 +24,12 @@ export default class MyPlugin extends Plugin {
         if (this.settings.enableSmartToggle) {
             this.addCommand({
                 id: 'smart-bold', name: 'Smart bold',
-                editorCallback: (editor: Editor) => smartToggle(editor, { marker: '**', name: 'Bold' }),
+                editorCallback: (editor: Editor) => this.safeExecute(() => smartToggle(editor, { marker: '**', name: 'Bold' }), 'Smart bold failed'),
                 hotkeys: [{ modifiers: ['Mod'], key: 'b' }]
             });
             this.addCommand({
                 id: 'smart-italic', name: 'Smart italic',
-                editorCallback: (editor: Editor) => smartToggle(editor, { marker: '*', name: 'Italic' }),
+                editorCallback: (editor: Editor) => this.safeExecute(() => smartToggle(editor, { marker: '*', name: 'Italic' }), 'Smart italic failed'),
                 hotkeys: [{ modifiers: ['Mod'], key: 'i' }]
             });
             this.addCommand({
@@ -87,22 +89,60 @@ export default class MyPlugin extends Plugin {
         }
 
         // 5. Task Hotkeys
-        this.addCommand({
-            id: 'toggle-task',
-            name: 'Toggle task status',
-            editorCallback: (editor: Editor) => toggleTask(editor),
-            hotkeys: [{ modifiers: ['Mod'], key: 'l' }]
-        });
+        if (this.settings.enableTaskHotkeys) {
+            this.addCommand({
+                id: 'toggle-task',
+                name: 'Toggle task status',
+                editorCallback: (editor: Editor) => toggleTask(editor),
+                hotkeys: [{ modifiers: ['Mod'], key: 'l' }]
+            });
 
-        this.addCommand({
-            id: 'aggregate-tasks',
-            name: 'Aggregate tasks',
-            editorCallback: (editor: Editor) => {
-                const content = editor.getValue();
-                const summary = aggregateTasks(content, { includeCompleted: false });
-                editor.replaceSelection(summary);
-            }
-        });
+            this.addCommand({
+                id: 'move-task-next',
+                name: 'Move task to next column',
+                editorCallback: (editor: Editor) => {
+                    this.safeExecute(() => {
+                        const cursor = editor.getCursor();
+                        const allLines = editor.getValue().split('\n');
+                        const currentCol = getTaskColumn(allLines, cursor.line);
+                        
+                        let targetCol = '';
+                        if (currentCol === 'Todo') targetCol = 'In Progress';
+                        else if (currentCol === 'In Progress') targetCol = 'Done';
+                        else {
+                            new Notice('Editor Pro: Cursor must be under a Kanban heading (Todo or In Progress)');
+                            return;
+                        }
+
+                        const result = moveTaskToColumn(allLines, cursor.line, targetCol);
+                        editor.setValue(result.newLines.join('\n'));
+                        editor.setCursor({ line: result.newCursorLine, ch: 0 });
+                    }, 'Failed to move task');
+                },
+                hotkeys: [{ modifiers: ['Mod', 'Shift'], key: 'ArrowRight' }]
+            });
+
+            this.addCommand({
+                id: 'set-due-date',
+                name: 'Set due date (Today)',
+                editorCallback: (editor: Editor) => {
+                    const cursor = editor.getCursor();
+                    const line = editor.getLine(cursor.line);
+                    const newLine = setDueDate(line, generateDate('YYYY-MM-DD'));
+                    editor.setLine(cursor.line, newLine);
+                }
+            });
+
+            this.addCommand({
+                id: 'archive-tasks',
+                name: 'Archive completed tasks',
+                editorCallback: (editor: Editor) => {
+                    const content = editor.getValue();
+                    const newContent = archiveCompletedTasks(content);
+                    editor.setValue(newContent);
+                }
+            });
+        }
 
         // 6. Context Menu Integration
         if (this.settings.enableContextMenu) {
@@ -254,5 +294,14 @@ export default class MyPlugin extends Plugin {
         // Remove existing heading marker (e.g. "### ")
         const content = line.replace(/^#+\s?/, '');
         editor.setLine(cursor.line, '#'.repeat(level) + ' ' + content);
+    }
+
+    private safeExecute(action: () => void, errorMessage: string = 'Command failed') {
+        try {
+            action();
+        } catch (error) {
+            new Notice(`Editor Pro: ${errorMessage}`);
+            console.error(`[Editor Pro] ${errorMessage}`, error);
+        }
     }
 }

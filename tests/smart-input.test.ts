@@ -54,4 +54,13 @@ describe('Smart Input Handler', () => {
         const result = checkSmartInput(line, cursorCh);
         expect(result).toBeNull();
     });
+
+    test('works with Chinese characters before trigger', () => {
+        const line = '今天的日期是 @today';
+        const cursorCh = 14; // after @today
+        
+        const result = checkSmartInput(line, cursorCh);
+        expect(result).not.toBeNull();
+        expect(result?.replacement).toBe('2023-10-01');
+    });
 });

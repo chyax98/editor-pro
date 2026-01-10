@@ -4,10 +4,13 @@ import { wrapWithCallout, wrapWithCodeBlock } from "../callout/wrap-callout";
 import { CalloutTypePicker } from "../callout/callout-picker";
 
 import { generateTable, generateMermaid, generateDate, generateMath } from "../../utils/markdown-generators";
+import { setDueDate } from "../kanban/due-date";
 
 const COMMANDS: SlashCommand[] = [
     { id: 'callout', name: '提示块 (Callout)', aliases: ['callout', 'tip', 'tsk'] },
     { id: 'codeblock', name: '代码块 (Code Block)', aliases: ['code', 'dmk'] },
+    { id: 'kanban', name: '看板模板 (Kanban)', aliases: ['kb', 'kb'] },
+    { id: 'due', name: '设置截止 (Due Date)', aliases: ['due', 'jz'] },
     { id: 'math', name: '数学公式 (Math)', aliases: ['math', 'gs'] },
     { id: 'table', name: '插入表格 (Table)', aliases: ['table', 'bg'] },
     { id: 'date', name: '当前日期 (Date)', aliases: ['date', 'rq'] },
@@ -72,13 +75,22 @@ export class SlashCommandMenu extends EditorSuggest<SlashCommand> {
             case 'codeblock':
                 wrapWithCodeBlock(editor);
                 break;
+            case 'kanban':
+                editor.replaceSelection('## Todo\n- [ ] \n\n## In Progress\n\n## Done\n');
+                editor.setCursor({ line: cursor.line + 1, ch: 6 });
+                break;
+            case 'due':
+                const line = editor.getLine(cursor.line);
+                const newLine = setDueDate(line, generateDate('YYYY-MM-DD'));
+                editor.setLine(cursor.line, newLine);
+                break;
             case 'math':
                 editor.replaceSelection(generateMath());
                 editor.setCursor({ line: cursor.line + 1, ch: 0 });
                 break;
             case 'quote': {
-                const line = editor.getLine(cursor.line);
-                editor.setLine(cursor.line, '> ' + line);
+                const lineToQuote = editor.getLine(cursor.line);
+                editor.setLine(cursor.line, '> ' + lineToQuote);
                 break;
             }
             case 'table':
@@ -117,15 +129,11 @@ export class SlashCommandMenu extends EditorSuggest<SlashCommand> {
     private setHeading(editor: Editor, level: number) {
         const cursor = editor.getCursor();
         const line = editor.getLine(cursor.line);
-        // If line already starts with #, replace it? Or just prepend?
-        // Simple prepend for MVP.
-        // Check if line is empty (just had the command removed)
         if (line.trim() === '') {
             editor.setLine(cursor.line, '#'.repeat(level) + ' ');
         } else {
              editor.setLine(cursor.line, '#'.repeat(level) + ' ' + line);
         }
-        // Move cursor to end
         const newLineLen = editor.getLine(cursor.line).length;
         editor.setCursor({ line: cursor.line, ch: newLineLen });
     }
