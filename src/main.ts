@@ -332,10 +332,46 @@ export default class MyPlugin extends Plugin {
             }
         });
 
+        this.addCommand({
+            id: 'table-align-left',
+            name: 'Align column left',
+            editorCallback: (editor: Editor) => this.alignColumn(editor, 'left')
+        });
+
+        this.addCommand({
+            id: 'table-align-center',
+            name: 'Align column center',
+            editorCallback: (editor: Editor) => this.alignColumn(editor, 'center')
+        });
+
+        this.addCommand({
+            id: 'table-align-right',
+            name: 'Align column right',
+            editorCallback: (editor: Editor) => this.alignColumn(editor, 'right')
+        });
+
         this.addSettingTab(new EditorProSettingTab(this.app, this));
     }
 
     onunload() {
+    }
+
+    private alignColumn(editor: Editor, align: 'left' | 'center' | 'right') {
+        const cursor = editor.getCursor();
+        const allLines = editor.getValue().split('\n');
+        const start = findTableStart(allLines, cursor.line);
+        const end = findTableEnd(allLines, cursor.line);
+        if (start === -1 || end === -1) return;
+
+        const tableLines = allLines.slice(start, end + 1);
+        const curLine = allLines[cursor.line];
+        if (!curLine) return;
+        const preCursor = curLine.substring(0, cursor.ch);
+        const colIndex = (preCursor.match(/\|/g) || []).length - 1;
+
+        const newTableLines = setColumnAlign(tableLines, colIndex, align);
+        const fullText = allLines.slice(0, start).concat(newTableLines).concat(allLines.slice(end + 1)).join('\n');
+        editor.setValue(fullText);
     }
 
     async loadSettings() {
