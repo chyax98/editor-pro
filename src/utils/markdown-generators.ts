@@ -50,11 +50,29 @@ export function generateMermaid(type: 'flowchart' | 'sequence' | 'class' | 'stat
         +quack()
     }`;
             break;
+        case 'gantt':
+            content = `gantt
+    title A Gantt Diagram
+    dateFormat  YYYY-MM-DD
+    section Section
+    A task           :a1, 2023-01-01, 30d
+    Another task     :after a1  , 20d`;
+            break;
+        case 'pie':
+            content = `pie title Pets adopted by volunteers
+    "Dogs" : 386
+    "Cats" : 85
+    "Rats" : 15`;
+            break;
         default:
             content = 'flowchart LR\n    A-->B';
     }
     
     return "```mermaid\n" + content + "\n```";
+}
+
+export function generateMath(): string {
+    return "$$\n\n$$";
 }
 
 export function generateDate(format: 'YYYY-MM-DD' | 'HH:mm' | 'YYYY-MM-DD HH:mm'): string {
@@ -79,4 +97,34 @@ export function generateDate(format: 'YYYY-MM-DD' | 'HH:mm' | 'YYYY-MM-DD HH:mm'
     }
     
     return now.toDateString();
+}
+
+export function insertRow(lines: string[], currentRowIndex: number): string[] {
+    const currentLine = lines[currentRowIndex];
+    if (!currentLine || !currentLine.trim().startsWith('|')) return lines;
+
+    const colCount = (currentLine.match(/\|/g) || []).length - 1;
+    const newRow = '| ' + Array(colCount).fill('').join(' | ') + ' |';
+    
+    const newLines = [...lines];
+    newLines.splice(currentRowIndex + 1, 0, newRow);
+    return newLines;
+}
+
+export function deleteRow(lines: string[], currentRowIndex: number): string[] {
+    const line = lines[currentRowIndex];
+    if (!line || !line.trim().startsWith('|')) return lines;
+    
+    // Don't delete if it's the header or separator (first 2 rows of a table)
+    // This is naive; in a real scenario we'd check if previous lines are table lines
+    if (currentRowIndex === 0) return lines;
+    const prevLine = lines[currentRowIndex - 1];
+    if (prevLine && !prevLine.trim().startsWith('|')) return lines; // It's first row
+    
+    // Check if it's separator row
+    if (line.includes('---')) return lines;
+
+    const newLines = [...lines];
+    newLines.splice(currentRowIndex, 1);
+    return newLines;
 }

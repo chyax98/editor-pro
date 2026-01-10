@@ -16,7 +16,9 @@ const PINYIN_MAP: Record<string, string> = {
     '表': 'b', '格': 'g',
     '日': 'r', '期': 'q',
     '时': 's', '间': 'j', '序': 'x',
-    '流': 'l', '程': 'c', '图': 't'
+    '流': 'l', '程': 'c', '图': 't',
+    '数': 's', '学': 'x', '公': 'g', '式': 's',
+    '甘': 'g', '特': 't', '饼': 'b'
 };
 
 function getInitials(text: string): string {

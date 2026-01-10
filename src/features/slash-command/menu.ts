@@ -3,16 +3,19 @@ import { SlashCommand, shouldTriggerSlashCommand, matchCommand } from "./utils";
 import { wrapWithCallout, wrapWithCodeBlock } from "../callout/wrap-callout";
 import { CalloutTypePicker } from "../callout/callout-picker";
 
-import { generateTable, generateMermaid, generateDate } from "../../utils/markdown-generators";
+import { generateTable, generateMermaid, generateDate, generateMath } from "../../utils/markdown-generators";
 
 const COMMANDS: SlashCommand[] = [
     { id: 'callout', name: '提示块 (Callout)', aliases: ['callout', 'tip', 'tsk'] },
     { id: 'codeblock', name: '代码块 (Code Block)', aliases: ['code', 'dmk'] },
+    { id: 'math', name: '数学公式 (Math)', aliases: ['math', 'gs'] },
     { id: 'table', name: '插入表格 (Table)', aliases: ['table', 'bg'] },
     { id: 'date', name: '当前日期 (Date)', aliases: ['date', 'rq'] },
     { id: 'time', name: '当前时间 (Time)', aliases: ['time', 'sj'] },
     { id: 'flowchart', name: '流程图 (Flowchart)', aliases: ['flow', 'lct'] },
     { id: 'sequence', name: '时序图 (Sequence)', aliases: ['seq', 'sxt'] },
+    { id: 'gantt', name: '甘特图 (Gantt)', aliases: ['gantt', 'gtr'] },
+    { id: 'pie', name: '饼图 (Pie)', aliases: ['pie', 'bt'] },
     { id: 'h1', name: '一级标题 (H1)', aliases: ['h1', 'yjbt'] },
     { id: 'h2', name: '二级标题 (H2)', aliases: ['h2', 'ejbt'] },
     { id: 'h3', name: '三级标题 (H3)', aliases: ['h3', 'sjbt'] },
@@ -59,6 +62,7 @@ export class SlashCommandMenu extends EditorSuggest<SlashCommand> {
     }
     
     private executeCommand(id: string, editor: Editor) {
+        const cursor = editor.getCursor();
         switch (id) {
             case 'callout':
                 new CalloutTypePicker(this.app, (type) => {
@@ -68,8 +72,11 @@ export class SlashCommandMenu extends EditorSuggest<SlashCommand> {
             case 'codeblock':
                 wrapWithCodeBlock(editor);
                 break;
+            case 'math':
+                editor.replaceSelection(generateMath());
+                editor.setCursor({ line: cursor.line + 1, ch: 0 });
+                break;
             case 'quote': {
-                const cursor = editor.getCursor();
                 const line = editor.getLine(cursor.line);
                 editor.setLine(cursor.line, '> ' + line);
                 break;
@@ -88,6 +95,12 @@ export class SlashCommandMenu extends EditorSuggest<SlashCommand> {
                 break;
             case 'sequence':
                 editor.replaceSelection(generateMermaid('sequence'));
+                break;
+            case 'gantt':
+                editor.replaceSelection(generateMermaid('gantt'));
+                break;
+            case 'pie':
+                editor.replaceSelection(generateMermaid('pie'));
                 break;
             case 'h1':
                 this.setHeading(editor, 1);

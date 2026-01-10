@@ -4,9 +4,11 @@ import { toggleTask } from './features/formatting/task-toggle';
 import { wrapWithCallout, wrapWithCodeBlock, wrapWithQuote } from './features/callout/wrap-callout';
 import { CalloutTypePicker } from './features/callout/callout-picker';
 import { SlashCommandMenu } from './features/slash-command/menu';
-import { generateTable, generateDate } from './utils/markdown-generators';
+import { generateTable, generateDate, insertRow, deleteRow } from './utils/markdown-generators';
 import { YamlManager } from './features/yaml/auto-update';
 import { handleTableNavigation } from './features/table/table-navigation';
+import { checkSmartInput } from './features/smart-input/input-handler';
+import { aggregateTasks } from './features/task/aggregator';
 import { DEFAULT_SETTINGS, MyPluginSettings, EditorProSettingTab } from "./settings";
 
 export default class MyPlugin extends Plugin {
@@ -85,20 +87,31 @@ export default class MyPlugin extends Plugin {
         }
 
         // 5. Task Hotkeys
-        if (this.settings.enableTaskHotkeys) {
-            this.addCommand({
-                id: 'toggle-task',
-                name: 'Toggle task status',
-                editorCallback: (editor: Editor) => toggleTask(editor),
-                hotkeys: [{ modifiers: ['Mod'], key: 'l' }]
-            });
-        }
+        this.addCommand({
+            id: 'toggle-task',
+            name: 'Toggle task status',
+            editorCallback: (editor: Editor) => toggleTask(editor),
+            hotkeys: [{ modifiers: ['Mod'], key: 'l' }]
+        });
+
+        this.addCommand({
+            id: 'aggregate-tasks',
+            name: 'Aggregate tasks',
+            editorCallback: (editor: Editor) => {
+                const content = editor.getValue();
+                const summary = aggregateTasks(content, { includeCompleted: false });
+                editor.replaceSelection(summary);
+            }
+        });
 
         // 6. Context Menu Integration
         if (this.settings.enableContextMenu) {
             this.registerEvent(
                 this.app.workspace.on("editor-menu", (menu: Menu, editor: Editor) => {
                     const selection = editor.getSelection();
+                    const line = editor.getLine(editor.getCursor().line);
+                    const isInTable = line.trim().startsWith('|');
+
                     if (selection) {
                         menu.addSeparator();
                         
@@ -116,6 +129,31 @@ export default class MyPlugin extends Plugin {
                                 .onClick(() => wrapWithCodeBlock(editor));
                         });
                     }
+
+                    if (isInTable) {
+                        menu.addSeparator();
+                        menu.addItem((item) => {
+                            item.setTitle("Insert Row Below")
+                                .setIcon("table")
+                                .onClick(() => {
+                                    const cursor = editor.getCursor();
+                                    const allLines = editor.getValue().split('\n');
+                                    const newLines = insertRow(allLines, cursor.line);
+                                    editor.setValue(newLines.join('\n'));
+                                    editor.setCursor({ line: cursor.line + 1, ch: 2 });
+                                });
+                        });
+                        menu.addItem((item) => {
+                            item.setTitle("Delete Current Row")
+                                .setIcon("trash")
+                                .onClick(() => {
+                                    const cursor = editor.getCursor();
+                                    const allLines = editor.getValue().split('\n');
+                                    const newLines = deleteRow(allLines, cursor.line);
+                                    editor.setValue(newLines.join('\n'));
+                                });
+                        });
+                    }
                 })
             );
         }
@@ -125,6 +163,29 @@ export default class MyPlugin extends Plugin {
             id: 'insert-table',
             name: 'Insert table (3x3)',
             editorCallback: (editor: Editor) => editor.replaceSelection(generateTable(3, 3))
+        });
+
+        this.addCommand({
+            id: 'insert-row-below',
+            name: 'Insert row below',
+            editorCallback: (editor: Editor) => {
+                const cursor = editor.getCursor();
+                const allLines = editor.getValue().split('\n');
+                const newLines = insertRow(allLines, cursor.line);
+                editor.setValue(newLines.join('\n'));
+                editor.setCursor({ line: cursor.line + 1, ch: 2 });
+            }
+        });
+
+        this.addCommand({
+            id: 'delete-table-row',
+            name: 'Delete current row',
+            editorCallback: (editor: Editor) => {
+                const cursor = editor.getCursor();
+                const allLines = editor.getValue().split('\n');
+                const newLines = deleteRow(allLines, cursor.line);
+                editor.setValue(newLines.join('\n'));
+            }
         });
 
         this.addCommand({
@@ -155,6 +216,23 @@ export default class MyPlugin extends Plugin {
                 handleTableNavigation(evt, view.editor);
             }
         });
+
+        // 10. Smart Input Expansion (@today, @time)
+        this.registerEvent(
+            this.app.workspace.on('editor-change', (editor: Editor) => {
+                const cursor = editor.getCursor();
+                const line = editor.getLine(cursor.line);
+                
+                const match = checkSmartInput(line, cursor.ch);
+                if (match) {
+                    editor.replaceRange(
+                        match.replacement,
+                        { line: cursor.line, ch: match.range.from },
+                        { line: cursor.line, ch: match.range.to }
+                    );
+                }
+            })
+        );
 
         this.addSettingTab(new EditorProSettingTab(this.app, this));
     }
