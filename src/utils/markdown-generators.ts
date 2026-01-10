@@ -108,6 +108,31 @@ export function generateHTML(tag: string = 'div'): string {
     return `<${tag} class="">\n\n</${tag}>`;
 }
 
+export function generateFencedCodeBlock(language: string, body: string = ''): string {
+    const normalizedBody = body.replace(/\n$/, '');
+
+    if (!normalizedBody) {
+        return `\`\`\`${language}\n\n\`\`\`\n`;
+    }
+
+    return `\`\`\`${language}\n${normalizedBody}\n\`\`\`\n`;
+}
+
+export function generateInfographicListRowSimpleHorizontalArrow(): string {
+    return [
+        'infographic list-row-simple-horizontal-arrow',
+        'data',
+        '  title Getting Started',
+        '  items',
+        '    - label Step 1',
+        '      desc Install dependencies',
+        '    - label Step 2',
+        '      desc Configure settings',
+        '    - label Step 3',
+        '      desc Run the app',
+    ].join('\n');
+}
+
 export function generateDate(format: 'YYYY-MM-DD' | 'HH:mm' | 'YYYY-MM-DD HH:mm'): string {
     const now = new Date();
     

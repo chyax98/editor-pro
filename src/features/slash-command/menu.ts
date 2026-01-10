@@ -3,7 +3,7 @@ import { SlashCommand, shouldTriggerSlashCommand, matchCommand } from "./utils";
 import { wrapWithCallout, wrapWithCodeBlock } from "../callout/wrap-callout";
 import { CalloutTypePicker } from "../callout/callout-picker";
 
-import { generateTable, generateMermaid, generateDate, generateMath, generateDaily, generateWeekly, generateHTML } from "../../utils/markdown-generators";
+import { generateFencedCodeBlock, generateInfographicListRowSimpleHorizontalArrow, generateTable, generateDate, generateMath, generateDaily, generateWeekly, generateHTML } from "../../utils/markdown-generators";
 import { setDueDate } from "../kanban/due-date";
 
 const COMMANDS: SlashCommand[] = [
@@ -15,10 +15,9 @@ const COMMANDS: SlashCommand[] = [
     { id: 'table', name: '插入表格 (Table)', aliases: ['table', 'bg'] },
     { id: 'date', name: '当前日期 (Date)', aliases: ['date', 'rq'] },
     { id: 'time', name: '当前时间 (Time)', aliases: ['time', 'sj'] },
-    { id: 'flowchart', name: '流程图 (Flowchart)', aliases: ['flow', 'lct'] },
-    { id: 'sequence', name: '时序图 (Sequence)', aliases: ['seq', 'sxt'] },
-    { id: 'gantt', name: '甘特图 (Gantt)', aliases: ['gantt', 'gtr'] },
-    { id: 'pie', name: '饼图 (Pie)', aliases: ['pie', 'bt'] },
+    { id: 'mermaid', name: 'Mermaid 图表 (Mermaid)', aliases: ['mermaid', 'mm'] },
+    { id: 'd2', name: 'D2 图表 (D2)', aliases: ['d2'] },
+    { id: 'infographic', name: '信息图 (Infographic)', aliases: ['infographic', 'info', 'xx'] },
     { id: 'daily', name: '日记模板 (Daily)', aliases: ['daily', 'rj'] },
     { id: 'weekly', name: '周记模板 (Weekly)', aliases: ['weekly', 'zj'] },
     { id: 'html', name: 'HTML 片段 (HTML)', aliases: ['html', 'dm'] },
@@ -121,17 +120,17 @@ export class SlashCommandMenu extends EditorSuggest<SlashCommand> {
             case 'time':
                 editor.replaceSelection(generateDate('HH:mm'));
                 break;
-            case 'flowchart':
-                editor.replaceSelection(generateMermaid('flowchart'));
+            case 'mermaid':
+                editor.replaceSelection(generateFencedCodeBlock('mermaid'));
+                editor.setCursor({ line: cursor.line + 1, ch: 0 });
                 break;
-            case 'sequence':
-                editor.replaceSelection(generateMermaid('sequence'));
+            case 'd2':
+                editor.replaceSelection(generateFencedCodeBlock('d2'));
+                editor.setCursor({ line: cursor.line + 1, ch: 0 });
                 break;
-            case 'gantt':
-                editor.replaceSelection(generateMermaid('gantt'));
-                break;
-            case 'pie':
-                editor.replaceSelection(generateMermaid('pie'));
+            case 'infographic':
+                editor.replaceSelection(generateFencedCodeBlock('infographic', generateInfographicListRowSimpleHorizontalArrow()));
+                editor.setCursor({ line: cursor.line + 1, ch: 0 });
                 break;
             case 'h1':
                 this.setHeading(editor, 1);
