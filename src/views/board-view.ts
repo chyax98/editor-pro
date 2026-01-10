@@ -1,36 +1,27 @@
-import { ItemView, WorkspaceLeaf, TFile, Menu, debounce, Notice } from "obsidian";
-import { BoardData, BoardCard, BoardColumn, DEFAULT_BOARD } from "../features/board/board-model";
+import { FileView, Notice, TFile, WorkspaceLeaf } from "obsidian";
+import { BoardCard, BoardColumn, BoardData, DEFAULT_BOARD } from "../features/board/board-model";
 import { CardModal } from "./card-modal";
 
 export const VIEW_TYPE_BOARD = "editor-pro-board-view";
 
-export class BoardView extends ItemView {
-    file: TFile | null = null;
+export class BoardView extends FileView {
     data: BoardData = DEFAULT_BOARD;
-    
-    // Drag State
     draggedCardId: string | null = null;
-
-    constructor(leaf: WorkspaceLeaf) {
-        super(leaf);
-    }
 
     getViewType() { return VIEW_TYPE_BOARD; }
     getDisplayText() { return this.file ? this.file.basename : "项目看板"; }
     getIcon() { return "layout-dashboard"; }
 
     async onOpen() {
+        this.registerEvent(this.app.vault.on('modify', (f) => {
+            if (this.file && f.path === this.file.path) void this.loadData();
+        }));
         this.renderEmpty();
     }
 
-    async setFile(file: TFile) {
+    async onLoadFile(file: TFile): Promise<void> {
         this.file = file;
         await this.loadData();
-        
-        // Watch for external changes
-        this.registerEvent(this.app.vault.on('modify', (f) => {
-            if (f === this.file) this.loadData();
-        }));
     }
 
     async loadData() {
@@ -41,6 +32,7 @@ export class BoardView extends ItemView {
         } catch (e) {
             console.error('Failed to parse board file', e);
             this.data = DEFAULT_BOARD;
+            new Notice('Editor Pro：看板文件解析失败，已使用默认模板');
         }
         this.renderBoard();
     }

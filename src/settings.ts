@@ -24,7 +24,7 @@ export const DEFAULT_SETTINGS: MyPluginSettings = {
     yamlCreatedKey: 'created',
     yamlUpdatedKey: 'updated',
     yamlDateFormat: 'YYYY-MM-DD HH:mm',
-    kanbanFilePath: 'Kanban.md'
+    kanbanFilePath: 'Kanban.board'
 }
 
 export class EditorProSettingTab extends PluginSettingTab {
@@ -80,7 +80,7 @@ export class EditorProSettingTab extends PluginSettingTab {
 
         new Setting(containerEl)
             .setName('开启任务快捷键')
-            .setDesc('Cmd+L 循环切换任务状态；Cmd+Shift+方向右键 将任务移动到看板的下一列。')
+            .setDesc('Cmd+L 循环切换任务状态（普通文本 / 待办 / 完成）。')
             .addToggle(toggle => toggle
                 .setValue(this.plugin.settings.enableTaskHotkeys)
                 .onChange(async (value) => {
@@ -90,9 +90,9 @@ export class EditorProSettingTab extends PluginSettingTab {
 
         new Setting(containerEl)
             .setName('看板文件路径')
-            .setDesc('全局看板文件的位置 (例如: Kanban.md)。点击侧边栏图标将打开此文件。')
+            .setDesc('库内相对路径（例如: Kanban.board 或 Projects/Kanban.board）。点击侧边栏图标将创建/打开此文件。')
             .addText(text => text
-                .setPlaceholder('Kanban.md')
+                .setPlaceholder('Kanban.board')
                 .setValue(this.plugin.settings.kanbanFilePath)
                 .onChange(async (value) => {
                     this.plugin.settings.kanbanFilePath = value;

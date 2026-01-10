@@ -1,4 +1,4 @@
-import { Editor, MarkdownView, Plugin, Menu, Notice, TFile } from 'obsidian';
+import { Editor, MarkdownView, Menu, normalizePath, Notice, Plugin, TFile, TFolder } from 'obsidian';
 import { smartToggle } from './features/formatting/smart-toggle';
 import { toggleTask } from './features/formatting/task-toggle';
 import { wrapWithCallout, wrapWithCodeBlock, wrapWithQuote } from './features/callout/wrap-callout';
@@ -190,26 +190,66 @@ export default class MyPlugin extends Plugin {
     }
 
     async openBoard() {
-        const path = this.settings.kanbanFilePath.endsWith('.board') 
-            ? this.settings.kanbanFilePath 
-            : this.settings.kanbanFilePath.replace(/\.md$/, '') + '.board';
-            
-        let file = this.app.vault.getAbstractFileByPath(path);
+        const rawPath = this.settings.kanbanFilePath?.trim() || 'Kanban.board';
 
+        let path = rawPath.endsWith('.board')
+            ? rawPath
+            : `${rawPath.replace(/\.md$/i, '')}.board`;
+
+        path = normalizePath(path);
+
+        // Obsidian vault paths must be relative.
+        if (path.startsWith('/') || /^[A-Za-z]:[\\/]/.test(path)) {
+            new Notice('Editor Pro：看板路径必须是库内相对路径（例如：Kanban.board 或 Projects/Kanban.board）');
+            return;
+        }
+
+        try {
+            const folderPath = path.split('/').slice(0, -1).join('/');
+            if (folderPath) await this.ensureFolderExists(folderPath);
+        } catch (e) {
+            const message = e instanceof Error ? e.message : String(e);
+            new Notice(`Editor Pro：创建文件夹失败：${message}`);
+            return;
+        }
+
+        const existing = this.app.vault.getAbstractFileByPath(path);
+        if (existing && !(existing instanceof TFile)) {
+            new Notice(`Editor Pro：看板路径被文件夹占用：${path}`);
+            return;
+        }
+
+        let file = existing as TFile | null;
         if (!file) {
             try {
                 file = await this.app.vault.create(path, JSON.stringify(DEFAULT_BOARD, null, 2));
                 new Notice(`已创建看板: ${path}`);
-            } catch (e: any) {
-                new Notice(`创建看板失败: ${e.message}`);
+            } catch (e) {
+                const message = e instanceof Error ? e.message : String(e);
+                new Notice(`创建看板失败: ${message}`);
                 return;
             }
         }
 
-        if (file instanceof TFile) {
-            // 获取一个叶子节点来打开文件
-            const leaf = this.app.workspace.getLeaf(true);
-            await leaf.openFile(file);
+        await this.app.workspace.getLeaf(true).openFile(file);
+    }
+
+    private async ensureFolderExists(folderPath: string) {
+        const parts = folderPath.split('/').filter(Boolean);
+        let currentPath = '';
+
+        for (const part of parts) {
+            currentPath = currentPath ? `${currentPath}/${part}` : part;
+
+            const existing = this.app.vault.getAbstractFileByPath(currentPath);
+            if (!existing) {
+                await this.app.vault.createFolder(currentPath);
+                continue;
+            }
+
+            if (!(existing instanceof TFolder)) {
+                throw new Error(`路径冲突：${currentPath} 已存在且不是文件夹`);
+            }
         }
     }
 
