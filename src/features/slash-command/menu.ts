@@ -3,7 +3,8 @@ import { SlashCommand, shouldTriggerSlashCommand, matchCommand } from "./utils";
 import { wrapWithCallout, wrapWithCodeBlock } from "../callout/wrap-callout";
 import { CalloutTypePicker } from "../callout/callout-picker";
 
-import { generateFencedCodeBlock, generateInfographicListRowSimpleHorizontalArrow, generateTable, generateDate, generateMath, generateDaily, generateWeekly, generateHTML } from "../../utils/markdown-generators";
+import { generateFencedCodeBlock, generateTable, generateDate, generateMath, generateDaily, generateWeekly, generateHTML } from "../../utils/markdown-generators";
+import { InfographicTemplatePicker } from "../infographic/template-picker";
 import { setDueDate } from "../kanban/due-date";
 
 const COMMANDS: SlashCommand[] = [
@@ -129,8 +130,11 @@ export class SlashCommandMenu extends EditorSuggest<SlashCommand> {
                 editor.setCursor({ line: cursor.line + 1, ch: 0 });
                 break;
             case 'infographic':
-                editor.replaceSelection(generateFencedCodeBlock('infographic', generateInfographicListRowSimpleHorizontalArrow()));
-                editor.setCursor({ line: cursor.line + 1, ch: 0 });
+                new InfographicTemplatePicker(this.app, (template) => {
+                    const cursorBefore = editor.getCursor();
+                    editor.replaceSelection(generateFencedCodeBlock('infographic', template.body));
+                    editor.setCursor({ line: cursorBefore.line + 1, ch: 0 });
+                }).open();
                 break;
             case 'h1':
                 this.setHeading(editor, 1);

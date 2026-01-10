@@ -13,6 +13,7 @@ import { checkSmartInput } from './features/smart-input/input-handler';
 import { overdueHighlighter } from './features/visuals/overdue-highlighter';
 import { BoardView, VIEW_TYPE_BOARD } from './views/board-view';
 import { DEFAULT_BOARD } from './features/board/board-model';
+import { registerInfographicRenderer } from './features/infographic/renderer';
 import { DEFAULT_SETTINGS, MyPluginSettings, EditorProSettingTab } from "./settings";
 
 export default class MyPlugin extends Plugin {
@@ -176,6 +177,9 @@ export default class MyPlugin extends Plugin {
         // 10. 过期高亮
         this.registerEditorExtension(overdueHighlighter);
 
+        // 11. Infographic 渲染器（```infographic 代码块）
+        registerInfographicRenderer(this);
+
         this.addSettingTab(new EditorProSettingTab(this.app, this));
     }
 
@@ -231,7 +235,13 @@ export default class MyPlugin extends Plugin {
             }
         }
 
-        await this.app.workspace.getLeaf(true).openFile(file);
+        const leaf = this.app.workspace.getLeaf(true);
+        try {
+            await leaf.setViewState({ type: VIEW_TYPE_BOARD, state: { file: file.path }, active: true });
+        } catch {
+            await leaf.openFile(file, { active: true });
+        }
+        this.app.workspace.revealLeaf(leaf);
     }
 
     private async ensureFolderExists(folderPath: string) {

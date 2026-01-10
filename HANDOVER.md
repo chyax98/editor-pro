@@ -56,12 +56,13 @@ npm test
 ### 已实现（可用）
 - 智能格式切换：加粗/斜体/删除线/高亮/行内代码（`src/features/formatting/smart-toggle.ts`）
 - 选区转换：Callout、代码块（`src/features/callout/wrap-callout.ts`）
-- 斜杠命令：支持 `/` 与中文顿号 `、` 触发；提供表格、Mermaid、多种模板、HTML 片段等（`src/features/slash-command/`）
+- 斜杠命令：支持 `/`、中文顿号 `、`、反斜杠 `\\` 触发；提供表格、Mermaid/D2/Infographic、模板、HTML 片段等（`src/features/slash-command/`）
 - 标题快捷键：Cmd+1~6（`src/main.ts`）
 - YAML 自动化：created/updated 自动维护（`src/features/yaml/auto-update.ts`）
 - 表格增强：Tab 键在单元格间跳转（`src/features/table/table-navigation.ts`）
 - Shift+Enter 块跳出：引用/Callout 内快速换行（`src/features/formatting/block-navigation.ts`）
 - 看板（JSON）：侧边栏图标创建/打开 `Kanban.board`，支持拖拽、详情编辑（`src/views/board-view.ts`、`src/views/card-modal.ts`）
+- Infographic 渲染器：支持预览/阅读模式渲染 ` ```infographic` 代码块（`src/features/infographic/renderer.ts`）
 
 ### 部分实现 / 需要校准
 - 拼音首字母搜索：当前为最小映射表（`src/features/slash-command/utils.ts`），若要“全量拼音”需接入成熟库或完整算法
@@ -70,7 +71,8 @@ npm test
 - 表格行列操作：算法与测试存在（`src/utils/table-generators.ts` 等），但当前 UI/命令暴露不完整（`src/main.ts` 已移除部分命令）
 
 ### 未实现（在原始需求中但代码未覆盖或未接入）
-- D2 图表集成 / AI 图表
+- D2 图表“渲染集成”（当前仅提供插入空 ` ```d2` 代码块的斜杠命令；未做本地渲染）
+- AI 图表生成工作流（仅提供基础模板插入）
 - Callout 样式管理（除类型选择器外的样式系统）
 - 自定义模板系统（目前仅 Daily/Weekly 生成器）
 - YAML Tags 管理与自定义 meta 扩展（当前仅 created/updated）
@@ -78,7 +80,7 @@ npm test
 
 ## 6. 质量与测试状态
 
-- 单测：`npm test`（当前 14 suites / 65 tests 通过）
+- 单测：`npm test`（当前 14 suites / 68 tests 通过）
 - 构建：`npm run build` 通过
 - Lint：`npm run lint` 当前不通过（主要是 eslint project service 未覆盖 tests/__mocks__，以及部分规则与当前实现冲突；建议作为后续整理项）
 
@@ -95,4 +97,3 @@ npm test
 - 建议优先保持核心逻辑与 UI 解耦：模型（data）、操作（actions）、视图（render）
 - 若引入 React：用 `esbuild` 打包 JSX；在 Obsidian `ItemView`/`FileView` 中挂载 root，并在 `onClose`/`onunload` 中 `unmount`，避免泄漏
 - 体积与移动端：React 体积较大，可评估 Preact/Lit/Svelte；并根据实际使用的桌面 API 决定是否将 `manifest.json:isDesktopOnly` 置为 `true`
-
