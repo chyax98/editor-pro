@@ -1,6 +1,6 @@
 import { Modal, App, Setting } from "obsidian";
 import { BoardCard, BoardColumn } from "../features/board/board-model";
-import { ConfirmModal } from "./simple-modals";
+import { ConfirmModal } from "../ui/modals";
 
 export class CardModal extends Modal {
     card: BoardCard;

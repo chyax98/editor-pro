@@ -1,7 +1,7 @@
 import { FileView, Notice, TFile } from "obsidian";
 import { BoardCard, BoardColumn, BoardData, DEFAULT_BOARD } from "../features/board/board-model";
 import { CardModal } from "./card-modal";
-import { TextPromptModal } from "./simple-modals";
+import { TextPromptModal } from "../ui/modals";
 
 export const VIEW_TYPE_BOARD = "editor-pro-board-view";
 
