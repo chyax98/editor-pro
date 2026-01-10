@@ -1,5 +1,5 @@
 import { YamlManager } from '../src/features/yaml/auto-update';
-import { App, TFile } from 'obsidian';
+import { App, Plugin, TFile } from 'obsidian';
 
 // Mock generic debounce to execute immediately for tests, or use fake timers
 jest.useFakeTimers();
@@ -17,7 +17,8 @@ describe('YamlManager', () => {
             updatedKey: 'updated',
             dateFormat: 'YYYY-MM-DD HH:mm'
         });
-        yamlManager.onload();
+        const plugin = { registerEvent: () => {} } as unknown as Plugin;
+        yamlManager.register(plugin);
     });
 
     test('updates created date on file creation', () => {

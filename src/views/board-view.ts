@@ -1,8 +1,39 @@
-import { FileView, Notice, TFile, WorkspaceLeaf } from "obsidian";
+import { FileView, Notice, TFile } from "obsidian";
 import { BoardCard, BoardColumn, BoardData, DEFAULT_BOARD } from "../features/board/board-model";
 import { CardModal } from "./card-modal";
+import { TextPromptModal } from "./simple-modals";
 
 export const VIEW_TYPE_BOARD = "editor-pro-board-view";
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+	return typeof value === "object" && value !== null;
+}
+
+function isBoardData(value: unknown): value is BoardData {
+	if (!isRecord(value)) return false;
+	if (typeof value.title !== "string") return false;
+	if (!Array.isArray(value.columns)) return false;
+	if (!Array.isArray(value.cards)) return false;
+
+	for (const col of value.columns) {
+		if (!isRecord(col)) return false;
+		if (typeof col.id !== "string") return false;
+		if (typeof col.name !== "string") return false;
+	}
+
+	for (const card of value.cards) {
+		if (!isRecord(card)) return false;
+		if (typeof card.id !== "string") return false;
+		if (typeof card.columnId !== "string") return false;
+		if (typeof card.title !== "string") return false;
+		if (typeof card.description !== "string") return false;
+		if (card.priority !== "low" && card.priority !== "medium" && card.priority !== "high") return false;
+		if (card.dueDate !== null && typeof card.dueDate !== "string") return false;
+		if (!Array.isArray(card.tags)) return false;
+	}
+
+	return true;
+}
 
 export class BoardView extends FileView {
     data: BoardData = DEFAULT_BOARD;
@@ -28,7 +59,11 @@ export class BoardView extends FileView {
         if (!this.file) return;
         const content = await this.app.vault.read(this.file);
         try {
-            this.data = JSON.parse(content);
+            const parsed = JSON.parse(content) as unknown;
+            if (!isBoardData(parsed)) {
+                throw new Error("Invalid board file shape");
+            }
+            this.data = parsed;
         } catch (e) {
             console.error('Failed to parse board file', e);
             this.data = DEFAULT_BOARD;
@@ -61,12 +96,16 @@ export class BoardView extends FileView {
         // Add Column Btn
         const addColBtn = boardEl.createDiv({ cls: 'board-add-col-btn', text: '+ 添加列表' });
         addColBtn.onclick = () => {
-            const name = prompt('列表名称');
-            if (name) {
-                this.data.columns.push({ id: `col-${Date.now()}`, name });
-                this.saveData();
-                this.renderBoard();
-            }
+            new TextPromptModal(this.app, {
+                title: "列表名称",
+                placeholder: "例如：待办",
+                submitText: "创建",
+                onSubmit: (name) => {
+                    this.data.columns.push({ id: `col-${Date.now()}`, name });
+                    void this.saveData();
+                    this.renderBoard();
+                },
+            }).open();
         };
     }
 
@@ -106,12 +145,12 @@ export class BoardView extends FileView {
                 tags: []
             };
             this.data.cards.push(newCard);
-            this.saveData();
+            void this.saveData();
             this.renderBoard();
             // Auto open modal?
             new CardModal(this.app, newCard, this.data.columns, 
-                (updated) => { Object.assign(newCard, updated); this.saveData(); this.renderBoard(); },
-                (deleted) => { this.data.cards.remove(deleted); this.saveData(); this.renderBoard(); }
+                (updated) => { Object.assign(newCard, updated); void this.saveData(); this.renderBoard(); },
+                (deleted) => { this.data.cards = this.data.cards.filter(c => c.id !== deleted.id); void this.saveData(); this.renderBoard(); }
             ).open();
         };
     }
@@ -135,19 +174,19 @@ export class BoardView extends FileView {
                     // Update model
                     const idx = this.data.cards.findIndex(c => c.id === card.id);
                     if (idx !== -1) this.data.cards[idx] = updated;
-                    this.saveData();
+                    void this.saveData();
                     this.renderBoard();
                 },
                 (deleted) => {
                     this.data.cards = this.data.cards.filter(c => c.id !== card.id);
-                    this.saveData();
+                    void this.saveData();
                     this.renderBoard();
                 }
             ).open();
         };
 
         // UI
-        const titleRow = cardEl.createDiv({ cls: 'board-card-title', text: card.title });
+        cardEl.createDiv({ cls: 'board-card-title', text: card.title });
         
         // Metadata Row
         const metaRow = cardEl.createDiv({ cls: 'board-card-meta' });
@@ -168,7 +207,7 @@ export class BoardView extends FileView {
         const card = this.data.cards.find(c => c.id === cardId);
         if (card && card.columnId !== colId) {
             card.columnId = colId;
-            this.saveData();
+            void this.saveData();
             this.renderBoard();
         }
     }

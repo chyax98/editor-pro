@@ -1,4 +1,4 @@
-import { ItemView, WorkspaceLeaf, TFile, Menu, debounce, Notice } from "obsidian";
+import { ItemView, WorkspaceLeaf, TFile, Menu, debounce } from "obsidian";
 import { KanbanBoard, KanbanModel, KanbanCard, KanbanColumn } from "../features/kanban/kanban-model";
 
 export const VIEW_TYPE_KANBAN = "editor-pro-kanban-view";
@@ -29,7 +29,7 @@ export class KanbanView extends ItemView {
         
         // Register file change listener (debounced refresh to avoid fighting with self-updates)
         this.registerEvent(this.app.vault.on('modify', (f) => {
-            if (f === this.file) this.refresh();
+            if (f === this.file) void this.refresh();
         }));
     }
 
@@ -78,7 +78,7 @@ export class KanbanView extends ItemView {
                 name: 'New List',
                 cards: []
             });
-            this.save();
+            void this.save();
             this.renderBoard();
         };
     }
@@ -92,7 +92,7 @@ export class KanbanView extends ItemView {
         const titleInput = header.createEl('input', { cls: 'kanban-column-title', value: col.name });
         titleInput.onblur = () => {
             col.name = titleInput.value;
-            this.save();
+            void this.save();
         };
         
         // Count
@@ -130,7 +130,7 @@ export class KanbanView extends ItemView {
                 metadata: { tags: [] }
             };
             col.cards.push(newCard);
-            this.save();
+            void this.save();
             this.renderBoard(); // Re-render to show new card
         };
     }
@@ -200,7 +200,7 @@ export class KanbanView extends ItemView {
                         const idx = col.cards.indexOf(card);
                         if (idx > -1) {
                             col.cards.splice(idx, 1);
-                            this.save();
+                            void this.save();
                             this.renderBoard();
                         }
                     });
@@ -236,7 +236,7 @@ export class KanbanView extends ItemView {
         // Add to target
         targetCol.cards.push(card);
 
-        this.save();
+        void this.save();
         this.renderBoard();
     }
 }

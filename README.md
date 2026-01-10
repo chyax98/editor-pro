@@ -1,90 +1,72 @@
-# Obsidian Sample Plugin
+# Editor Pro (Obsidian Community Plugin)
 
-This is a sample plugin for Obsidian (https://obsidian.md).
+Editor Pro 是一个“编辑增强”插件：把常用的编辑器效率功能整合到一个插件里（智能格式切换、块转换、斜杠命令、表格增强、YAML 自动化、轻量看板等），尽量减少额外插件依赖与配置成本。
 
-This project uses TypeScript to provide type checking and documentation.
-The repo depends on the latest plugin API (obsidian.d.ts) in TypeScript Definition format, which contains TSDoc comments describing what it does.
+## 功能概览
 
-This sample plugin demonstrates some of the basic functionality the plugin API can do.
-- Adds a ribbon icon, which shows a Notice when clicked.
-- Adds a command "Open modal (simple)" which opens a Modal.
-- Adds a plugin setting tab to the settings page.
-- Registers a global click event and output 'click' to the console.
-- Registers a global interval which logs 'setInterval' to the console.
+- 智能格式切换：加粗/斜体/删除线/高亮/行内代码（避免符号叠加）
+- 块转换：选中内容一键包裹为 Callout 或代码块
+- 斜杠命令：`/`、`、`、`\\` 触发命令菜单（支持拼音首字母 MVP）
+- 表格增强：Tab 在单元格间跳转
+- YAML 自动化：自动维护 frontmatter 的 `created`/`updated`
+- 项目看板：`.board`（JSON）文件的拖拽看板视图
+- Infographic：` ```infographic` 代码块在预览/阅读模式渲染为 SVG
 
-## First time developing plugins?
+## 安装（手动）
 
-Quick starting guide for new plugin devs:
+把本仓库构建产物复制到你的 vault：
 
-- Check if [someone already developed a plugin for what you want](https://obsidian.md/plugins)! There might be an existing plugin similar enough that you can partner up with.
-- Make a copy of this repo as a template with the "Use this template" button (login to GitHub if you don't see it).
-- Clone your repo to a local development folder. For convenience, you can place this folder in your `.obsidian/plugins/your-plugin-name` folder.
-- Install NodeJS, then run `npm i` in the command line under your repo folder.
-- Run `npm run dev` to compile your plugin from `main.ts` to `main.js`.
-- Make changes to `main.ts` (or create new `.ts` files). Those changes should be automatically compiled into `main.js`.
-- Reload Obsidian to load the new version of your plugin.
-- Enable plugin in settings window.
-- For updates to the Obsidian API run `npm update` in the command line under your repo folder.
-
-## Releasing new releases
-
-- Update your `manifest.json` with your new version number, such as `1.0.1`, and the minimum Obsidian version required for your latest release.
-- Update your `versions.json` file with `"new-plugin-version": "minimum-obsidian-version"` so older versions of Obsidian can download an older version of your plugin that's compatible.
-- Create new GitHub release using your new version number as the "Tag version". Use the exact version number, don't include a prefix `v`. See here for an example: https://github.com/obsidianmd/obsidian-sample-plugin/releases
-- Upload the files `manifest.json`, `main.js`, `styles.css` as binary attachments. Note: The manifest.json file must be in two places, first the root path of your repository and also in the release.
-- Publish the release.
-
-> You can simplify the version bump process by running `npm version patch`, `npm version minor` or `npm version major` after updating `minAppVersion` manually in `manifest.json`.
-> The command will bump version in `manifest.json` and `package.json`, and add the entry for the new version to `versions.json`
-
-## Adding your plugin to the community plugin list
-
-- Check the [plugin guidelines](https://docs.obsidian.md/Plugins/Releasing/Plugin+guidelines).
-- Publish an initial version.
-- Make sure you have a `README.md` file in the root of your repo.
-- Make a pull request at https://github.com/obsidianmd/obsidian-releases to add your plugin.
-
-## How to use
-
-- Clone this repo.
-- Make sure your NodeJS is at least v16 (`node --version`).
-- `npm i` or `yarn` to install dependencies.
-- `npm run dev` to start compilation in watch mode.
-
-## Manually installing the plugin
-
-- Copy over `main.js`, `styles.css`, `manifest.json` to your vault `VaultFolder/.obsidian/plugins/your-plugin-id/`.
-
-## Improve code quality with eslint
-- [ESLint](https://eslint.org/) is a tool that analyzes your code to quickly find problems. You can run ESLint against your plugin to find common bugs and ways to improve your code. 
-- This project already has eslint preconfigured, you can invoke a check by running`npm run lint`
-- Together with a custom eslint [plugin](https://github.com/obsidianmd/eslint-plugin) for Obsidan specific code guidelines.
-- A GitHub action is preconfigured to automatically lint every commit on all branches.
-
-## Funding URL
-
-You can include funding URLs where people who use your plugin can financially support it.
-
-The simple way is to set the `fundingUrl` field to your link in your `manifest.json` file:
-
-```json
-{
-    "fundingUrl": "https://buymeacoffee.com"
-}
+```
+<Vault>/.obsidian/plugins/editor-pro/
+  main.js
+  manifest.json
+  styles.css
 ```
 
-If you have multiple URLs, you can also do:
+## 使用
 
-```json
-{
-    "fundingUrl": {
-        "Buy Me a Coffee": "https://buymeacoffee.com",
-        "GitHub Sponsor": "https://github.com/sponsors",
-        "Patreon": "https://www.patreon.com/"
-    }
-}
+### 1) 打开项目看板
+
+- 点击左侧边栏图标 **打开项目看板**
+- 插件会在库内创建/打开设置里的 `.board` 文件（默认 `Kanban.board`）
+
+### 2) 斜杠命令
+
+在编辑器中输入以下任意一个触发符号即可唤起菜单：
+
+- `/`
+- `、`（中文顿号）
+- `\\`（反斜杠）
+
+### 3) 快捷键
+
+Editor Pro **不会内置默认快捷键**（避免与用户已有快捷键冲突）。请在 Obsidian 中自行绑定：
+
+**Settings → Hotkeys** → 搜索 “Editor Pro” 对应命令。
+
+## 开发
+
+### 环境
+
+- Node.js 18+
+- 包管理器：npm
+- 打包：esbuild（见 `esbuild.config.mjs`）
+
+### 命令
+
+```bash
+npm install
+npm run dev    # watch
+npm run build  # 生产构建（生成 main.js，但 main.js 不应提交到 Git）
+npm test
+npm run lint
 ```
 
-## API Documentation
+## 设计与需求文档
 
-See https://docs.obsidian.md
+见 `docs/`：
+
+- `docs/requirements.md`
+- `docs/task-board.md`
+- `docs/research-painpoints.md`
+

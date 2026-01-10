@@ -1,5 +1,6 @@
 import { Modal, App, Setting } from "obsidian";
 import { BoardCard, BoardColumn } from "../features/board/board-model";
+import { ConfirmModal } from "./simple-modals";
 
 export class CardModal extends Modal {
     card: BoardCard;
@@ -32,9 +33,13 @@ export class CardModal extends Modal {
         new Setting(contentEl)
             .setName('状态 (列)')
             .addDropdown(drop => {
-                this.columns.forEach(col => drop.addOption(col.id, col.name));
+                this.columns.forEach((col) => {
+                    drop.addOption(col.id, col.name);
+                });
                 drop.setValue(this.card.columnId);
-                drop.onChange(value => this.card.columnId = value);
+                drop.onChange((value) => {
+                    this.card.columnId = value;
+                });
             });
 
         // Priority
@@ -45,7 +50,11 @@ export class CardModal extends Modal {
                 .addOption('medium', '🟡 中')
                 .addOption('high', '🔴 高')
                 .setValue(this.card.priority)
-                .onChange(value => this.card.priority = value as any));
+                .onChange((value) => {
+                    if (value === 'low' || value === 'medium' || value === 'high') {
+                        this.card.priority = value;
+                    }
+                }));
 
         // Due Date
         new Setting(contentEl)
@@ -75,10 +84,16 @@ export class CardModal extends Modal {
 
         const deleteBtn = btnContainer.createEl('button', { text: '删除', cls: 'mod-warning' });
         deleteBtn.onclick = () => {
-            if (confirm('确定要删除这个任务吗？')) {
-                this.onDelete(this.card);
-                this.close();
-            }
+            new ConfirmModal(this.app, {
+                title: "删除任务",
+                message: "确定要删除这个任务吗？",
+                confirmText: "删除",
+                cancelText: "取消",
+                onConfirm: () => {
+                    this.onDelete(this.card);
+                    this.close();
+                },
+            }).open();
         };
     }
 

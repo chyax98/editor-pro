@@ -214,11 +214,20 @@ export default class EditorProPlugin extends Plugin {
             return;
         }
 
-        let file = existing as TFile | null;
+        const file = existing instanceof TFile ? existing : null;
         if (!file) {
             try {
-                file = await this.app.vault.create(path, JSON.stringify(DEFAULT_BOARD, null, 2));
+                const created = await this.app.vault.create(path, JSON.stringify(DEFAULT_BOARD, null, 2));
                 new Notice(`已创建看板: ${path}`);
+
+                const leaf = this.app.workspace.getLeaf(true);
+                try {
+                    await leaf.setViewState({ type: VIEW_TYPE_BOARD, state: { file: created.path }, active: true });
+                } catch {
+                    await leaf.openFile(created, { active: true });
+                }
+                await this.app.workspace.revealLeaf(leaf);
+                return;
             } catch (e) {
                 const message = e instanceof Error ? e.message : String(e);
                 new Notice(`创建看板失败: ${message}`);
