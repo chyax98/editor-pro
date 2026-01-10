@@ -61,8 +61,17 @@ export function wrapWithCodeBlock(editor: Editor, lang: string = "") {
     if (!selection) {
         const cursor = editor.getCursor();
         const line = editor.getLine(cursor.line);
-         const result = "```" + lang + "\n" + line + "\n```";
-        editor.replaceRange(result, { line: cursor.line, ch: 0 }, { line: cursor.line, ch: line.length });
+        // If line is empty, we want to place cursor inside the block
+        if (line.trim() === '') {
+            const result = "```" + lang + "\n\n```";
+            editor.replaceRange(result, { line: cursor.line, ch: 0 }, { line: cursor.line, ch: line.length });
+            // Move cursor to the middle line
+            editor.setCursor({ line: cursor.line + 1, ch: 0 });
+        } else {
+            // Wrap existing line
+            const result = "```" + lang + "\n" + line + "\n```";
+            editor.replaceRange(result, { line: cursor.line, ch: 0 }, { line: cursor.line, ch: line.length });
+        }
     } else {
         const result = "```" + lang + "\n" + selection + "\n```";
         editor.replaceSelection(result);

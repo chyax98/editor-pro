@@ -29,12 +29,8 @@ export function moveTaskToColumn(lines: string[], taskLineIndex: number, targetC
 
     if (targetIndex === -1) {
         // Column not found, append to end
-        // Add some emojis for default cols
         let header = `## ${targetColumn}`;
-        if (targetColumn === 'Todo') header = `## 📝 ${targetColumn}`;
-        if (targetColumn === 'Doing') header = `## 🚧 ${targetColumn}`;
-        if (targetColumn === 'Done') header = `## ✅ ${targetColumn}`;
-        
+        // Clean headers without emojis
         filteredLines.push(`
 ${header}`);
         targetIndex = filteredLines.length - 1;

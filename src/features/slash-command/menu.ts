@@ -10,9 +10,6 @@ const COMMANDS: SlashCommand[] = [
     { id: 'callout', name: '提示块 (Callout)', aliases: ['callout', 'tip', 'tsk'] },
     { id: 'codeblock', name: '代码块 (Code Block)', aliases: ['code', 'dmk'] },
     { id: 'kanban', name: '看板模板 (Kanban)', aliases: ['kb', 'kb'] },
-    { id: 'daily', name: '日记模板 (Daily)', aliases: ['daily', 'rj'] },
-    { id: 'weekly', name: '周记模板 (Weekly)', aliases: ['weekly', 'zj'] },
-    { id: 'html', name: 'HTML 片段 (HTML)', aliases: ['html', 'dm'] },
     { id: 'due', name: '设置截止 (Due Date)', aliases: ['due', 'jz'] },
     { id: 'math', name: '数学公式 (Math)', aliases: ['math', 'gs'] },
     { id: 'table', name: '插入表格 (Table)', aliases: ['table', 'bg'] },
@@ -22,6 +19,9 @@ const COMMANDS: SlashCommand[] = [
     { id: 'sequence', name: '时序图 (Sequence)', aliases: ['seq', 'sxt'] },
     { id: 'gantt', name: '甘特图 (Gantt)', aliases: ['gantt', 'gtr'] },
     { id: 'pie', name: '饼图 (Pie)', aliases: ['pie', 'bt'] },
+    { id: 'daily', name: '日记模板 (Daily)', aliases: ['daily', 'rj'] },
+    { id: 'weekly', name: '周记模板 (Weekly)', aliases: ['weekly', 'zj'] },
+    { id: 'html', name: 'HTML 片段 (HTML)', aliases: ['html', 'dm'] },
     { id: 'h1', name: '一级标题 (H1)', aliases: ['h1', 'yjbt'] },
     { id: 'h2', name: '二级标题 (H2)', aliases: ['h2', 'ejbt'] },
     { id: 'h3', name: '三级标题 (H3)', aliases: ['h3', 'sjbt'] },
@@ -102,12 +102,18 @@ export class SlashCommandMenu extends EditorSuggest<SlashCommand> {
                 editor.setCursor({ line: cursor.line + 1, ch: 0 });
                 break;
             case 'quote': {
-                const lineToQuote = editor.getLine(cursor.line);
-                editor.setLine(cursor.line, '> ' + lineToQuote);
+                const line = editor.getLine(cursor.line);
+                editor.setLine(cursor.line, '> ' + line);
+                // Move cursor to end of line
+                editor.setCursor({ line: cursor.line, ch: editor.getLine(cursor.line).length });
                 break;
             }
             case 'table':
                 editor.replaceSelection(generateTable(3, 3));
+                // Move cursor to first cell: | | ...
+                // Table starts at current cursor line. Pipe is at 0. Space at 1.
+                // Target ch: 2
+                editor.setCursor({ line: cursor.line, ch: 2 });
                 break;
             case 'date':
                 editor.replaceSelection(generateDate('YYYY-MM-DD'));

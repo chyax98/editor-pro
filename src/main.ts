@@ -1,4 +1,4 @@
-import { Editor, MarkdownView, Plugin, Menu, Notice } from 'obsidian';
+import { Editor, MarkdownView, Plugin, Menu, Notice, TFile } from 'obsidian';
 import { smartToggle } from './features/formatting/smart-toggle';
 import { toggleTask } from './features/formatting/task-toggle';
 import { wrapWithCallout, wrapWithCodeBlock, wrapWithQuote } from './features/callout/wrap-callout';
@@ -8,11 +8,11 @@ import { generateTable, generateDate, insertRow, deleteRow } from './utils/markd
 import { insertColumn, deleteColumn, setColumnAlign } from './utils/table-generators';
 import { YamlManager } from './features/yaml/auto-update';
 import { handleTableNavigation } from './features/table/table-navigation';
+import { handleBlockNavigation } from './features/formatting/block-navigation';
 import { checkSmartInput } from './features/smart-input/input-handler';
-import { getTaskColumn, moveTaskToColumn } from './features/kanban/kanban-logic';
-import { setDueDate } from './features/kanban/due-date';
-import { archiveCompletedTasks } from './features/kanban/archive';
 import { overdueHighlighter } from './features/visuals/overdue-highlighter';
+import { BoardView, VIEW_TYPE_BOARD } from './views/board-view';
+import { DEFAULT_BOARD } from './features/board/board-model';
 import { DEFAULT_SETTINGS, MyPluginSettings, EditorProSettingTab } from "./settings";
 
 export default class MyPlugin extends Plugin {
@@ -22,131 +22,89 @@ export default class MyPlugin extends Plugin {
     async onload() {
         await this.loadSettings();
 
-        // 1. Smart Toggle Formatting
+        // 注册多维看板视图
+        this.registerView(
+            VIEW_TYPE_BOARD,
+            (leaf) => new BoardView(leaf)
+        );
+        this.registerExtensions(['board'], VIEW_TYPE_BOARD);
+
+        // 侧边栏图标：打开项目看板
+        this.addRibbonIcon('layout-dashboard', '打开项目看板', async () => {
+            await this.openBoard();
+        });
+
+        // 1. 智能格式切换
         if (this.settings.enableSmartToggle) {
             this.addCommand({
-                id: 'smart-bold', name: 'Smart bold',
-                editorCallback: (editor: Editor) => this.safeExecute(() => smartToggle(editor, { marker: '**', name: 'Bold' }), 'Smart bold failed'),
+                id: 'smart-bold', name: '智能加粗',
+                editorCallback: (editor: Editor) => this.safeExecute(() => smartToggle(editor, { marker: '**', name: 'Bold' }), '加粗失败'),
                 hotkeys: [{ modifiers: ['Mod'], key: 'b' }]
             });
             this.addCommand({
-                id: 'smart-italic', name: 'Smart italic',
-                editorCallback: (editor: Editor) => this.safeExecute(() => smartToggle(editor, { marker: '*', name: 'Italic' }), 'Smart italic failed'),
+                id: 'smart-italic', name: '智能斜体',
+                editorCallback: (editor: Editor) => this.safeExecute(() => smartToggle(editor, { marker: '*', name: 'Italic' }), '斜体失败'),
                 hotkeys: [{ modifiers: ['Mod'], key: 'i' }]
             });
             this.addCommand({
-                id: 'smart-strikethrough', name: 'Smart strikethrough',
-                editorCallback: (editor: Editor) => smartToggle(editor, { marker: '~~', name: 'Strikethrough' }),
+                id: 'smart-strikethrough', name: '智能删除线',
+                editorCallback: (editor: Editor) => this.safeExecute(() => smartToggle(editor, { marker: '~~', name: 'Strikethrough' }), '删除线失败'),
                 hotkeys: [{ modifiers: ['Mod', 'Shift'], key: 's' }]
             });
             this.addCommand({
-                id: 'smart-highlight', name: 'Smart highlight',
-                editorCallback: (editor: Editor) => smartToggle(editor, { marker: '==', name: 'Highlight' }),
+                id: 'smart-highlight', name: '智能高亮',
+                editorCallback: (editor: Editor) => this.safeExecute(() => smartToggle(editor, { marker: '==', name: 'Highlight' }), '高亮失败'),
                 hotkeys: [{ modifiers: ['Mod', 'Shift'], key: 'h' }]
             });
             this.addCommand({
-                id: 'smart-code', name: 'Smart inline code',
-                editorCallback: (editor: Editor) => smartToggle(editor, { marker: '`', name: 'Code' }),
+                id: 'smart-code', name: '智能行内代码',
+                editorCallback: (editor: Editor) => this.safeExecute(() => smartToggle(editor, { marker: '`', name: 'Code' }), '行内代码失败'),
                 hotkeys: [{ modifiers: ['Mod'], key: '`' }]
             });
         }
 
-        // 2. Wrap Selection
-        // These are always enabled as commands, can be unbound by user if needed
+        // 2. 块包装转换
         this.addCommand({
-            id: 'wrap-callout', name: 'Wrap with callout',
+            id: 'wrap-callout', name: '转为 Callout 提示块',
             editorCallback: (editor: Editor) => {
                 new CalloutTypePicker(this.app, (type) => wrapWithCallout(editor, { type })).open();
             },
             hotkeys: [{ modifiers: ['Mod', 'Shift'], key: 'c' }]
         });
-
         this.addCommand({
-            id: 'wrap-codeblock', name: 'Wrap with code block',
+            id: 'wrap-codeblock', name: '转为代码块',
             editorCallback: (editor: Editor) => wrapWithCodeBlock(editor),
             hotkeys: [{ modifiers: ['Mod', 'Shift'], key: 'k' }]
         });
 
-        this.addCommand({
-            id: 'wrap-quote', name: 'Wrap with quote',
-            editorCallback: (editor: Editor) => wrapWithQuote(editor),
-            hotkeys: [{ modifiers: ['Mod', 'Shift'], key: 'q' }]
-        });
-
-        // 3. Slash Command
+        // 3. 斜杠命令
         if (this.settings.enableSlashCommand) {
             this.registerEditorSuggest(new SlashCommandMenu(this.app));
         }
 
-        // 4. Heading Hotkeys
+        // 4. 标题快捷键
         if (this.settings.enableHeadingHotkeys) {
             for (let i = 1; i <= 6; i++) {
                 this.addCommand({
                     id: `set-heading-${i}`,
-                    name: `Set heading ${i}`,
+                    name: `设为 ${i} 级标题`,
                     editorCallback: (editor: Editor) => this.setHeading(editor, i),
                     hotkeys: [{ modifiers: ['Mod'], key: String(i) }]
                 });
             }
         }
 
-        // 5. Task Hotkeys
+        // 5. 任务管理
         if (this.settings.enableTaskHotkeys) {
             this.addCommand({
                 id: 'toggle-task',
-                name: 'Toggle task status',
+                name: '切换任务状态',
                 editorCallback: (editor: Editor) => toggleTask(editor),
                 hotkeys: [{ modifiers: ['Mod'], key: 'l' }]
             });
-
-            this.addCommand({
-                id: 'move-task-next',
-                name: 'Move task to next column',
-                editorCallback: (editor: Editor) => {
-                    this.safeExecute(() => {
-                        const cursor = editor.getCursor();
-                        const allLines = editor.getValue().split('\n');
-                        const currentCol = getTaskColumn(allLines, cursor.line);
-                        
-                        let targetCol = '';
-                        if (currentCol === 'Todo') targetCol = 'In Progress';
-                        else if (currentCol === 'In Progress') targetCol = 'Done';
-                        else {
-                            new Notice('Editor Pro: Cursor must be under a Kanban heading (Todo or In Progress)');
-                            return;
-                        }
-
-                        const result = moveTaskToColumn(allLines, cursor.line, targetCol);
-                        editor.setValue(result.newLines.join('\n'));
-                        editor.setCursor({ line: result.newCursorLine, ch: 0 });
-                    }, 'Failed to move task');
-                },
-                hotkeys: [{ modifiers: ['Mod', 'Shift'], key: 'ArrowRight' }]
-            });
-
-            this.addCommand({
-                id: 'set-due-date',
-                name: 'Set due date (Today)',
-                editorCallback: (editor: Editor) => {
-                    const cursor = editor.getCursor();
-                    const line = editor.getLine(cursor.line);
-                    const newLine = setDueDate(line, generateDate('YYYY-MM-DD'));
-                    editor.setLine(cursor.line, newLine);
-                }
-            });
-
-            this.addCommand({
-                id: 'archive-tasks',
-                name: 'Archive completed tasks',
-                editorCallback: (editor: Editor) => {
-                    const content = editor.getValue();
-                    const newContent = archiveCompletedTasks(content);
-                    editor.setValue(newContent);
-                }
-            });
         }
 
-        // 6. Context Menu Integration
+        // 6. 右键菜单集成
         if (this.settings.enableContextMenu) {
             this.registerEvent(
                 this.app.workspace.on("editor-menu", (menu: Menu, editor: Editor) => {
@@ -156,42 +114,23 @@ export default class MyPlugin extends Plugin {
 
                     if (selection) {
                         menu.addSeparator();
-                        
                         menu.addItem((item) => {
-                            item.setTitle("Wrap with Callout")
+                            item.setTitle("包裹为 Callout 提示块")
                                 .setIcon("info")
                                 .onClick(() => {
                                      new CalloutTypePicker(this.app, (type) => wrapWithCallout(editor, { type })).open();
                                 });
-                        });
-                        
-                        menu.addItem((item) => {
-                            item.setTitle("Wrap with Code Block")
-                                .setIcon("code")
-                                .onClick(() => wrapWithCodeBlock(editor));
                         });
                     }
 
                     if (isInTable) {
                         menu.addSeparator();
                         menu.addItem((item) => {
-                            item.setTitle("Insert Row Below")
+                            item.setTitle("在下方插入行")
                                 .setIcon("table")
                                 .onClick(() => {
-                                    const cursor = editor.getCursor();
                                     const allLines = editor.getValue().split('\n');
-                                    const newLines = insertRow(allLines, cursor.line);
-                                    editor.setValue(newLines.join('\n'));
-                                    editor.setCursor({ line: cursor.line + 1, ch: 2 });
-                                });
-                        });
-                        menu.addItem((item) => {
-                            item.setTitle("Delete Current Row")
-                                .setIcon("trash")
-                                .onClick(() => {
-                                    const cursor = editor.getCursor();
-                                    const allLines = editor.getValue().split('\n');
-                                    const newLines = deleteRow(allLines, cursor.line);
+                                    const newLines = insertRow(allLines, editor.getCursor().line);
                                     editor.setValue(newLines.join('\n'));
                                 });
                         });
@@ -200,49 +139,7 @@ export default class MyPlugin extends Plugin {
             );
         }
 
-        // 7. Insert Commands
-        this.addCommand({
-            id: 'insert-table',
-            name: 'Insert table (3x3)',
-            editorCallback: (editor: Editor) => editor.replaceSelection(generateTable(3, 3))
-        });
-
-        this.addCommand({
-            id: 'insert-row-below',
-            name: 'Insert row below',
-            editorCallback: (editor: Editor) => {
-                const cursor = editor.getCursor();
-                const allLines = editor.getValue().split('\n');
-                const newLines = insertRow(allLines, cursor.line);
-                editor.setValue(newLines.join('\n'));
-                editor.setCursor({ line: cursor.line + 1, ch: 2 });
-            }
-        });
-
-        this.addCommand({
-            id: 'delete-table-row',
-            name: 'Delete current row',
-            editorCallback: (editor: Editor) => {
-                const cursor = editor.getCursor();
-                const allLines = editor.getValue().split('\n');
-                const newLines = deleteRow(allLines, cursor.line);
-                editor.setValue(newLines.join('\n'));
-            }
-        });
-
-        this.addCommand({
-            id: 'insert-date',
-            name: 'Insert current date',
-            editorCallback: (editor: Editor) => editor.replaceSelection(generateDate('YYYY-MM-DD'))
-        });
-        
-        this.addCommand({
-            id: 'insert-time',
-            name: 'Insert current time',
-            editorCallback: (editor: Editor) => editor.replaceSelection(generateDate('HH:mm'))
-        });
-
-        // 8. YAML Automation
+        // 7. YAML 自动化
         this.yamlManager = new YamlManager(this.app, {
             enableYaml: this.settings.enableYaml,
             createdKey: this.settings.yamlCreatedKey,
@@ -251,20 +148,20 @@ export default class MyPlugin extends Plugin {
         });
         this.yamlManager.onload();
 
-        // 9. Table Navigation (Tab Key)
+        // 8. 表格 Tab 导航 & 块跳出 (Shift+Enter)
         this.registerDomEvent(document, 'keydown', (evt: KeyboardEvent) => {
             const view = this.app.workspace.getActiveViewOfType(MarkdownView);
             if (view) {
                 handleTableNavigation(evt, view.editor);
+                handleBlockNavigation(evt, view.editor);
             }
         });
 
-        // 10. Smart Input Expansion (@today, @time)
+        // 9. 智能输入展开 (@today, @time)
         this.registerEvent(
             this.app.workspace.on('editor-change', (editor: Editor) => {
                 const cursor = editor.getCursor();
                 const line = editor.getLine(cursor.line);
-                
                 const match = checkSmartInput(line, cursor.ch);
                 if (match) {
                     editor.replaceRange(
@@ -276,103 +173,13 @@ export default class MyPlugin extends Plugin {
             })
         );
 
-        // 11. Overdue Highlighter
+        // 10. 过期高亮
         this.registerEditorExtension(overdueHighlighter);
-
-        // 12. Advanced Table Commands
-        this.addCommand({
-            id: 'insert-col-right',
-            name: 'Insert column right',
-            editorCallback: (editor: Editor) => {
-                const cursor = editor.getCursor();
-                const allLines = editor.getValue().split('\n');
-                // Naive: assumes cursor line is part of table. Ideally find table block.
-                // For MVP, just update whole file or block if we had block detection.
-                // Since our util works line by line, we need to apply to the *whole table* block.
-                // Finding table block: iterate up/down from cursor.
-                const start = findTableStart(allLines, cursor.line);
-                const end = findTableEnd(allLines, cursor.line);
-                if (start === -1 || end === -1) return;
-
-                // Slice table lines
-                const tableLines = allLines.slice(start, end + 1);
-                // Calculate col index based on cursor pipe count
-                const curLine = allLines[cursor.line];
-                if (!curLine) return;
-                const preCursor = curLine.substring(0, cursor.ch);
-                const colIndex = (preCursor.match(/\|/g) || []).length - 1;
-
-                const newTableLines = insertColumn(tableLines, colIndex, 'right');
-                
-                // Replace in document
-                const fullText = allLines.slice(0, start).concat(newTableLines).concat(allLines.slice(end + 1)).join('\n');
-                editor.setValue(fullText);
-            }
-        });
-
-        this.addCommand({
-            id: 'delete-col',
-            name: 'Delete current column',
-            editorCallback: (editor: Editor) => {
-                const cursor = editor.getCursor();
-                const allLines = editor.getValue().split('\n');
-                const start = findTableStart(allLines, cursor.line);
-                const end = findTableEnd(allLines, cursor.line);
-                if (start === -1 || end === -1) return;
-
-                const tableLines = allLines.slice(start, end + 1);
-                const curLine = allLines[cursor.line];
-                if (!curLine) return;
-                const preCursor = curLine.substring(0, cursor.ch);
-                const colIndex = (preCursor.match(/\|/g) || []).length - 1;
-
-                const newTableLines = deleteColumn(tableLines, colIndex);
-                const fullText = allLines.slice(0, start).concat(newTableLines).concat(allLines.slice(end + 1)).join('\n');
-                editor.setValue(fullText);
-            }
-        });
-
-        this.addCommand({
-            id: 'table-align-left',
-            name: 'Align column left',
-            editorCallback: (editor: Editor) => this.alignColumn(editor, 'left')
-        });
-
-        this.addCommand({
-            id: 'table-align-center',
-            name: 'Align column center',
-            editorCallback: (editor: Editor) => this.alignColumn(editor, 'center')
-        });
-
-        this.addCommand({
-            id: 'table-align-right',
-            name: 'Align column right',
-            editorCallback: (editor: Editor) => this.alignColumn(editor, 'right')
-        });
 
         this.addSettingTab(new EditorProSettingTab(this.app, this));
     }
 
-    onunload() {
-    }
-
-    private alignColumn(editor: Editor, align: 'left' | 'center' | 'right') {
-        const cursor = editor.getCursor();
-        const allLines = editor.getValue().split('\n');
-        const start = findTableStart(allLines, cursor.line);
-        const end = findTableEnd(allLines, cursor.line);
-        if (start === -1 || end === -1) return;
-
-        const tableLines = allLines.slice(start, end + 1);
-        const curLine = allLines[cursor.line];
-        if (!curLine) return;
-        const preCursor = curLine.substring(0, cursor.ch);
-        const colIndex = (preCursor.match(/\|/g) || []).length - 1;
-
-        const newTableLines = setColumnAlign(tableLines, colIndex, align);
-        const fullText = allLines.slice(0, start).concat(newTableLines).concat(allLines.slice(end + 1)).join('\n');
-        editor.setValue(fullText);
-    }
+    onunload() {}
 
     async loadSettings() {
         this.settings = Object.assign({}, DEFAULT_SETTINGS, await this.loadData() as Partial<MyPluginSettings>);
@@ -382,15 +189,38 @@ export default class MyPlugin extends Plugin {
         await this.saveData(this.settings);
     }
 
+    async openBoard() {
+        const path = this.settings.kanbanFilePath.endsWith('.board') 
+            ? this.settings.kanbanFilePath 
+            : this.settings.kanbanFilePath.replace(/\.md$/, '') + '.board';
+            
+        let file = this.app.vault.getAbstractFileByPath(path);
+
+        if (!file) {
+            try {
+                file = await this.app.vault.create(path, JSON.stringify(DEFAULT_BOARD, null, 2));
+                new Notice(`已创建看板: ${path}`);
+            } catch (e: any) {
+                new Notice(`创建看板失败: ${e.message}`);
+                return;
+            }
+        }
+
+        if (file instanceof TFile) {
+            // 获取一个叶子节点来打开文件
+            const leaf = this.app.workspace.getLeaf(true);
+            await leaf.openFile(file);
+        }
+    }
+
     private setHeading(editor: Editor, level: number) {
         const cursor = editor.getCursor();
         const line = editor.getLine(cursor.line);
-        // Remove existing heading marker (e.g. "### ")
         const content = line.replace(/^#+\s?/, '');
         editor.setLine(cursor.line, '#'.repeat(level) + ' ' + content);
     }
 
-    private safeExecute(action: () => void, errorMessage: string = 'Command failed') {
+    private safeExecute(action: () => void, errorMessage: string = '操作失败') {
         try {
             action();
         } catch (error) {
@@ -404,11 +234,8 @@ function findTableStart(lines: string[], currentLine: number): number {
     let i = currentLine;
     while (i >= 0) {
         const line = lines[i];
-        if (line && line.trim().startsWith('|')) {
-            i--;
-        } else {
-            break;
-        }
+        if (line && line.trim().startsWith('|')) i--;
+        else break;
     }
     return i + 1;
 }
@@ -417,11 +244,8 @@ function findTableEnd(lines: string[], currentLine: number): number {
     let i = currentLine;
     while (i < lines.length) {
         const line = lines[i];
-        if (line && line.trim().startsWith('|')) {
-            i++;
-        } else {
-            break;
-        }
+        if (line && line.trim().startsWith('|')) i++;
+        else break;
     }
     return i - 1;
 }
