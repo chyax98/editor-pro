@@ -249,3 +249,130 @@ this.registerInterval(window.setInterval(() => { /* ... */ }, 1000));
 - Developer policies: https://docs.obsidian.md/Developer+policies
 - Plugin guidelines: https://docs.obsidian.md/Plugins/Releasing/Plugin+guidelines
 - Style guide: https://help.obsidian.md/style-guide
+
+---
+
+# Editor Pro 开发指南
+
+## 插件定位
+
+Editor Pro 是一个 **编辑增强** 插件，目标是整合常用编辑功能（智能格式化、Callout 转换、斜杠命令等），让用户不需要安装 20+ 个插件就能获得舒适的编辑体验。
+
+**核心理念**：富文本编辑器风格的 Markdown 编辑体验
+
+## MVP 任务清单
+
+### P0（必须完成）
+
+#### 1. 智能 Toggle 格式化
+
+**问题**：Obsidian 原生 Cmd+B 在已加粗文本上按下会添加更多 `**`，而非取消加粗。
+
+**需实现**：
+
+| 命令 ID | 名称 | 标记符 | 快捷键 |
+|---------|------|--------|--------|
+| `smart-bold` | Smart Bold | `**` | Cmd+B |
+| `smart-italic` | Smart Italic | `*` | Cmd+I |
+| `smart-strikethrough` | Smart Strikethrough | `~~` | Cmd+Shift+S |
+| `smart-highlight` | Smart Highlight | `==` | Cmd+Shift+H |
+| `smart-code` | Smart Inline Code | `` ` `` | Cmd+` |
+
+**核心逻辑**：
+```
+if (有选中文本) {
+  if (选中文本已被标记包裹) → 移除标记
+  else → 添加标记
+} else {
+  if (光标在已标记词内) → 移除该词的标记
+  else → 插入空标记并将光标置于中间
+}
+```
+
+**参考**: [Smarter MD Hotkeys](https://github.com/chrisgrieser/obsidian-smarter-md-hotkeys)
+
+**文件位置**: `src/features/formatting/smart-toggle.ts`
+
+#### 2. 选中转 Callout
+
+**问题**：Callout 需要每行加 `>`，编辑麻烦。
+
+**需实现**：
+
+| 命令 ID | 名称 | 快捷键 |
+|---------|------|--------|
+| `wrap-callout` | Wrap with Callout | Cmd+Shift+C |
+| `wrap-codeblock` | Wrap with Code Block | Cmd+Shift+K |
+| `wrap-quote` | Wrap with Quote | Cmd+Shift+Q |
+
+**Callout 交互**：按快捷键 → 弹出类型选择器 → 选择后转换
+
+**文件位置**: `src/features/callout/wrap-callout.ts`
+
+### P1（第二批）
+
+#### 3. 斜杠命令
+
+**问题**：想要 Notion 风格的 `/` 命令菜单。
+
+**特殊需求**：
+- 英文 `/` 触发
+- 中文顿号 `、` 触发（中文输入法下无需切换）
+- 支持拼音首字母搜索（`/dmk` → 代码块）
+
+**参考**: [Fuzzy Chinese Pinyin](https://github.com/lazyloong/obsidian-fuzzy-chinese)
+
+**文件位置**: `src/features/slash-command/`
+
+#### 4. 标题快捷键
+
+| 命令 ID | 名称 | 快捷键 |
+|---------|------|--------|
+| `set-heading-1` | Set Heading 1 | Cmd+1 |
+| `set-heading-2` | Set Heading 2 | Cmd+2 |
+| ... | ... | ... |
+| `set-heading-6` | Set Heading 6 | Cmd+6 |
+
+## 项目结构
+
+```
+src/
+├── main.ts                    # 入口，只做注册
+├── settings.ts                # 设置
+├── features/
+│   ├── formatting/
+│   │   ├── index.ts           # 导出
+│   │   ├── smart-toggle.ts    # 核心逻辑
+│   │   └── utils.ts           # 辅助函数
+│   ├── callout/
+│   │   ├── index.ts
+│   │   ├── wrap-callout.ts
+│   │   └── type-picker.ts     # 类型选择器 UI
+│   └── slash-command/
+│       ├── index.ts
+│       ├── menu.ts            # 菜单 UI
+│       ├── commands.ts        # 命令定义
+│       └── pinyin.ts          # 拼音匹配
+├── utils/
+│   └── editor.ts              # Editor 工具函数
+└── types/
+    └── index.ts               # 类型定义
+```
+
+## 避坑清单
+
+1. **编辑当前文件用 Editor 接口**，不要用 `Vault.modify`
+2. **类型检查用 `instanceof`**，不要直接断言 `as`
+3. **路径用 `normalizePath()`** 规范化
+4. **事件注册用 `this.registerEvent()`**，确保卸载时清理
+5. **高频事件要防抖**
+
+## 测试
+
+- 单元测试：`tests/` 目录，Jest 框架
+- Mock：`__mocks__/obsidian.ts`
+- 重点测试 smartToggle 的边界情况（跨行选中、嵌套标记等）
+
+## 详细文档
+
+更多细节见 `docs/` 目录（软链接到笔记库的设计文档）和 `DEVELOPMENT.md`。

@@ -1,99 +1,180 @@
-import {App, Editor, MarkdownView, Modal, Notice, Plugin} from 'obsidian';
-import {DEFAULT_SETTINGS, MyPluginSettings, SampleSettingTab} from "./settings";
-
-// Remember to rename these classes and interfaces!
+import { Editor, MarkdownView, Plugin, Menu } from 'obsidian';
+import { smartToggle } from './features/formatting/smart-toggle';
+import { toggleTask } from './features/formatting/task-toggle';
+import { wrapWithCallout, wrapWithCodeBlock, wrapWithQuote } from './features/callout/wrap-callout';
+import { CalloutTypePicker } from './features/callout/callout-picker';
+import { SlashCommandMenu } from './features/slash-command/menu';
+import { generateTable, generateDate } from './utils/markdown-generators';
+import { YamlManager } from './features/yaml/auto-update';
+import { handleTableNavigation } from './features/table/table-navigation';
+import { DEFAULT_SETTINGS, MyPluginSettings, EditorProSettingTab } from "./settings";
 
 export default class MyPlugin extends Plugin {
-	settings: MyPluginSettings;
+    settings: MyPluginSettings;
+    yamlManager: YamlManager;
 
-	async onload() {
-		await this.loadSettings();
+    async onload() {
+        await this.loadSettings();
 
-		// This creates an icon in the left ribbon.
-		this.addRibbonIcon('dice', 'Sample', (evt: MouseEvent) => {
-			// Called when the user clicks the icon.
-			new Notice('This is a notice!');
-		});
+        // 1. Smart Toggle Formatting
+        if (this.settings.enableSmartToggle) {
+            this.addCommand({
+                id: 'smart-bold', name: 'Smart bold',
+                editorCallback: (editor: Editor) => smartToggle(editor, { marker: '**', name: 'Bold' }),
+                hotkeys: [{ modifiers: ['Mod'], key: 'b' }]
+            });
+            this.addCommand({
+                id: 'smart-italic', name: 'Smart italic',
+                editorCallback: (editor: Editor) => smartToggle(editor, { marker: '*', name: 'Italic' }),
+                hotkeys: [{ modifiers: ['Mod'], key: 'i' }]
+            });
+            this.addCommand({
+                id: 'smart-strikethrough', name: 'Smart strikethrough',
+                editorCallback: (editor: Editor) => smartToggle(editor, { marker: '~~', name: 'Strikethrough' }),
+                hotkeys: [{ modifiers: ['Mod', 'Shift'], key: 's' }]
+            });
+            this.addCommand({
+                id: 'smart-highlight', name: 'Smart highlight',
+                editorCallback: (editor: Editor) => smartToggle(editor, { marker: '==', name: 'Highlight' }),
+                hotkeys: [{ modifiers: ['Mod', 'Shift'], key: 'h' }]
+            });
+            this.addCommand({
+                id: 'smart-code', name: 'Smart inline code',
+                editorCallback: (editor: Editor) => smartToggle(editor, { marker: '`', name: 'Code' }),
+                hotkeys: [{ modifiers: ['Mod'], key: '`' }]
+            });
+        }
 
-		// This adds a status bar item to the bottom of the app. Does not work on mobile apps.
-		const statusBarItemEl = this.addStatusBarItem();
-		statusBarItemEl.setText('Status bar text');
+        // 2. Wrap Selection
+        // These are always enabled as commands, can be unbound by user if needed
+        this.addCommand({
+            id: 'wrap-callout', name: 'Wrap with callout',
+            editorCallback: (editor: Editor) => {
+                new CalloutTypePicker(this.app, (type) => wrapWithCallout(editor, { type })).open();
+            },
+            hotkeys: [{ modifiers: ['Mod', 'Shift'], key: 'c' }]
+        });
 
-		// This adds a simple command that can be triggered anywhere
-		this.addCommand({
-			id: 'open-modal-simple',
-			name: 'Open modal (simple)',
-			callback: () => {
-				new SampleModal(this.app).open();
-			}
-		});
-		// This adds an editor command that can perform some operation on the current editor instance
-		this.addCommand({
-			id: 'replace-selected',
-			name: 'Replace selected content',
-			editorCallback: (editor: Editor, view: MarkdownView) => {
-				editor.replaceSelection('Sample editor command');
-			}
-		});
-		// This adds a complex command that can check whether the current state of the app allows execution of the command
-		this.addCommand({
-			id: 'open-modal-complex',
-			name: 'Open modal (complex)',
-			checkCallback: (checking: boolean) => {
-				// Conditions to check
-				const markdownView = this.app.workspace.getActiveViewOfType(MarkdownView);
-				if (markdownView) {
-					// If checking is true, we're simply "checking" if the command can be run.
-					// If checking is false, then we want to actually perform the operation.
-					if (!checking) {
-						new SampleModal(this.app).open();
-					}
+        this.addCommand({
+            id: 'wrap-codeblock', name: 'Wrap with code block',
+            editorCallback: (editor: Editor) => wrapWithCodeBlock(editor),
+            hotkeys: [{ modifiers: ['Mod', 'Shift'], key: 'k' }]
+        });
 
-					// This command will only show up in Command Palette when the check function returns true
-					return true;
-				}
-				return false;
-			}
-		});
+        this.addCommand({
+            id: 'wrap-quote', name: 'Wrap with quote',
+            editorCallback: (editor: Editor) => wrapWithQuote(editor),
+            hotkeys: [{ modifiers: ['Mod', 'Shift'], key: 'q' }]
+        });
 
-		// This adds a settings tab so the user can configure various aspects of the plugin
-		this.addSettingTab(new SampleSettingTab(this.app, this));
+        // 3. Slash Command
+        if (this.settings.enableSlashCommand) {
+            this.registerEditorSuggest(new SlashCommandMenu(this.app));
+        }
 
-		// If the plugin hooks up any global DOM events (on parts of the app that doesn't belong to this plugin)
-		// Using this function will automatically remove the event listener when this plugin is disabled.
-		this.registerDomEvent(document, 'click', (evt: MouseEvent) => {
-			new Notice("Click");
-		});
+        // 4. Heading Hotkeys
+        if (this.settings.enableHeadingHotkeys) {
+            for (let i = 1; i <= 6; i++) {
+                this.addCommand({
+                    id: `set-heading-${i}`,
+                    name: `Set heading ${i}`,
+                    editorCallback: (editor: Editor) => this.setHeading(editor, i),
+                    hotkeys: [{ modifiers: ['Mod'], key: String(i) }]
+                });
+            }
+        }
 
-		// When registering intervals, this function will automatically clear the interval when the plugin is disabled.
-		this.registerInterval(window.setInterval(() => console.log('setInterval'), 5 * 60 * 1000));
+        // 5. Task Hotkeys
+        if (this.settings.enableTaskHotkeys) {
+            this.addCommand({
+                id: 'toggle-task',
+                name: 'Toggle task status',
+                editorCallback: (editor: Editor) => toggleTask(editor),
+                hotkeys: [{ modifiers: ['Mod'], key: 'l' }]
+            });
+        }
 
-	}
+        // 6. Context Menu Integration
+        if (this.settings.enableContextMenu) {
+            this.registerEvent(
+                this.app.workspace.on("editor-menu", (menu: Menu, editor: Editor) => {
+                    const selection = editor.getSelection();
+                    if (selection) {
+                        menu.addSeparator();
+                        
+                        menu.addItem((item) => {
+                            item.setTitle("Wrap with Callout")
+                                .setIcon("info")
+                                .onClick(() => {
+                                     new CalloutTypePicker(this.app, (type) => wrapWithCallout(editor, { type })).open();
+                                });
+                        });
+                        
+                        menu.addItem((item) => {
+                            item.setTitle("Wrap with Code Block")
+                                .setIcon("code")
+                                .onClick(() => wrapWithCodeBlock(editor));
+                        });
+                    }
+                })
+            );
+        }
 
-	onunload() {
-	}
+        // 7. Insert Commands
+        this.addCommand({
+            id: 'insert-table',
+            name: 'Insert table (3x3)',
+            editorCallback: (editor: Editor) => editor.replaceSelection(generateTable(3, 3))
+        });
 
-	async loadSettings() {
-		this.settings = Object.assign({}, DEFAULT_SETTINGS, await this.loadData() as Partial<MyPluginSettings>);
-	}
+        this.addCommand({
+            id: 'insert-date',
+            name: 'Insert current date',
+            editorCallback: (editor: Editor) => editor.replaceSelection(generateDate('YYYY-MM-DD'))
+        });
+        
+        this.addCommand({
+            id: 'insert-time',
+            name: 'Insert current time',
+            editorCallback: (editor: Editor) => editor.replaceSelection(generateDate('HH:mm'))
+        });
 
-	async saveSettings() {
-		await this.saveData(this.settings);
-	}
-}
+        // 8. YAML Automation
+        this.yamlManager = new YamlManager(this.app, {
+            enableYaml: this.settings.enableYaml,
+            createdKey: this.settings.yamlCreatedKey,
+            updatedKey: this.settings.yamlUpdatedKey,
+            dateFormat: this.settings.yamlDateFormat
+        });
+        this.yamlManager.onload();
 
-class SampleModal extends Modal {
-	constructor(app: App) {
-		super(app);
-	}
+        // 9. Table Navigation (Tab Key)
+        this.registerDomEvent(document, 'keydown', (evt: KeyboardEvent) => {
+            const view = this.app.workspace.getActiveViewOfType(MarkdownView);
+            if (view) {
+                handleTableNavigation(evt, view.editor);
+            }
+        });
 
-	onOpen() {
-		let {contentEl} = this;
-		contentEl.setText('Woah!');
-	}
+        this.addSettingTab(new EditorProSettingTab(this.app, this));
+    }
 
-	onClose() {
-		const {contentEl} = this;
-		contentEl.empty();
-	}
+    onunload() {
+    }
+
+    async loadSettings() {
+        this.settings = Object.assign({}, DEFAULT_SETTINGS, await this.loadData() as Partial<MyPluginSettings>);
+    }
+
+    async saveSettings() {
+        await this.saveData(this.settings);
+    }
+
+    private setHeading(editor: Editor, level: number) {
+        const cursor = editor.getCursor();
+        const line = editor.getLine(cursor.line);
+        // Remove existing heading marker (e.g. "### ")
+        const content = line.replace(/^#+\s?/, '');
+        editor.setLine(cursor.line, '#'.repeat(level) + ' ' + content);
+    }
 }
