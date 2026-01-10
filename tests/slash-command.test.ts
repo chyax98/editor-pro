@@ -10,9 +10,17 @@ describe('Slash Command Trigger', () => {
     test('triggers on / at start of line', () => {
         expect(shouldTriggerSlashCommand('/', 1)).toEqual({ query: '' });
     });
+
+    test('triggers on \\\\ at start of line', () => {
+        expect(shouldTriggerSlashCommand('\\', 1)).toEqual({ query: '' });
+    });
     
     test('triggers on / after space', () => {
         expect(shouldTriggerSlashCommand('Hello /', 7)).toEqual({ query: '' });
+    });
+
+    test('triggers on \\\\ after space', () => {
+        expect(shouldTriggerSlashCommand('Hello \\', 7)).toEqual({ query: '' });
     });
     
     test('triggers on 、 (Chinese pause mark)', () => {
@@ -21,6 +29,10 @@ describe('Slash Command Trigger', () => {
     
     test('extracts query after slash', () => {
         expect(shouldTriggerSlashCommand('Hello /code', 11)).toEqual({ query: 'code' });
+    });
+
+    test('extracts query after \\\\', () => {
+        expect(shouldTriggerSlashCommand('Hello \\code', 11)).toEqual({ query: 'code' });
     });
     
     test('extracts query after 、', () => {

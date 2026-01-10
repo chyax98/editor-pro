@@ -39,9 +39,9 @@ export function shouldTriggerSlashCommand(line: string, cursorCh: number): { que
     
     // Regex: 
     // (?:^|\s) : Start of line OR whitespace
-    // ([/、])  : Trigger char (/ or 、)
+    // ([/、\\])  : Trigger char (/ or 、 or \)
     // (.*)$    : Query (greedy until cursor)
-    const regex = /(?:^|\s)([/、])([^/、]*)$/; 
+    const regex = /(?:^|\s)([\/、\\])([^\/、\\]*)$/; 
     // Modified regex to avoid matching "w/o" if it was handled by \s check.
     // Actually "w/o" -> no space before /. 
     // "hello /world" -> space before /.
