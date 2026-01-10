@@ -8,11 +8,11 @@ export function registerInfographicRenderer(plugin: Plugin) {
 		let infographic: Infographic | null = null;
 
 		const child = new (class extends MarkdownRenderChild {
-			async onload() {
+			onload() {
 				const input = source.trim();
 				if (!input) {
 					container.createEl("div", {
-						text: "Editor Pro：空的 infographic 代码块",
+						text: "Editor Pro：Infographic 代码块为空",
 						cls: "editor-pro-infographic-empty",
 					});
 					return;
@@ -44,4 +44,3 @@ export function registerInfographicRenderer(plugin: Plugin) {
 		ctx.addChild(child);
 	});
 }
-

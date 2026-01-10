@@ -1,11 +1,10 @@
 import { Editor, MarkdownView, Menu, normalizePath, Notice, Plugin, TFile, TFolder } from 'obsidian';
 import { smartToggle } from './features/formatting/smart-toggle';
 import { toggleTask } from './features/formatting/task-toggle';
-import { wrapWithCallout, wrapWithCodeBlock, wrapWithQuote } from './features/callout/wrap-callout';
+import { wrapWithCallout, wrapWithCodeBlock } from './features/callout/wrap-callout';
 import { CalloutTypePicker } from './features/callout/callout-picker';
 import { SlashCommandMenu } from './features/slash-command/menu';
-import { generateTable, generateDate, insertRow, deleteRow } from './utils/markdown-generators';
-import { insertColumn, deleteColumn, setColumnAlign } from './utils/table-generators';
+import { insertRow } from './utils/markdown-generators';
 import { YamlManager } from './features/yaml/auto-update';
 import { handleTableNavigation } from './features/table/table-navigation';
 import { handleBlockNavigation } from './features/formatting/block-navigation';
@@ -14,10 +13,10 @@ import { overdueHighlighter } from './features/visuals/overdue-highlighter';
 import { BoardView, VIEW_TYPE_BOARD } from './views/board-view';
 import { DEFAULT_BOARD } from './features/board/board-model';
 import { registerInfographicRenderer } from './features/infographic/renderer';
-import { DEFAULT_SETTINGS, MyPluginSettings, EditorProSettingTab } from "./settings";
+import { DEFAULT_SETTINGS, EditorProSettings, EditorProSettingTab } from "./settings";
 
-export default class MyPlugin extends Plugin {
-    settings: MyPluginSettings;
+export default class EditorProPlugin extends Plugin {
+    settings: EditorProSettings;
     yamlManager: YamlManager;
 
     async onload() {
@@ -31,8 +30,8 @@ export default class MyPlugin extends Plugin {
         this.registerExtensions(['board'], VIEW_TYPE_BOARD);
 
         // 侧边栏图标：打开项目看板
-        this.addRibbonIcon('layout-dashboard', '打开项目看板', async () => {
-            await this.openBoard();
+        this.addRibbonIcon('layout-dashboard', '打开项目看板', () => {
+            void this.openBoard();
         });
 
         // 1. 智能格式切换
@@ -40,27 +39,22 @@ export default class MyPlugin extends Plugin {
             this.addCommand({
                 id: 'smart-bold', name: '智能加粗',
                 editorCallback: (editor: Editor) => this.safeExecute(() => smartToggle(editor, { marker: '**', name: 'Bold' }), '加粗失败'),
-                hotkeys: [{ modifiers: ['Mod'], key: 'b' }]
             });
             this.addCommand({
                 id: 'smart-italic', name: '智能斜体',
                 editorCallback: (editor: Editor) => this.safeExecute(() => smartToggle(editor, { marker: '*', name: 'Italic' }), '斜体失败'),
-                hotkeys: [{ modifiers: ['Mod'], key: 'i' }]
             });
             this.addCommand({
                 id: 'smart-strikethrough', name: '智能删除线',
                 editorCallback: (editor: Editor) => this.safeExecute(() => smartToggle(editor, { marker: '~~', name: 'Strikethrough' }), '删除线失败'),
-                hotkeys: [{ modifiers: ['Mod', 'Shift'], key: 's' }]
             });
             this.addCommand({
                 id: 'smart-highlight', name: '智能高亮',
                 editorCallback: (editor: Editor) => this.safeExecute(() => smartToggle(editor, { marker: '==', name: 'Highlight' }), '高亮失败'),
-                hotkeys: [{ modifiers: ['Mod', 'Shift'], key: 'h' }]
             });
             this.addCommand({
                 id: 'smart-code', name: '智能行内代码',
                 editorCallback: (editor: Editor) => this.safeExecute(() => smartToggle(editor, { marker: '`', name: 'Code' }), '行内代码失败'),
-                hotkeys: [{ modifiers: ['Mod'], key: '`' }]
             });
         }
 
@@ -70,12 +64,10 @@ export default class MyPlugin extends Plugin {
             editorCallback: (editor: Editor) => {
                 new CalloutTypePicker(this.app, (type) => wrapWithCallout(editor, { type })).open();
             },
-            hotkeys: [{ modifiers: ['Mod', 'Shift'], key: 'c' }]
         });
         this.addCommand({
             id: 'wrap-codeblock', name: '转为代码块',
             editorCallback: (editor: Editor) => wrapWithCodeBlock(editor),
-            hotkeys: [{ modifiers: ['Mod', 'Shift'], key: 'k' }]
         });
 
         // 3. 斜杠命令
@@ -90,7 +82,6 @@ export default class MyPlugin extends Plugin {
                     id: `set-heading-${i}`,
                     name: `设为 ${i} 级标题`,
                     editorCallback: (editor: Editor) => this.setHeading(editor, i),
-                    hotkeys: [{ modifiers: ['Mod'], key: String(i) }]
                 });
             }
         }
@@ -101,7 +92,6 @@ export default class MyPlugin extends Plugin {
                 id: 'toggle-task',
                 name: '切换任务状态',
                 editorCallback: (editor: Editor) => toggleTask(editor),
-                hotkeys: [{ modifiers: ['Mod'], key: 'l' }]
             });
         }
 
@@ -147,7 +137,7 @@ export default class MyPlugin extends Plugin {
             updatedKey: this.settings.yamlUpdatedKey,
             dateFormat: this.settings.yamlDateFormat
         });
-        this.yamlManager.onload();
+        this.yamlManager.register(this);
 
         // 8. 表格 Tab 导航 & 块跳出 (Shift+Enter)
         this.registerDomEvent(document, 'keydown', (evt: KeyboardEvent) => {
@@ -186,7 +176,8 @@ export default class MyPlugin extends Plugin {
     onunload() {}
 
     async loadSettings() {
-        this.settings = Object.assign({}, DEFAULT_SETTINGS, await this.loadData() as Partial<MyPluginSettings>);
+        const loaded = (await this.loadData()) as Partial<EditorProSettings> | null;
+        this.settings = Object.assign({}, DEFAULT_SETTINGS, loaded ?? {});
     }
 
     async saveSettings() {
@@ -241,7 +232,7 @@ export default class MyPlugin extends Plugin {
         } catch {
             await leaf.openFile(file, { active: true });
         }
-        this.app.workspace.revealLeaf(leaf);
+        await this.app.workspace.revealLeaf(leaf);
     }
 
     private async ensureFolderExists(folderPath: string) {
@@ -278,24 +269,4 @@ export default class MyPlugin extends Plugin {
             console.error(`[Editor Pro] ${errorMessage}`, error);
         }
     }
-}
-
-function findTableStart(lines: string[], currentLine: number): number {
-    let i = currentLine;
-    while (i >= 0) {
-        const line = lines[i];
-        if (line && line.trim().startsWith('|')) i--;
-        else break;
-    }
-    return i + 1;
-}
-
-function findTableEnd(lines: string[], currentLine: number): number {
-    let i = currentLine;
-    while (i < lines.length) {
-        const line = lines[i];
-        if (line && line.trim().startsWith('|')) i++;
-        else break;
-    }
-    return i - 1;
 }

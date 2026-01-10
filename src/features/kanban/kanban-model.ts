@@ -1,5 +1,3 @@
-import { TFile, App } from "obsidian";
-
 export interface KanbanCard {
     id: string; // Unique ID for drag handling (can be index based or content hash)
     content: string; // The text content without checkbox
@@ -66,7 +64,7 @@ export class KanbanModel {
                 const tagsMatch = textContent.match(/#[一-龥a-zA-Z0-9_]+/g);
                 
                 currentColumn.cards.push({
-                    id: `card-${Math.random().toString(36).substr(2, 9)}`,
+                    id: `card-${Math.random().toString(36).slice(2, 11)}`,
                     content: textContent,
                     status: status,
                     originalText: trimmed,

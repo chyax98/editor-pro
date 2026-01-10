@@ -1,4 +1,4 @@
-import { App, TFile, debounce } from "obsidian";
+import { App, Plugin, TFile, debounce } from "obsidian";
 import { generateDate } from "../../utils/markdown-generators";
 
 export interface YamlSettings {
@@ -6,6 +6,13 @@ export interface YamlSettings {
     createdKey: string;
     updatedKey: string;
     dateFormat: string;
+}
+
+type SupportedDateFormat = "YYYY-MM-DD" | "HH:mm" | "YYYY-MM-DD HH:mm";
+
+function normalizeDateFormat(format: string): SupportedDateFormat {
+    if (format === "YYYY-MM-DD" || format === "HH:mm" || format === "YYYY-MM-DD HH:mm") return format;
+    return "YYYY-MM-DD HH:mm";
 }
 
 export class YamlManager {
@@ -24,23 +31,25 @@ export class YamlManager {
         this.updateDebounced = debounce((file: TFile) => this.updateFile(file), 2000, true);
     }
 
-    onload() {
-        if (!this.settings.enableYaml) return;
+    register(plugin: Plugin) {
+        plugin.registerEvent(
+            this.app.vault.on('create', (file) => {
+                if (!this.settings.enableYaml) return;
+                if (file instanceof TFile && file.extension === 'md') {
+                    void this.addCreatedDate(file);
+                }
+            })
+        );
 
-        this.app.vault.on('create', (file) => {
-            if (file instanceof TFile && file.extension === 'md') {
-                this.addCreatedDate(file);
-            }
-        });
-
-        this.app.vault.on('modify', (file) => {
-            if (file instanceof TFile && file.extension === 'md') {
-                // If we are currently updating this file, ignore this event
-                if (this.inProgressFiles.has(file.path)) return;
-                
-                this.updateDebounced(file);
-            }
-        });
+        plugin.registerEvent(
+            this.app.vault.on('modify', (file) => {
+                if (!this.settings.enableYaml) return;
+                if (file instanceof TFile && file.extension === 'md') {
+                    if (this.inProgressFiles.has(file.path)) return;
+                    this.updateDebounced(file);
+                }
+            })
+        );
     }
     
     updateSettings(newSettings: YamlSettings) {
@@ -50,8 +59,9 @@ export class YamlManager {
     private async addCreatedDate(file: TFile) {
         try {
             await this.app.fileManager.processFrontMatter(file, (frontmatter) => {
-                if (!frontmatter[this.settings.createdKey]) {
-                    frontmatter[this.settings.createdKey] = generateDate(this.settings.dateFormat as any);
+                const fm = frontmatter as Record<string, unknown>;
+                if (!fm[this.settings.createdKey]) {
+                    fm[this.settings.createdKey] = generateDate(normalizeDateFormat(this.settings.dateFormat));
                 }
             });
         } catch (error) {
@@ -65,12 +75,13 @@ export class YamlManager {
 
         try {
             await this.app.fileManager.processFrontMatter(file, (frontmatter) => {
-                const now = generateDate(this.settings.dateFormat as any);
-                const current = frontmatter[this.settings.updatedKey];
+                const fm = frontmatter as Record<string, unknown>;
+                const now = generateDate(normalizeDateFormat(this.settings.dateFormat));
+                const current = fm[this.settings.updatedKey];
                 
                 // Only update if time has actually changed (minute precision)
                 if (current !== now) {
-                    frontmatter[this.settings.updatedKey] = now;
+                    fm[this.settings.updatedKey] = now;
                 }
             });
         } catch (error) {

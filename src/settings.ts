@@ -1,7 +1,7 @@
 import { App, PluginSettingTab, Setting } from "obsidian";
-import MyPlugin from "./main";
+import EditorProPlugin from "./main";
 
-export interface MyPluginSettings {
+export interface EditorProSettings {
     enableSmartToggle: boolean;
     enableSlashCommand: boolean;
     enableContextMenu: boolean;
@@ -14,7 +14,7 @@ export interface MyPluginSettings {
     kanbanFilePath: string;
 }
 
-export const DEFAULT_SETTINGS: MyPluginSettings = {
+export const DEFAULT_SETTINGS: EditorProSettings = {
     enableSmartToggle: true,
     enableSlashCommand: true,
     enableContextMenu: true,
@@ -28,9 +28,9 @@ export const DEFAULT_SETTINGS: MyPluginSettings = {
 }
 
 export class EditorProSettingTab extends PluginSettingTab {
-    plugin: MyPlugin;
+    plugin: EditorProPlugin;
 
-    constructor(app: App, plugin: MyPlugin) {
+    constructor(app: App, plugin: EditorProPlugin) {
         super(app, plugin);
         this.plugin = plugin;
     }
@@ -80,7 +80,7 @@ export class EditorProSettingTab extends PluginSettingTab {
 
         new Setting(containerEl)
             .setName('开启任务快捷键')
-            .setDesc('Cmd+L 循环切换任务状态（普通文本 / 待办 / 完成）。')
+            .setDesc('提供任务状态循环命令（普通文本 / 待办 / 完成），可在 Obsidian 的快捷键设置中自行绑定。')
             .addToggle(toggle => toggle
                 .setValue(this.plugin.settings.enableTaskHotkeys)
                 .onChange(async (value) => {
@@ -104,7 +104,7 @@ export class EditorProSettingTab extends PluginSettingTab {
 
         new Setting(containerEl)
             .setName('开启标题快捷转换')
-            .setDesc('使用 Cmd+1~6 快速设置当前行的标题等级。')
+            .setDesc('提供设置标题等级的命令（1~6 级），可在 Obsidian 的快捷键设置中自行绑定。')
             .addToggle(toggle => toggle
                 .setValue(this.plugin.settings.enableHeadingHotkeys)
                 .onChange(async (value) => {

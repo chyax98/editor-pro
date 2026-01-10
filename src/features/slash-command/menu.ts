@@ -93,9 +93,11 @@ export class SlashCommandMenu extends EditorSuggest<SlashCommand> {
                 editor.setCursor({ line: cursor.line + 1, ch: 0 });
                 break;
             case 'due':
-                const line = editor.getLine(cursor.line);
-                const newLine = setDueDate(line, generateDate('YYYY-MM-DD'));
-                editor.setLine(cursor.line, newLine);
+                {
+                    const line = editor.getLine(cursor.line);
+                    const newLine = setDueDate(line, generateDate('YYYY-MM-DD'));
+                    editor.setLine(cursor.line, newLine);
+                }
                 break;
             case 'math':
                 editor.replaceSelection(generateMath());
