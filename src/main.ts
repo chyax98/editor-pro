@@ -5,12 +5,14 @@ import { wrapWithCallout, wrapWithCodeBlock, wrapWithQuote } from './features/ca
 import { CalloutTypePicker } from './features/callout/callout-picker';
 import { SlashCommandMenu } from './features/slash-command/menu';
 import { generateTable, generateDate, insertRow, deleteRow } from './utils/markdown-generators';
+import { insertColumn, deleteColumn, setColumnAlign } from './utils/table-generators';
 import { YamlManager } from './features/yaml/auto-update';
 import { handleTableNavigation } from './features/table/table-navigation';
 import { checkSmartInput } from './features/smart-input/input-handler';
 import { getTaskColumn, moveTaskToColumn } from './features/kanban/kanban-logic';
 import { setDueDate } from './features/kanban/due-date';
 import { archiveCompletedTasks } from './features/kanban/archive';
+import { overdueHighlighter } from './features/visuals/overdue-highlighter';
 import { DEFAULT_SETTINGS, MyPluginSettings, EditorProSettingTab } from "./settings";
 
 export default class MyPlugin extends Plugin {
@@ -274,6 +276,62 @@ export default class MyPlugin extends Plugin {
             })
         );
 
+        // 11. Overdue Highlighter
+        this.registerEditorExtension(overdueHighlighter);
+
+        // 12. Advanced Table Commands
+        this.addCommand({
+            id: 'insert-col-right',
+            name: 'Insert column right',
+            editorCallback: (editor: Editor) => {
+                const cursor = editor.getCursor();
+                const allLines = editor.getValue().split('\n');
+                // Naive: assumes cursor line is part of table. Ideally find table block.
+                // For MVP, just update whole file or block if we had block detection.
+                // Since our util works line by line, we need to apply to the *whole table* block.
+                // Finding table block: iterate up/down from cursor.
+                const start = findTableStart(allLines, cursor.line);
+                const end = findTableEnd(allLines, cursor.line);
+                if (start === -1 || end === -1) return;
+
+                // Slice table lines
+                const tableLines = allLines.slice(start, end + 1);
+                // Calculate col index based on cursor pipe count
+                const curLine = allLines[cursor.line];
+                if (!curLine) return;
+                const preCursor = curLine.substring(0, cursor.ch);
+                const colIndex = (preCursor.match(/\|/g) || []).length - 1;
+
+                const newTableLines = insertColumn(tableLines, colIndex, 'right');
+                
+                // Replace in document
+                const fullText = allLines.slice(0, start).concat(newTableLines).concat(allLines.slice(end + 1)).join('\n');
+                editor.setValue(fullText);
+            }
+        });
+
+        this.addCommand({
+            id: 'delete-col',
+            name: 'Delete current column',
+            editorCallback: (editor: Editor) => {
+                const cursor = editor.getCursor();
+                const allLines = editor.getValue().split('\n');
+                const start = findTableStart(allLines, cursor.line);
+                const end = findTableEnd(allLines, cursor.line);
+                if (start === -1 || end === -1) return;
+
+                const tableLines = allLines.slice(start, end + 1);
+                const curLine = allLines[cursor.line];
+                if (!curLine) return;
+                const preCursor = curLine.substring(0, cursor.ch);
+                const colIndex = (preCursor.match(/\|/g) || []).length - 1;
+
+                const newTableLines = deleteColumn(tableLines, colIndex);
+                const fullText = allLines.slice(0, start).concat(newTableLines).concat(allLines.slice(end + 1)).join('\n');
+                editor.setValue(fullText);
+            }
+        });
+
         this.addSettingTab(new EditorProSettingTab(this.app, this));
     }
 
@@ -304,4 +362,30 @@ export default class MyPlugin extends Plugin {
             console.error(`[Editor Pro] ${errorMessage}`, error);
         }
     }
+}
+
+function findTableStart(lines: string[], currentLine: number): number {
+    let i = currentLine;
+    while (i >= 0) {
+        const line = lines[i];
+        if (line && line.trim().startsWith('|')) {
+            i--;
+        } else {
+            break;
+        }
+    }
+    return i + 1;
+}
+
+function findTableEnd(lines: string[], currentLine: number): number {
+    let i = currentLine;
+    while (i < lines.length) {
+        const line = lines[i];
+        if (line && line.trim().startsWith('|')) {
+            i++;
+        } else {
+            break;
+        }
+    }
+    return i - 1;
 }

@@ -1,8 +1,15 @@
-/*
+.editor-pro-overdue {
+    color: #ff4d4f !important;
+    font-weight: bold;
+    background-color: rgba(255, 77, 79, 0.1);
+    border-radius: 2px;
+    padding: 0 2px;
+}
 
-This CSS file will be included with your plugin, and
-available in the app when your plugin is enabled.
-
-If your plugin does not need CSS, delete this file.
-
-*/
+.editor-pro-today {
+    color: #faad14 !important;
+    font-weight: bold;
+    background-color: rgba(250, 173, 20, 0.1);
+    border-radius: 2px;
+    padding: 0 2px;
+}

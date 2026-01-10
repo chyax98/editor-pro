@@ -21,8 +21,18 @@ export function wrapWithCallout(editor: Editor, options: CalloutOptions) {
     }
 
     const lines = content.split('\n');
-    const formattedBody = lines.map(l => `> ${l}`).join('\n');
-    const header = `> [!${options.type}]${options.foldable === true ? '-' : (options.foldable === false ? '+' : '')} ${options.title || ''}`;
+    let title = options.title || '';
+    let bodyLines = lines;
+
+    // Smart Title Detection: If no title provided, and first line is short and looks like a title
+    const firstLine = lines[0];
+    if (!title && lines.length > 1 && firstLine && firstLine.length < 50 && !firstLine.startsWith('>')) {
+        title = firstLine;
+        bodyLines = lines.slice(1);
+    }
+
+    const formattedBody = bodyLines.map(l => `> ${l}`).join('\n');
+    const header = `> [!${options.type}]${options.foldable === true ? '-' : (options.foldable === false ? '+' : '')} ${title}`;
     
     const result = `${header}\n${formattedBody}`;
 

@@ -18,7 +18,8 @@ const PINYIN_MAP: Record<string, string> = {
     '时': 's', '间': 'j', '序': 'x',
     '流': 'l', '程': 'c', '图': 't',
     '数': 's', '学': 'x', '公': 'g', '式': 's',
-    '甘': 'g', '特': 't', '饼': 'b'
+    '甘': 'g', '特': 't', '饼': 'b',
+    '周': 'z', '记': 'j', '片': 'p', '段': 'd'
 };
 
 function getInitials(text: string): string {

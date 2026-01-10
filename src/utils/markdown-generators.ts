@@ -75,6 +75,39 @@ export function generateMath(): string {
     return "$$\n\n$$";
 }
 
+export function generateDaily(): string {
+    const date = generateDate('YYYY-MM-DD');
+    return `# Daily Note - ${date}
+
+## 🎯 Priorities
+- [ ] 
+
+## 📝 Notes
+`;
+}
+
+export function generateWeekly(): string {
+    return `# Weekly Review
+
+## 📅 Days
+- [ ] Monday
+- [ ] Tuesday
+- [ ] Wednesday
+- [ ] Thursday
+- [ ] Friday
+
+## 🏆 Wins
+- 
+
+## 🚧 Challenges
+- 
+`;
+}
+
+export function generateHTML(tag: string = 'div'): string {
+    return `<${tag} class="">\n\n</${tag}>`;
+}
+
 export function generateDate(format: 'YYYY-MM-DD' | 'HH:mm' | 'YYYY-MM-DD HH:mm'): string {
     const now = new Date();
     

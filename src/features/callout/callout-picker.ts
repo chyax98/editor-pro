@@ -10,9 +10,9 @@ export class CalloutTypePicker extends SuggestModal<string> {
 
     getSuggestions(query: string): string[] {
         const types = [
-            "note", "abstract", "info", "todo", "tip", "success", 
-            "question", "warning", "failure", "danger", "bug", 
-            "example", "quote"
+            "✏️ note", "📄 abstract", "ℹ️ info", "✅ todo", "💡 tip", "✔️ success", 
+            "❓ question", "⚠️ warning", "❌ failure", "⚡ danger", "🐞 bug", 
+            "📝 example", "💬 quote"
         ];
         return types.filter(t => t.toLowerCase().includes(query.toLowerCase()));
     }
@@ -22,6 +22,8 @@ export class CalloutTypePicker extends SuggestModal<string> {
     }
 
     onChooseSuggestion(item: string, evt: MouseEvent | KeyboardEvent) {
-        this.onChoose(item);
+        // Strip icon for the actual type
+        const type = item.split(' ')[1] || item;
+        this.onChoose(type);
     }
 }

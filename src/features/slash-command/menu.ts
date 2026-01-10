@@ -3,13 +3,16 @@ import { SlashCommand, shouldTriggerSlashCommand, matchCommand } from "./utils";
 import { wrapWithCallout, wrapWithCodeBlock } from "../callout/wrap-callout";
 import { CalloutTypePicker } from "../callout/callout-picker";
 
-import { generateTable, generateMermaid, generateDate, generateMath } from "../../utils/markdown-generators";
+import { generateTable, generateMermaid, generateDate, generateMath, generateDaily, generateWeekly, generateHTML } from "../../utils/markdown-generators";
 import { setDueDate } from "../kanban/due-date";
 
 const COMMANDS: SlashCommand[] = [
     { id: 'callout', name: '提示块 (Callout)', aliases: ['callout', 'tip', 'tsk'] },
     { id: 'codeblock', name: '代码块 (Code Block)', aliases: ['code', 'dmk'] },
     { id: 'kanban', name: '看板模板 (Kanban)', aliases: ['kb', 'kb'] },
+    { id: 'daily', name: '日记模板 (Daily)', aliases: ['daily', 'rj'] },
+    { id: 'weekly', name: '周记模板 (Weekly)', aliases: ['weekly', 'zj'] },
+    { id: 'html', name: 'HTML 片段 (HTML)', aliases: ['html', 'dm'] },
     { id: 'due', name: '设置截止 (Due Date)', aliases: ['due', 'jz'] },
     { id: 'math', name: '数学公式 (Math)', aliases: ['math', 'gs'] },
     { id: 'table', name: '插入表格 (Table)', aliases: ['table', 'bg'] },
@@ -78,6 +81,16 @@ export class SlashCommandMenu extends EditorSuggest<SlashCommand> {
             case 'kanban':
                 editor.replaceSelection('## Todo\n- [ ] \n\n## In Progress\n\n## Done\n');
                 editor.setCursor({ line: cursor.line + 1, ch: 6 });
+                break;
+            case 'daily':
+                editor.replaceSelection(generateDaily());
+                break;
+            case 'weekly':
+                editor.replaceSelection(generateWeekly());
+                break;
+            case 'html':
+                editor.replaceSelection(generateHTML());
+                editor.setCursor({ line: cursor.line + 1, ch: 0 });
                 break;
             case 'due':
                 const line = editor.getLine(cursor.line);
