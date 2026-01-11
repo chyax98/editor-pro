@@ -70,3 +70,8 @@ npm run lint
 - `docs/task-board.md`
 - `docs/research-painpoints.md`
 
+## 仓库内文档（可随 git 同步）
+
+由于本机的 `docs/` 可能是软链接（用于指向笔记库），为保证他人接手时可直接在仓库中查看，关键文档也会同步到：
+
+- `repo-docs/README.md`
