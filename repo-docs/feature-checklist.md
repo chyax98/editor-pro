@@ -45,7 +45,7 @@
 - 内置模板变量：`src/features/templates/template-engine.ts`
 
 ### 结构化视图
-- `.board` JSON 看板：`src/views/board-view.tsx`
+- `.board` JSON 看板（严格 schemaVersion=1，不做向后兼容）：`src/views/board-view.tsx`
 - Flow board（标题=列，列表块=卡片，拖拽改写文档）：`src/views/flow-board-view.tsx`
 
 ### 预览渲染
@@ -64,4 +64,3 @@
 
 - D2 / DOT 预览渲染器（默认 Obsidian 不渲染，需要额外方案）
 - 更完整拼音搜索（替换 MVP 映射表）
-
