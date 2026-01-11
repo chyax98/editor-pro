@@ -55,6 +55,7 @@
 ### 2.6 结构化视图
 
 - `.board` JSON 看板（React UI，拖拽/编辑/列增删）：`src/views/board-view.tsx` `src/views/board-app.tsx` `src/views/card-modal.ts`
+- `.board` 解析失败不再自动覆盖文件：会展示“修复面板”（可直接编辑 JSON 并应用/或重置）：`src/views/board-app.tsx` + `src/views/board-view.tsx`
 - 看板文件管理：`open-board` / `recreate-board`（删除并重建）：`src/main.ts`
 - Flow board（“标题=列、列表块=卡片”，拖拽会改写当前文档）：`src/views/flow-board-view.tsx` + `src/features/flow-board/flow-parser.ts`
 
@@ -88,4 +89,3 @@
 
 - `npm test`：全部通过
 - `npm run build`：通过
-

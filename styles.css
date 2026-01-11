@@ -24,11 +24,91 @@
 /* Project Board (JSON) */
 .editor-pro-board {
     height: 100%;
-    padding: 16px 18px;
-    overflow-x: auto;
+    padding: 12px 14px;
+    overflow: hidden;
     background-color: var(--background-primary);
     font-family: var(--font-interface);
 }
+
+.editor-pro-board-shell {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.editor-pro-board-topbar {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 10px;
+    border: 1px solid var(--background-modifier-border);
+    border-radius: 10px;
+    background: var(--background-secondary);
+}
+
+.editor-pro-board-title {
+    font-size: 1.05em;
+    font-weight: 700;
+    color: var(--text-normal);
+    background: transparent;
+    border: 0;
+    padding: 6px 8px;
+    border-radius: 8px;
+    cursor: pointer;
+}
+
+.editor-pro-board-title:hover {
+    background: var(--background-modifier-hover);
+}
+
+.editor-pro-board-spacer {
+    flex: 1;
+}
+
+.editor-pro-board-search {
+    flex: 1;
+    max-width: 520px;
+}
+
+.editor-pro-board-search input {
+    width: 100%;
+    padding: 8px 10px;
+    border-radius: 10px;
+    border: 1px solid var(--background-modifier-border);
+    background: var(--background-primary);
+    color: var(--text-normal);
+}
+
+.editor-pro-board-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.editor-pro-board-status {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 10px;
+    border-radius: 10px;
+    border: 1px solid var(--background-modifier-border);
+    background: var(--background-primary);
+    cursor: pointer;
+    color: var(--text-muted);
+    font-weight: 600;
+}
+
+.editor-pro-board-status .dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 999px;
+    background: var(--text-faint);
+}
+
+.editor-pro-board-status.is-saved .dot { background: #52c41a; }
+.editor-pro-board-status.is-dirty .dot { background: #faad14; }
+.editor-pro-board-status.is-saving .dot { background: #1677ff; }
+.editor-pro-board-status.is-error .dot { background: #ff4d4f; }
 
 .kanban-empty {
     padding: 18px;
@@ -38,15 +118,17 @@
 .board-container {
     display: flex;
     gap: 16px;
-    height: 100%;
+    flex: 1;
     align-items: flex-start;
     padding-bottom: 4px;
+    overflow-x: auto;
+    overflow-y: hidden;
 }
 
 .board-column {
     flex: 0 0 280px;
     background: var(--background-secondary);
-    border-radius: 6px;
+    border-radius: 10px;
     max-height: 100%;
     display: flex;
     flex-direction: column;
@@ -61,6 +143,9 @@
 }
 
 .board-column-header {
+    position: sticky;
+    top: 0;
+    z-index: 2;
     padding: 8px 6px 10px;
     margin-bottom: 8px;
     color: var(--text-normal);
@@ -69,6 +154,7 @@
     justify-content: space-between;
     gap: 8px;
     border-bottom: 1px solid var(--background-modifier-border);
+    background: var(--background-secondary);
 }
 
 .board-column-title {
@@ -110,10 +196,23 @@
     min-height: 50px;
 }
 
+.board-column-empty {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    align-items: flex-start;
+    padding: 10px 6px;
+    color: var(--text-muted);
+}
+
+.board-column-empty .hint {
+    font-size: 0.9em;
+}
+
 /* Card Styling */
 .board-card {
     background: var(--background-primary);
-    border-radius: 4px;
+    border-radius: 10px;
     padding: 12px;
     margin-bottom: 10px;
     box-shadow: 0 1px 2px rgba(0,0,0,0.08);
@@ -164,6 +263,7 @@
 .priority-high { background: rgba(255, 77, 79, 0.15); color: #ff4d4f; }
 .priority-medium { background: rgba(250, 173, 20, 0.15); color: #faad14; }
 .priority-low { background: rgba(82, 196, 26, 0.15); color: #52c41a; }
+.tag-badge { background: var(--background-modifier-hover); color: var(--text-faint); }
 
 .date-badge.overdue {
     color: #ff4d4f;
@@ -203,6 +303,7 @@
     display: flex;
     align-items: center;
     justify-content: center;
+    border-radius: 10px;
 }
 
 .board-col-btn {
@@ -243,6 +344,54 @@
     min-width: 34px;
     font-weight: 700;
     background: transparent;
+}
+
+/* Board parse error panel */
+.editor-pro-board-error {
+    flex: 1;
+    border: 1px solid var(--background-modifier-border);
+    border-radius: 10px;
+    background: var(--background-secondary);
+    padding: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    overflow: hidden;
+}
+
+.editor-pro-board-error-title {
+    font-weight: 700;
+    color: var(--text-normal);
+}
+
+.editor-pro-board-error-meta .path {
+    font-family: var(--font-monospace);
+    font-size: 0.85em;
+    color: var(--text-faint);
+}
+
+.editor-pro-board-error-meta .msg {
+    margin-top: 6px;
+    color: var(--text-muted);
+}
+
+.editor-pro-board-error-textarea {
+    flex: 1;
+    width: 100%;
+    min-height: 220px;
+    resize: none;
+    background: var(--background-primary);
+    border: 1px solid var(--background-modifier-border);
+    border-radius: 10px;
+    padding: 10px;
+    font-family: var(--font-monospace);
+    font-size: 12px;
+}
+
+.editor-pro-board-error-actions {
+    display: flex;
+    gap: 10px;
+    justify-content: flex-end;
 }
 
 /* Modal Styles */
