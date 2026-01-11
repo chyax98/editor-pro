@@ -2,6 +2,8 @@ import { App, PluginSettingTab, Setting } from "obsidian";
 import EditorProPlugin from "./main";
 
 export interface EditorProSettings {
+    enableBoard: boolean;
+
     enableSmartToggle: boolean;
     enableSlashCommand: boolean;
     enableContextMenu: boolean;
@@ -10,6 +12,13 @@ export interface EditorProSettings {
     enableYaml: boolean;
     enableSmartPasteUrl: boolean;
     enableTypewriterScroll: boolean;
+    enableKeyshots: boolean;
+    enableSmartTyping: boolean;
+    enableSmartInput: boolean;
+    enableEditorNavigation: boolean;
+    enableOverdueHighlighter: boolean;
+    enableInfographicRenderer: boolean;
+
     yamlCreatedKey: string;
     yamlUpdatedKey: string;
     yamlDateFormat: string;
@@ -17,6 +26,8 @@ export interface EditorProSettings {
 }
 
 export const DEFAULT_SETTINGS: EditorProSettings = {
+    enableBoard: true,
+
     enableSmartToggle: true,
     enableSlashCommand: true,
     enableContextMenu: true,
@@ -24,7 +35,14 @@ export const DEFAULT_SETTINGS: EditorProSettings = {
     enableTaskHotkeys: true,
     enableYaml: true,
     enableSmartPasteUrl: true,
-    enableTypewriterScroll: false,
+    enableTypewriterScroll: true,
+    enableKeyshots: true,
+    enableSmartTyping: true,
+    enableSmartInput: true,
+    enableEditorNavigation: true,
+    enableOverdueHighlighter: true,
+    enableInfographicRenderer: true,
+
     yamlCreatedKey: 'created',
     yamlUpdatedKey: 'updated',
     yamlDateFormat: 'YYYY-MM-DD HH:mm',
@@ -46,9 +64,52 @@ export class EditorProSettingTab extends PluginSettingTab {
         
         containerEl.createEl('h1', { text: 'Editor Pro 插件设置' });
 
+        // --- 0：看板 ---
+        containerEl.createEl('h3', { text: '📋 看板' });
+
+        new Setting(containerEl)
+            .setName('开启项目看板（.board）')
+            .setDesc('提供侧边栏看板入口与 `.board` 视图。部分开关需要重载插件生效。')
+            .addToggle(toggle => toggle
+                .setValue(this.plugin.settings.enableBoard)
+                .onChange(async (value) => {
+                    this.plugin.settings.enableBoard = value;
+                    await this.plugin.saveSettings();
+                }));
+
         // --- 第一组：核心编辑 ---
         containerEl.createEl('h3', { text: '📝 核心编辑与格式化' });
-        
+
+        new Setting(containerEl)
+            .setName('开启键盘行操作（Keyshots）')
+            .setDesc('提供上移/下移/复制/删除/选中当前行等命令（需在 **Settings → Hotkeys** 绑定）。')
+            .addToggle(toggle => toggle
+                .setValue(this.plugin.settings.enableKeyshots)
+                .onChange(async (value) => {
+                    this.plugin.settings.enableKeyshots = value;
+                    await this.plugin.saveSettings();
+                }));
+
+        new Setting(containerEl)
+            .setName('开启输入增强（自动配对/智能退格/中英空格）')
+            .setDesc('自动配对括号与引号；在 `(|)` 中退格删除一对；中英混排自动加空格。')
+            .addToggle(toggle => toggle
+                .setValue(this.plugin.settings.enableSmartTyping)
+                .onChange(async (value) => {
+                    this.plugin.settings.enableSmartTyping = value;
+                    await this.plugin.saveSettings();
+                }));
+
+        new Setting(containerEl)
+            .setName('开启编辑器导航增强（表格 Tab + Shift+Enter 跳出）')
+            .setDesc('表格单元格 Tab/Shift+Tab 跳转；引用/Callout 内 Shift+Enter 快速跳出。')
+            .addToggle(toggle => toggle
+                .setValue(this.plugin.settings.enableEditorNavigation)
+                .onChange(async (value) => {
+                    this.plugin.settings.enableEditorNavigation = value;
+                    await this.plugin.saveSettings();
+                }));
+
         new Setting(containerEl)
             .setName('开启智能格式切换')
             .setDesc('智能处理加粗、斜体、行内代码（按下快捷键时，若光标在标记内则自动取消，避免符号叠加）。')
@@ -99,8 +160,8 @@ export class EditorProSettingTab extends PluginSettingTab {
                     await this.plugin.saveSettings();
                 }));
 
-        // --- 第二组：看板与任务 ---
-        containerEl.createEl('h3', { text: '📋 看板与任务管理' });
+        // --- 第二组：任务与智能输入 ---
+        containerEl.createEl('h3', { text: '✅ 任务与智能输入' });
 
         new Setting(containerEl)
             .setName('开启任务快捷键')
@@ -109,6 +170,26 @@ export class EditorProSettingTab extends PluginSettingTab {
                 .setValue(this.plugin.settings.enableTaskHotkeys)
                 .onChange(async (value) => {
                     this.plugin.settings.enableTaskHotkeys = value;
+                    await this.plugin.saveSettings();
+                }));
+
+        new Setting(containerEl)
+            .setName('开启智能输入展开 (@today / @time / @now)')
+            .setDesc('输入特殊片段后自动展开为日期/时间。')
+            .addToggle(toggle => toggle
+                .setValue(this.plugin.settings.enableSmartInput)
+                .onChange(async (value) => {
+                    this.plugin.settings.enableSmartInput = value;
+                    await this.plugin.saveSettings();
+                }));
+
+        new Setting(containerEl)
+            .setName('开启到期高亮 (@due)')
+            .setDesc('在编辑器中高亮 `@due(YYYY-MM-DD)`：过期标红、今天标黄。')
+            .addToggle(toggle => toggle
+                .setValue(this.plugin.settings.enableOverdueHighlighter)
+                .onChange(async (value) => {
+                    this.plugin.settings.enableOverdueHighlighter = value;
                     await this.plugin.saveSettings();
                 }));
 
@@ -165,6 +246,19 @@ export class EditorProSettingTab extends PluginSettingTab {
                 .setValue(this.plugin.settings.yamlDateFormat)
                 .onChange(async (value) => {
                     this.plugin.settings.yamlDateFormat = value;
+                    await this.plugin.saveSettings();
+                }));
+
+        // --- 第五组：预览渲染 ---
+        containerEl.createEl('h3', { text: '🖼️ 预览渲染' });
+
+        new Setting(containerEl)
+            .setName('开启 Infographic 渲染器')
+            .setDesc('在预览/阅读模式渲染 ` ```infographic` 代码块。关闭后表示“禁用渲染器”，需要重载插件生效。')
+            .addToggle(toggle => toggle
+                .setValue(this.plugin.settings.enableInfographicRenderer)
+                .onChange(async (value) => {
+                    this.plugin.settings.enableInfographicRenderer = value;
                     await this.plugin.saveSettings();
                 }));
     }

@@ -9,7 +9,7 @@ import { YamlManager } from './features/yaml/auto-update';
 import { handleTableNavigation } from './features/table/table-navigation';
 import { handleBlockNavigation } from './features/formatting/block-navigation';
 import { checkSmartInput } from './features/smart-input/input-handler';
-import { overdueHighlighter } from './features/visuals/overdue-highlighter';
+import { createOverdueHighlighter } from './features/visuals/overdue-highlighter';
 import { BoardView, VIEW_TYPE_BOARD } from './views/board-view';
 import { DEFAULT_BOARD } from './features/board/board-model';
 import { registerInfographicRenderer } from './features/infographic/renderer';
@@ -27,38 +27,42 @@ export default class EditorProPlugin extends Plugin {
         await this.loadSettings();
 
         // 注册多维看板视图
-        this.registerView(
-            VIEW_TYPE_BOARD,
-            (leaf) => new BoardView(leaf)
-        );
-        this.registerExtensions(['board'], VIEW_TYPE_BOARD);
+        if (this.settings.enableBoard) {
+            this.registerView(
+                VIEW_TYPE_BOARD,
+                (leaf) => new BoardView(leaf)
+            );
+            this.registerExtensions(['board'], VIEW_TYPE_BOARD);
 
-        // 侧边栏图标：打开项目看板
-        this.addRibbonIcon('layout-dashboard', '打开项目看板', () => {
-            void this.openBoard();
-        });
+            // 侧边栏图标：打开项目看板
+            this.addRibbonIcon('layout-dashboard', '打开项目看板', () => {
+                void this.openBoard();
+            });
+        }
 
         // --- Editor UX Enhancements (Keyshots) ---
-        this.addCommand({
-            id: 'move-line-up', name: '上移当前行 (Move Line Up)',
-            editorCallback: (editor: Editor) => moveLineUp(editor)
-        });
-        this.addCommand({
-            id: 'move-line-down', name: '下移当前行 (Move Line Down)',
-            editorCallback: (editor: Editor) => moveLineDown(editor)
-        });
-        this.addCommand({
-            id: 'duplicate-line', name: '向下复制当前行 (Duplicate Line)',
-            editorCallback: (editor: Editor) => duplicateLine(editor)
-        });
-        this.addCommand({
-            id: 'delete-line', name: '删除当前行 (Delete Line)',
-            editorCallback: (editor: Editor) => deleteLine(editor)
-        });
-        this.addCommand({
-            id: 'select-line', name: '选中当前行 (Select Line)',
-            editorCallback: (editor: Editor) => selectLine(editor)
-        });
+        if (this.settings.enableKeyshots) {
+            this.addCommand({
+                id: 'move-line-up', name: '上移当前行 (Move Line Up)',
+                editorCallback: (editor: Editor) => moveLineUp(editor)
+            });
+            this.addCommand({
+                id: 'move-line-down', name: '下移当前行 (Move Line Down)',
+                editorCallback: (editor: Editor) => moveLineDown(editor)
+            });
+            this.addCommand({
+                id: 'duplicate-line', name: '向下复制当前行 (Duplicate Line)',
+                editorCallback: (editor: Editor) => duplicateLine(editor)
+            });
+            this.addCommand({
+                id: 'delete-line', name: '删除当前行 (Delete Line)',
+                editorCallback: (editor: Editor) => deleteLine(editor)
+            });
+            this.addCommand({
+                id: 'select-line', name: '选中当前行 (Select Line)',
+                editorCallback: (editor: Editor) => selectLine(editor)
+            });
+        }
 
         // 1. 智能格式切换
         if (this.settings.enableSmartToggle) {
@@ -174,19 +178,23 @@ export default class EditorProPlugin extends Plugin {
         this.registerDomEvent(document, 'keydown', (evt: KeyboardEvent) => {
             const view = this.app.workspace.getActiveViewOfType(MarkdownView);
             if (view) {
+                if (!this.settings.enableSmartTyping && !this.settings.enableEditorNavigation) return;
+
                 // 1. 智能退格 (Backspace)
-                if (evt.key === 'Backspace') {
+                if (this.settings.enableSmartTyping && evt.key === 'Backspace') {
                     if (handleSmartBackspace(view.editor, evt)) return;
                 }
 
                 // 2. 自动配对 / 包裹 (Any Char)
                 // 注意：evt.key 可能是 'Enter', 'Tab' 等，PAIR_MAP 查不到会返回 false，安全。
-                if (evt.key.length === 1 && !evt.ctrlKey && !evt.metaKey && !evt.altKey) {
+                if (this.settings.enableSmartTyping && evt.key.length === 1 && !evt.ctrlKey && !evt.metaKey && !evt.altKey) {
                      if (handleAutoPair(view.editor, evt.key, evt)) return;
                 }
 
-                handleTableNavigation(evt, view.editor);
-                handleBlockNavigation(evt, view.editor);
+                if (this.settings.enableEditorNavigation) {
+                    handleTableNavigation(evt, view.editor);
+                    handleBlockNavigation(evt, view.editor);
+                }
             }
         });
 
@@ -210,28 +218,36 @@ export default class EditorProPlugin extends Plugin {
         // 9. 智能输入展开 (@today, @time) + 智能排版 (Smart Spacing)
         this.registerEvent(
             this.app.workspace.on('editor-change', (editor: Editor) => {
-                // A. 智能排版 (中英自动空格) - 暂时无开关，默认启用测试
-                handleSmartSpacing(editor);
+                // A. 智能排版 (中英自动空格)
+                if (this.settings.enableSmartTyping) {
+                    handleSmartSpacing(editor);
+                }
 
                 // B. 智能输入展开
-                const cursor = editor.getCursor();
-                const line = editor.getLine(cursor.line);
-                const match = checkSmartInput(line, cursor.ch);
-                if (match) {
-                    editor.replaceRange(
-                        match.replacement,
-                        { line: cursor.line, ch: match.range.from },
-                        { line: cursor.line, ch: match.range.to }
-                    );
+                if (this.settings.enableSmartInput) {
+                    const cursor = editor.getCursor();
+                    const line = editor.getLine(cursor.line);
+                    const match = checkSmartInput(line, cursor.ch);
+                    if (match) {
+                        editor.replaceRange(
+                            match.replacement,
+                            { line: cursor.line, ch: match.range.from },
+                            { line: cursor.line, ch: match.range.to }
+                        );
+                    }
                 }
             })
         );
 
         // 10. 过期高亮
-        this.registerEditorExtension(overdueHighlighter);
+        this.registerEditorExtension(
+            createOverdueHighlighter(() => this.settings.enableOverdueHighlighter)
+        );
 
         // 11. Infographic 渲染器（```infographic 代码块）
-        registerInfographicRenderer(this);
+        if (this.settings.enableInfographicRenderer) {
+            registerInfographicRenderer(this);
+        }
 
         this.addSettingTab(new EditorProSettingTab(this.app, this));
     }

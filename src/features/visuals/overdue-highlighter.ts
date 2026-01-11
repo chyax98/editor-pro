@@ -4,53 +4,66 @@ import { RangeSetBuilder } from "@codemirror/state";
 // Match @due(YYYY-MM-DD)
 const DUE_DATE_REGEX = /@due\((\d{4}-\d{2}-\d{2})\)/g;
 
-export const overdueHighlighter = ViewPlugin.fromClass(class {
-    decorations: DecorationSet;
+function buildDecorations(view: EditorView): DecorationSet {
+    const builder = new RangeSetBuilder<Decoration>();
+    const now = new Date();
+    // Simple YYYY-MM-DD
+    const todayStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
 
-    constructor(view: EditorView) {
-        this.decorations = this.buildDecorations(view);
-    }
+    for (const { from, to } of view.visibleRanges) {
+        const text = view.state.doc.sliceString(from, to);
+        DUE_DATE_REGEX.lastIndex = 0;
 
-    update(update: ViewUpdate) {
-        if (update.docChanged || update.viewportChanged) {
-            this.decorations = this.buildDecorations(update.view);
-        }
-    }
+        let match;
+        while ((match = DUE_DATE_REGEX.exec(text)) !== null) {
+            const dateStr = match[1];
+            if (!dateStr) continue;
 
-    buildDecorations(view: EditorView): DecorationSet {
-        const builder = new RangeSetBuilder<Decoration>();
-        const now = new Date();
-        // Simple YYYY-MM-DD
-        const todayStr = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')}`;
+            const start = from + match.index;
+            const end = start + match[0].length;
 
-        for (const { from, to } of view.visibleRanges) {
-            const text = view.state.doc.sliceString(from, to);
-            // Regex exec needs to run on the text, but the index is relative to 'from'.
-            // Also need to be careful with regex state if using global flag.
-            DUE_DATE_REGEX.lastIndex = 0;
-            
-            let match;
-            while ((match = DUE_DATE_REGEX.exec(text)) !== null) {
-                const dateStr = match[1];
-                if (!dateStr) continue;
-                
-                const start = from + match.index;
-                const end = start + match[0].length;
-                
-                let styleClass = '';
-                if (dateStr < todayStr) {
-                    styleClass = 'editor-pro-overdue';
-                } else if (dateStr === todayStr) {
-                    styleClass = 'editor-pro-today';
-                }
-                
-                if (styleClass) {
-                    builder.add(start, end, Decoration.mark({ class: styleClass }));
-                }
+            let styleClass = '';
+            if (dateStr < todayStr) {
+                styleClass = 'editor-pro-overdue';
+            } else if (dateStr === todayStr) {
+                styleClass = 'editor-pro-today';
+            }
+
+            if (styleClass) {
+                builder.add(start, end, Decoration.mark({ class: styleClass }));
             }
         }
-        return builder.finish();
     }
-}, {
-    decorations: v => v.decorations
-});
+    return builder.finish();
+}
+
+export function createOverdueHighlighter(isEnabled: () => boolean) {
+    return ViewPlugin.fromClass(class {
+        decorations: DecorationSet = Decoration.none;
+        private enabled: boolean;
+
+        constructor(view: EditorView) {
+            this.enabled = isEnabled();
+            this.decorations = this.enabled ? buildDecorations(view) : Decoration.none;
+        }
+
+        update(update: ViewUpdate) {
+            const nextEnabled = isEnabled();
+            if (nextEnabled !== this.enabled) {
+                this.enabled = nextEnabled;
+                this.decorations = this.enabled ? buildDecorations(update.view) : Decoration.none;
+                return;
+            }
+
+            if (!this.enabled) return;
+
+            if (update.docChanged || update.viewportChanged) {
+                this.decorations = buildDecorations(update.view);
+            }
+        }
+    }, {
+        decorations: v => v.decorations
+    });
+}
+
+export const overdueHighlighter = createOverdueHighlighter(() => true);
