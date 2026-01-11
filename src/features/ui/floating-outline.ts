@@ -12,6 +12,7 @@ export class FloatingOutline {
 	private enabled: () => boolean;
 	private visible = false;
 	private root: HTMLElement | null = null;
+	private eventHandlers: Array<() => void> = [];
 
 	constructor(options: { app: App; enabled: () => boolean }) {
 		this.app = options.app;
@@ -51,6 +52,13 @@ export class FloatingOutline {
 		this.visible = false;
 		this.root?.remove();
 		this.root = null;
+		this.cleanup(); // hide 时也清理
+	}
+
+	// 清理方法
+	private cleanup() {
+		this.eventHandlers.forEach(cleanup => cleanup());
+		this.eventHandlers = [];
 	}
 
 	private render() {
@@ -74,18 +82,26 @@ export class FloatingOutline {
 		const header = this.root.createDiv({ cls: "editor-pro-floating-outline-header" });
 		header.createDiv({ text: "目录" });
 		const closeBtn = header.createEl("button", { text: "×", cls: "editor-pro-floating-outline-close" });
-		closeBtn.onclick = () => this.hide();
+
+		// 保存清理函数
+		const closeHandler = () => this.hide();
+		closeBtn.onclick = closeHandler;
+		this.eventHandlers.push(() => { closeBtn.onclick = null; });
 
 		const list = this.root.createDiv({ cls: "editor-pro-floating-outline-list" });
 		for (const h of headings) {
 			const item = list.createDiv({ cls: "editor-pro-floating-outline-item" });
 			item.style.paddingLeft = `${(h.level - 1) * 12}px`;
 			item.setText(h.heading);
-			item.onclick = () => {
+
+			// 保存清理函数
+			const clickHandler = () => {
 				editor.focus();
 				editor.setCursor({ line: h.position.start.line, ch: 0 });
 				this.hide();
 			};
+			item.onclick = clickHandler;
+			this.eventHandlers.push(() => { item.onclick = null; });
 		}
 	}
 }

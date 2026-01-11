@@ -7,6 +7,7 @@ export class FileTreeHighlightManager {
 	private enabled: () => boolean;
 	private getHighlights: () => Record<string, HighlightColor>;
 	private observer: MutationObserver | null = null;
+	private observerCallback: (() => void) | null = null;
 	private updateDebounced: () => void;
 
 	constructor(options: { app: App; enabled: () => boolean; getHighlights: () => Record<string, HighlightColor> }) {
@@ -28,13 +29,19 @@ export class FileTreeHighlightManager {
 
 	private connect() {
 		if (this.observer) return;
-		this.observer = new MutationObserver(() => this.updateDebounced());
+		// Save callback reference for cleanup
+		this.observerCallback = () => this.updateDebounced();
+		this.observer = new MutationObserver(this.observerCallback);
 		this.observer.observe(document.body, { childList: true, subtree: true });
 	}
 
 	private disconnect() {
-		this.observer?.disconnect();
-		this.observer = null;
+		if (this.observer) {
+			this.observer.disconnect();
+			this.observer = null;
+		}
+		// Clear callback reference to help garbage collection
+		this.observerCallback = null;
 	}
 
 	update() {

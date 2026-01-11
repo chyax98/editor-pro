@@ -14,13 +14,16 @@ export function findNextCell(line: string, cursorCh: number): number | null {
     // Return position after nextPipeIndex + space?
     // Usually "| Content |". Pipe at P. Content at P+2.
     // Let's be smart: skip whitespace after pipe.
-    
+
     let target = nextPipeIndex + 1;
-    while (target < followingPipeIndex && line[target] === ' ') {
+    // 添加边界检查
+    const maxPos = Math.min(followingPipeIndex, line.length - 1);
+    while (target <= maxPos && line[target] === ' ') {
         target++;
     }
-    
-    return target;
+
+    // 确保 target 不超出行长度
+    return target < line.length ? target : null;
 }
 
 export function findPreviousCell(line: string, cursorCh: number): number | null {

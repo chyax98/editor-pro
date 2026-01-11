@@ -12,6 +12,7 @@ export class CursorMemoryManager {
 	private stateByPath: Record<string, CursorMemoryState>;
 	private saveDebounced: (() => void) | null = null;
 	private onSave: (state: Record<string, CursorMemoryState>) => Promise<void>;
+	private pendingTimeouts: Set<ReturnType<typeof setTimeout>> = new Set();
 
 	constructor(options: {
 		app: App;
@@ -61,11 +62,13 @@ export class CursorMemoryManager {
 				if (!(file instanceof TFile)) return;
 
 				// Defer to allow editor/view to mount.
-				window.setTimeout(() => {
+				const timeoutId = setTimeout(() => {
+					this.pendingTimeouts.delete(timeoutId);
 					const view = this.getActiveMarkdownView();
 					if (!view || view.file?.path !== file.path) return;
 					this.restoreToEditor(view.editor, file);
 				}, 0);
+				this.pendingTimeouts.add(timeoutId);
 			}),
 		);
 
@@ -93,5 +96,15 @@ export class CursorMemoryManager {
 			if (!view || !(file instanceof TFile)) return;
 			this.rememberFromEditor(view.editor, file);
 		});
+
+		// Register cleanup function
+		plugin.register(() => this.cleanup());
+	}
+
+	cleanup() {
+		for (const timeoutId of this.pendingTimeouts) {
+			clearTimeout(timeoutId);
+		}
+		this.pendingTimeouts.clear();
 	}
 }
