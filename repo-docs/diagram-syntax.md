@@ -165,7 +165,7 @@ data
 - `chart-column-simple`（柱状图）
 - `hierarchy-tree-tech-style-rounded-rect-node`（层级树）
 
-模板定义位置：`src/features/infographic/templates.ts`
+template-id 来自 AntV Infographic 内置模板集合；本仓库的 `src/features/infographic/templates.ts` 只是“常用模板示例集合”（可作为 AI few-shot），不代表完整列表。
 
 ### 4.8 渲染错误时展示什么？（你提到的点）
 

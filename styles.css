@@ -15,6 +15,12 @@
     padding: 0 2px;
 }
 
+.editor-pro-hud-path {
+    font-size: 0.75em;
+    color: var(--text-faint);
+    margin-top: 2px;
+}
+
 /* Project Board (JSON) */
 .editor-pro-board {
     height: 100%;
@@ -302,3 +308,110 @@
     font-size: 0.8em;
     margin-top: 2px;
 }
+
+/* Focus UI / Zen */
+body.editor-pro-focus-ui .status-bar,
+body.editor-pro-focus-ui .workspace-ribbon,
+body.editor-pro-focus-ui .workspace-split.mod-left-split,
+body.editor-pro-focus-ui .workspace-split.mod-right-split,
+body.editor-pro-focus-ui .workspace-tab-header-container,
+body.editor-pro-focus-ui .view-header {
+    display: none !important;
+}
+
+/* Status bar stats */
+.editor-pro-status-stats {
+    font-size: 12px;
+    color: var(--text-muted);
+}
+
+/* Floating outline */
+.editor-pro-floating-outline {
+    position: fixed;
+    top: 72px;
+    right: 16px;
+    z-index: 1000;
+    width: 280px;
+    max-height: 60vh;
+    overflow: hidden;
+    border: 1px solid var(--background-modifier-border);
+    background: var(--background-primary);
+    border-radius: 10px;
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.18);
+}
+
+.editor-pro-floating-outline-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 12px;
+    border-bottom: 1px solid var(--background-modifier-border);
+    font-weight: 600;
+}
+
+.editor-pro-floating-outline-close {
+    cursor: pointer;
+    background: transparent;
+    border: 0;
+    color: var(--text-muted);
+    font-size: 18px;
+    line-height: 1;
+}
+
+.editor-pro-floating-outline-list {
+    padding: 6px 8px 10px;
+    overflow: auto;
+    max-height: calc(60vh - 44px);
+}
+
+.editor-pro-floating-outline-item {
+    cursor: pointer;
+    padding: 6px 8px;
+    border-radius: 6px;
+    color: var(--text-normal);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.editor-pro-floating-outline-item:hover {
+    background: var(--background-modifier-hover);
+}
+
+/* Zoom textarea */
+.editor-pro-zoom-textarea {
+    min-height: 320px;
+    font-family: var(--font-monospace);
+}
+
+/* Inline decorator: file icons + note banner */
+.editor-pro-file-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 18px;
+    margin-right: 6px;
+    opacity: 0.9;
+}
+
+.editor-pro-note-banner {
+    height: 140px;
+    border-radius: 10px;
+    margin: 10px 14px 8px;
+    background-size: cover;
+    background-position: center;
+    border: 1px solid var(--background-modifier-border);
+}
+
+/* File tree highlights */
+.editor-pro-filetree-highlight {
+    border-left: 3px solid var(--background-modifier-border);
+    padding-left: 6px;
+}
+
+.editor-pro-filetree-red { border-left-color: #ff4d4f; }
+.editor-pro-filetree-orange { border-left-color: #fa8c16; }
+.editor-pro-filetree-yellow { border-left-color: #fadb14; }
+.editor-pro-filetree-green { border-left-color: #52c41a; }
+.editor-pro-filetree-blue { border-left-color: #1677ff; }
+.editor-pro-filetree-purple { border-left-color: #722ed1; }

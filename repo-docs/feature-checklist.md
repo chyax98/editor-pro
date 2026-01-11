@@ -1,101 +1,67 @@
-# 功能清单与缺口（Editor Pro）
+# 功能清单（Editor Pro）
 
-本文用于对照“原始需求”与“当前实现”，快速看到：哪些已完成、哪些部分完成、哪些还没做。
+本文用于交接时快速确认：当前仓库里“已经有什么”、入口在哪、对应代码在哪。
 
-> 原始需求参考：`docs/requirements.md`、`docs/task-board.md`（本机 `docs/` 可能是软链接）
+> 原始需求参考：`docs/`（本机软链接目录，仅作参考）；可追踪文档以 `repo-docs/` 为准。
 
-## 已实现（可用）
+## 已实现（✅）
 
-### 核心编辑
-- 智能格式切换（Smart Toggle）
-  - `smart-bold`：智能加粗（`**`）
-  - `smart-italic`：智能斜体（`*`）
-  - `smart-strikethrough`：智能删除线（`~~`）
-  - `smart-highlight`：智能高亮（`==`）
-  - `smart-code`：智能行内代码（`` ` ``）
-  - 代码：`src/features/formatting/smart-toggle.ts`，注册：`src/main.ts`
-- 智能输入展开：`@today` / `@time` / `@now`
-  - 代码：`src/features/smart-input/input-handler.ts`，注册：`src/main.ts`
-- 引用/Callout 内跳出
-  - Shift+Enter 在引用/Callout 中插入“跳出”的换行
-  - 代码：`src/features/formatting/block-navigation.ts`，注册：`src/main.ts`
-- 智能粘贴链接（Paste URL into selection）
-  - 选中文字后粘贴 URL -> `[...] (URL)`（Notion 风格）
-  - 代码：`src/features/editing/smart-paste-url.ts`，注册：`src/main.ts`
-- 打字机滚动（Typewriter scroll）
-  - 光标行尽量保持在屏幕中间（适合长文写作）
-  - 代码：`src/features/editing/typewriter-mode.ts`，注册：`src/main.ts`
+### 编辑器增强（键盘幸福感）
+- 智能格式切换（Smart Toggle）：`src/features/formatting/smart-toggle.ts`
+- 任务状态循环（Todo → Doing → Done → Plain）：`src/features/formatting/task-toggle.ts`
+- Keyshots：行上移/下移/复制/删除/选中；列表项上移/下移会“整块移动”：`src/features/editing/keyshots.ts`
+- Outliner：列表 Tab/Shift+Tab 缩进；折叠命令：`src/features/editing/outliner.ts`
+- Typewriter scroll（光标居中）：`src/features/editing/typewriter-mode.ts`
+- Smart typing（自动配对/智能退格/中英空格）：`src/features/editing/smart-typography.ts`
+- Magic input（自然语言日期 + 符号替换）：`src/features/editing/magic-input.ts`
+- Smart input（@today/@time/@now 展开）：`src/features/smart-input/input-handler.ts`
+- Block break（引用/Callout 内 Shift+Enter 跳出）：`src/features/formatting/block-navigation.ts`
 
-### 块转换
-- 选区 → Callout（带类型选择器）
-  - 命令：`wrap-callout`
-  - 代码：`src/features/callout/*`
-- 选区 → 代码块
-  - 命令：`wrap-codeblock`
-  - 代码：`src/features/callout/wrap-callout.ts`
-- 引用（Quote）
-  - 已在斜杠命令提供（见下）
+### 粘贴增强
+- Paste URL into selection：`src/features/editing/smart-paste-url.ts`
+- Auto link title（HTML 优先 + 可选联网抓 title）：`src/features/editing/smart-link-title.ts`
+- Smart image paste（重命名归档 + 插入 `![[...]]`）：`src/features/editing/smart-image-paste.ts`
 
-### 斜杠命令（EditorSuggest）
-- 触发字符：`/`、`、`、`\\`
-  - 代码：`src/features/slash-command/utils.ts`
-- 命令集（当前）
-  - Callout、代码块、引用
-  - 表格、日期/时间、数学公式、HTML 片段
-  - Mermaid/D2/Graph(DOT)（插入代码块）
-  - Infographic（空代码块插入；预览支持渲染）
-  - 日记/周记模板
-  - H1/H2/H3
-  - 代码：`src/features/slash-command/menu.ts`
-- 拼音首字母搜索：MVP 映射表
-  - 代码：`src/features/slash-command/utils.ts`
+### 文本处理
+- Save cleaner（保存时清理）：`src/features/editing/save-cleaner.ts`
+- Text transformer（大小写/排序/去空行/合并多行）：`src/features/editing/text-transformer.ts`
+- Search in selection（选区查找替换）：`src/ui/search-selection-modal.ts`
 
-### 表格增强
-- Tab 在 Markdown 表格单元格间跳转（含 Shift+Tab）
-  - 代码：`src/features/table/*`
-- 表格行操作（插入行）
-  - 入口：编辑器右键菜单 “在下方插入行”
-  - 代码：`src/utils/markdown-generators.ts` + `src/main.ts`
-- 表格列/对齐/格式化（Advanced Tables Lite）
-  - 入口：命令 + 表格右键菜单
-  - 代码：`src/features/table/table-ops.ts` + `src/utils/table-generators.ts`
+### 导航与专注
+- 最近文件 HUD：`src/features/navigation/recent-files-hud.ts`
+- 光标/滚动记忆：`src/features/navigation/cursor-memory.ts`
+- Focus UI（Zen）：`src/features/ui/focus-ui.ts`
+- 状态栏统计：`src/features/ui/status-bar-stats.ts`
+- Floating outline：`src/features/ui/floating-outline.ts`
+- Heading/List zoom：`src/ui/zoom-modal.ts`
 
-### YAML 自动化
-- 自动维护 frontmatter：`created` / `updated`
-  - 启用开关：插件设置
-  - 代码：`src/features/yaml/auto-update.ts`
+### 表格增强（Advanced Tables Lite）
+- Tab/Shift+Tab 单元格导航：`src/features/table/table-navigation.ts`
+- 列插入/删除/对齐/格式化（命令 + 右键入口）：`src/features/table/table-ops.ts`
 
-### 轻量看板（.board / JSON）
-- 侧边栏图标：创建/打开 `.board` 文件（默认 `Kanban.board`）
-- 自定义视图：拖拽卡片、编辑卡片详情（Modal）
-- 代码：`src/views/board-view.tsx`、`src/views/board-app.tsx`、`src/views/card-modal.ts`、`src/features/board/board-model.ts`
+### Slash command
+- 触发字符：`/`、`、`、`\\`：`src/features/slash-command/utils.ts`
+- 命令：Callout/代码块/引用/表格/日期/时间/Math/HTML、Mermaid/D2/DOT/Infographic（空代码块）、Daily/Weekly、内置模板：`src/features/slash-command/menu.ts`
+- 内置模板变量：`src/features/templates/template-engine.ts`
+
+### 结构化视图
+- `.board` JSON 看板：`src/views/board-view.tsx`
+- Flow board（标题=列，列表块=卡片，拖拽改写文档）：`src/views/flow-board-view.tsx`
 
 ### 预览渲染
-- ` ```infographic` 代码块渲染（预览/阅读模式）
-  - 代码：`src/features/infographic/renderer.ts`
+- Infographic 渲染器（AntV）：`src/features/infographic/renderer.ts`
 
-## 部分完成（存在缺口 / 待完善）
+### 文件列表增强
+- Frontmatter icon/banner：`src/features/ui/inline-decorator.ts`
+- 文件树高亮：`src/features/ui/file-tree-highlight.ts`
 
-- 标题快捷键
-  - 已提供 `set-heading-1`~`set-heading-6` 命令
-  - 当前策略：不内置默认快捷键（避免冲突），需用户在 **Settings → Hotkeys** 自行绑定
-- 任务状态循环
-  - 当前 `toggle-task`：Plain → Todo → Done → Plain
-  - 原计划里提到的 “Doing” 状态（`- [/]`）未接入该循环
-  - 代码：`src/features/formatting/task-toggle.ts`
-- 表格行列/对齐操作
-  - 算法与测试已存在（插入列、删除列、对齐）
-  - 但未暴露成命令/菜单入口（目前只有“插入行”入口）
-  - 代码：`src/utils/table-generators.ts`
-- D2 / Mermaid
-  - 目前 D2/Mermaid 以“插入代码块”为主
-  - Mermaid 由 Obsidian 原生渲染；D2 目前未做内置渲染
+### 小工具
+- Footnotes：`src/features/editing/footnotes.ts`
+- Inline calc：`src/features/editing/inline-calc.ts`
+- Random generator：`src/features/editing/random-generator.ts`
 
-## 未实现（原始需求中提到，但当前未覆盖）
+## 可选后续（⬜️，非必须）
 
-- Callout 样式管理（主题/图标/全局样式体系）
-- 自定义模板系统（除 Daily/Weekly 之外的可配置模板）
-- LaTeX 公式预览增强（目前仅插入 `$$ $$` 模板）
-- HTML/MDX “编辑即预览”体验（目前仅插入 HTML 片段）
-- “语雀/Notion 级”斜杠命令交互（更丰富命令、排序、上下文感知）
-- 拼音搜索全量能力（目前是 MVP 映射表）
+- D2 / DOT 预览渲染器（默认 Obsidian 不渲染，需要额外方案）
+- 更完整拼音搜索（替换 MVP 映射表）
+

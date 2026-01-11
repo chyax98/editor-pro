@@ -1,0 +1,91 @@
+import { App, MarkdownView, Plugin, TFile } from "obsidian";
+
+type HeadingCache = { heading: string; level: number; position: { start: { line: number } } };
+
+function getHeadings(app: App, file: TFile): HeadingCache[] {
+	const cache = app.metadataCache.getFileCache(file);
+	return (cache?.headings ?? []) as HeadingCache[];
+}
+
+export class FloatingOutline {
+	private app: App;
+	private enabled: () => boolean;
+	private visible = false;
+	private root: HTMLElement | null = null;
+
+	constructor(options: { app: App; enabled: () => boolean }) {
+		this.app = options.app;
+		this.enabled = options.enabled;
+	}
+
+	register(plugin: Plugin) {
+		plugin.register(() => this.hide());
+		plugin.registerEvent(this.app.workspace.on("active-leaf-change", () => this.visible && this.render()));
+		plugin.registerEvent(this.app.metadataCache.on("changed", () => this.visible && this.render()));
+		plugin.registerDomEvent(document, "keydown", (evt) => {
+			if (!this.visible) return;
+			if (evt.key !== "Escape") return;
+			this.hide();
+		});
+	}
+
+	toggle(): boolean {
+		if (!this.enabled()) return false;
+		if (this.visible) {
+			this.hide();
+			return false;
+		}
+		this.show();
+		return true;
+	}
+
+	show() {
+		if (!this.enabled()) return;
+		if (this.visible) return;
+		this.visible = true;
+		this.root = document.body.createDiv({ cls: "editor-pro-floating-outline" });
+		this.render();
+	}
+
+	hide() {
+		this.visible = false;
+		this.root?.remove();
+		this.root = null;
+	}
+
+	private render() {
+		if (!this.root) return;
+		this.root.empty();
+
+		const view = this.app.workspace.getActiveViewOfType(MarkdownView);
+		const file = view?.file;
+		const editor = view?.editor;
+		if (!file || !editor) {
+			this.root.createDiv({ text: "无可用大纲" });
+			return;
+		}
+
+		const headings = getHeadings(this.app, file);
+		if (!headings.length) {
+			this.root.createDiv({ text: "此文件没有标题" });
+			return;
+		}
+
+		const header = this.root.createDiv({ cls: "editor-pro-floating-outline-header" });
+		header.createDiv({ text: "目录" });
+		const closeBtn = header.createEl("button", { text: "×", cls: "editor-pro-floating-outline-close" });
+		closeBtn.onclick = () => this.hide();
+
+		const list = this.root.createDiv({ cls: "editor-pro-floating-outline-list" });
+		for (const h of headings) {
+			const item = list.createDiv({ cls: "editor-pro-floating-outline-item" });
+			item.style.paddingLeft = `${(h.level - 1) * 12}px`;
+			item.setText(h.heading);
+			item.onclick = () => {
+				editor.focus();
+				editor.setCursor({ line: h.position.start.line, ch: 0 });
+				this.hide();
+			};
+		}
+	}
+}

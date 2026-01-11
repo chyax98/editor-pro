@@ -1,14 +1,19 @@
 import { App, Editor, Menu, Notice } from "obsidian";
 import { TextPromptModal } from "../../ui/modals";
 
+type CryptoLike = {
+	getRandomValues: (array: Uint8Array) => Uint8Array;
+	randomUUID?: () => string;
+};
+
 function uuidV4(): string {
-	const c = (globalThis as unknown as { crypto?: Crypto }).crypto;
-	if (c && "randomUUID" in c && typeof (c as any).randomUUID === "function") {
-		return (c as any).randomUUID();
+	const c = (globalThis as unknown as { crypto?: CryptoLike }).crypto;
+	if (c?.randomUUID) {
+		return c.randomUUID();
 	}
 
 	const bytes = new Uint8Array(16);
-	if (!c || typeof c.getRandomValues !== "function") {
+	if (!c) {
 		// Fallback: weaker randomness but keeps feature usable.
 		let out = "";
 		for (let i = 0; i < 32; i++) out += Math.floor(Math.random() * 16).toString(16);

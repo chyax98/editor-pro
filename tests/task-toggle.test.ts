@@ -26,8 +26,17 @@ describe('toggleTask', () => {
         expect(editor._getText()).toBe('- [ ] Buy milk');
     });
 
-    test('toggles incomplete task to complete', () => {
+    test('toggles todo -> doing', () => {
         editor._setText('- [ ] Buy milk');
+        editor._setCursor(0, 0);
+        
+        toggleTask(editor as any);
+        
+        expect(editor._getText()).toBe('- [/] Buy milk');
+    });
+
+    test('toggles doing -> done', () => {
+        editor._setText('- [/] Buy milk');
         editor._setCursor(0, 0);
         
         toggleTask(editor as any);
@@ -35,15 +44,12 @@ describe('toggleTask', () => {
         expect(editor._getText()).toBe('- [x] Buy milk');
     });
 
-    test('removes task status from completed task', () => {
+    test('removes task status from done task', () => {
         editor._setText('- [x] Buy milk');
         editor._setCursor(0, 0);
-        
+
         toggleTask(editor as any);
-        
-        // Cycle back to plain text or list? 
-        // Usually: - [x] -> - [ ] (toggle) OR - [x] -> plain text (cycle).
-        // Let's implement Cycle: Plain -> Todo -> Done -> Plain
+
         expect(editor._getText()).toBe('Buy milk');
     });
 

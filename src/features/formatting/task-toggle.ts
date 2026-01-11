@@ -11,7 +11,10 @@ export function toggleTask(editor: Editor) {
     // (- )         -> Group 3: List marker (optional)
     // (.*)$        -> Group 4: Content
     
-    // Check for Task: "- [ ] " or "- [x] "
+    // Task states:
+    // - [ ] Todo
+    // - [/] Doing
+    // - [x] Done
     const taskRegex = /^(\s*)-\s\[(.)\]\s(.*)$/;
     const listRegex = /^(\s*)-\s(.*)$/;
     
@@ -23,11 +26,13 @@ export function toggleTask(editor: Editor) {
         const content = taskMatch[3];
         
         if (status === ' ') {
-            // Incomplete -> Complete
+            // Todo -> Doing
+            editor.setLine(lineNum, `${indent}- [/] ${content}`);
+        } else if (status === '/' ) {
+            // Doing -> Done
             editor.setLine(lineNum, `${indent}- [x] ${content}`);
         } else {
-            // Complete (or other) -> Plain Text (Remove task)
-            // Cycle: Plain -> Todo -> Done -> Plain
+            // Done (or other) -> Plain text
             editor.setLine(lineNum, `${indent}${content}`);
         }
         return;

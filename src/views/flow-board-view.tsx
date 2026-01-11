@@ -1,4 +1,4 @@
-import { FileView, Notice, TFile, ViewStateResult, debounce } from "obsidian";
+import { FileView, MarkdownView, Notice, TFile, ViewStateResult, debounce } from "obsidian";
 import { createRoot, Root } from "react-dom/client";
 import { FlowBoardApp } from "./flow-board-app";
 import { FlowCard, FlowParseResult, buildMarkdownFromFlowBoard, parseMarkdownToFlowBoard } from "../features/flow-board/flow-parser";
@@ -95,20 +95,23 @@ export class FlowBoardView extends FileView {
 			this.renderReact();
 		};
 
-		const onOpenCard = async (id: string) => {
-			if (!this.file) return;
-				const line = cardStartLine(id);
-				const leaf = this.app.workspace.getLeaf(true);
-				await leaf.openFile(this.file, { active: true });
-				const view = leaf.view;
-				const editor = (view as any)?.editor;
-				if (editor && typeof line === "number") {
-					editor.setCursor({ line, ch: 0 });
-					editor.scrollIntoView({ from: { line, ch: 0 }, to: { line, ch: 0 } }, true);
-				}
+		const onOpenCard = (id: string) => {
+			void this.openCardInEditor(id);
 		};
 
 		this.root.render(<FlowBoardApp sections={this.parsed.sections} cards={this.cards} onChange={onChange} onOpenCard={onOpenCard} />);
+	}
+
+	private async openCardInEditor(id: string) {
+		if (!this.file) return;
+		const line = cardStartLine(id);
+		const leaf = this.app.workspace.getLeaf(true);
+		await leaf.openFile(this.file, { active: true });
+		if (!(leaf.view instanceof MarkdownView)) return;
+		const editor = leaf.view.editor;
+		if (typeof line !== "number") return;
+		editor.setCursor({ line, ch: 0 });
+		editor.scrollIntoView({ from: { line, ch: 0 }, to: { line, ch: 0 } }, true);
 	}
 
 	async onClose() {

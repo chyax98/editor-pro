@@ -17,17 +17,17 @@
 
 | 来源插件                                   | 我们要的精华能力                                    | Editor Pro 方案（低负担）                             | 默认开关建议                 | 状态  |
 | ------------------------------------------ | --------------------------------------------------- | ----------------------------------------------------- | ---------------------------- | ----- |
-| Advanced Tables / Table Enhancer           | 表格导航、行列操作、对齐、格式化                    | Tab 导航 + 列插入/删除 + 列对齐 + 表格格式化（命令+右键入口） | 默认开（但危险操作可默认关） | 🚧    |
-| Outliner                                   | 列表缩进/反缩进、子树移动、折叠/展开                | 已做 Tab/Shift+Tab 缩进/反缩进（仅列表行）+ 折叠命令；待补“整块移动” | 默认开（仅列表）             | 🚧    |
-| Typewriter Mode / Focus Mode / Zen         | 光标居中、高亮当前行、淡出非当前段落、禅模式隐藏 UI | 分拆多个开关：居中（已做）/高亮/淡出/禅模式           | 默认开（但默认不自动触发）   | ✅/⬜ |
+| Advanced Tables / Table Enhancer           | 表格导航、行列操作、对齐、格式化                    | Tab 导航 + 列插入/删除 + 列对齐 + 表格格式化（命令+右键入口） | 默认开                         | ✅    |
+| Outliner                                   | 列表缩进/反缩进、子树移动、折叠/展开                | Tab/Shift+Tab 缩进/反缩进 + 折叠命令 + 列表项整块移动（复用 move-line-up/down） | 默认开（仅列表）             | ✅    |
+| Typewriter Mode / Focus Mode / Zen         | 光标居中、高亮当前行、淡出非当前段落、禅模式隐藏 UI | 居中（已做）+ 禅模式隐藏 UI（CSS）                     | 默认开                         | ✅    |
 | Paste URL into Selection                   | 选区粘贴 URL -> Markdown 链接                       | 已实现；仅在选区 + http(s) 时接管                     | 默认开                       | ✅    |
-| Auto Link Title                            | URL 获取网页标题                                    | 做成“可选联网增强”：失败降级为 URL                  | 默认关（涉及网络）           | ⬜    |
-| Remember Cursor Position                   | 文件级光标/滚动记忆                                 | 轻量缓存（避免和 Obsidian 行为打架）                  | 默认开                       | ⬜    |
-| Natural Language Dates                     | `today/tomorrow/next mon`                         | 先做离线最小解析（中英常用）+命令触发                 | 默认开（仅命令/仅识别时）    | ⬜    |
-| Linter / Save Cleaner                      | 保存/格式化清理                                     | 先做“命令：清理当前文件”，再考虑自动保存清理        | 默认关（自动改写风险）       | 💤    |
-| Text Format / Split and Join / Transformer | 大小写/合并分割/排序/去空行                         | 统一放右键菜单 + 命令                                 | 默认开（命令触发）           | ⬜    |
-| Find & Replace in Selection                | 选区内查找替换                                      | 做成单独命令（不改写 Obsidian 原生查找）              | 默认开（命令触发）           | 💤    |
-| Paste Image Rename                         | 图片粘贴重命名/归档                                 | 做成“粘贴图片钩子 + 模板命名 + 安全回退”            | 默认开（保守）               | ⬜    |
+| Auto Link Title                            | URL 获取网页标题                                    | 剪贴板 HTML 优先；可选联网抓 `<title>`；失败降级为纯 URL | 默认开（联网默认关）          | ✅    |
+| Remember Cursor Position                   | 文件级光标/滚动记忆                                 | 轻量缓存（文件级）                                    | 默认开                       | ✅    |
+| Natural Language Dates                     | `today/tomorrow/next mon`                           | 离线最小解析（中英常用）                               | 默认开（仅识别时）            | ✅    |
+| Linter / Save Cleaner                      | 保存/格式化清理                                     | Save cleaner：保存时移除行尾空格 + 结尾换行            | 默认开（规则很保守）          | ✅    |
+| Text Format / Split and Join / Transformer | 大小写/合并分割/排序/去空行                         | 命令 + 右键入口                                        | 默认开                       | ✅    |
+| Find & Replace in Selection                | 选区内查找替换                                      | 选区查找替换 Modal（命令 + 右键入口）                  | 默认开                       | ✅    |
+| Paste Image Rename                         | 图片粘贴重命名/归档                                 | 粘贴图片钩子 + 附件策略安全落盘 + 插入 `![[...]]`       | 默认开                       | ✅    |
 
 ---
 

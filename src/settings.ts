@@ -20,6 +20,29 @@ export interface EditorProSettings {
     enableTableOps: boolean;
     enableOverdueHighlighter: boolean;
     enableInfographicRenderer: boolean;
+    enableSmartImagePaste: boolean;
+    enableSmartLinkTitle: boolean;
+    enableSmartLinkTitleNetwork: boolean;
+    enableCursorMemory: boolean;
+    enableQuickHud: boolean;
+    enableMagicInput: boolean;
+
+    enableSaveCleaner: boolean;
+    enableTextTransformer: boolean;
+    enableSearchInSelection: boolean;
+
+    enableStatusBarStats: boolean;
+    enableFocusUi: boolean;
+    enableFloatingOutline: boolean;
+    enableZoom: boolean;
+    enableFlowBoard: boolean;
+
+    enableFootnotes: boolean;
+    enableInlineCalc: boolean;
+    enableRandomGenerator: boolean;
+
+    enableInlineDecorator: boolean;
+    enableFileTreeHighlight: boolean;
 
     yamlCreatedKey: string;
     yamlUpdatedKey: string;
@@ -46,6 +69,29 @@ export const DEFAULT_SETTINGS: EditorProSettings = {
     enableTableOps: true,
     enableOverdueHighlighter: true,
     enableInfographicRenderer: true,
+    enableSmartImagePaste: true,
+    enableSmartLinkTitle: true,
+    enableSmartLinkTitleNetwork: false,
+    enableCursorMemory: true,
+    enableQuickHud: true,
+    enableMagicInput: true,
+
+    enableSaveCleaner: true,
+    enableTextTransformer: true,
+    enableSearchInSelection: true,
+
+    enableStatusBarStats: true,
+    enableFocusUi: true,
+    enableFloatingOutline: true,
+    enableZoom: true,
+    enableFlowBoard: true,
+
+    enableFootnotes: true,
+    enableInlineCalc: true,
+    enableRandomGenerator: true,
+
+    enableInlineDecorator: true,
+    enableFileTreeHighlight: true,
 
     yamlCreatedKey: 'created',
     yamlUpdatedKey: 'updated',
@@ -175,12 +221,62 @@ export class EditorProSettingTab extends PluginSettingTab {
                 }));
 
         new Setting(containerEl)
+            .setName('开启图片智能粘贴（重命名归档）')
+            .setDesc('粘贴图片时按“笔记名+时间戳”重命名，并按 Obsidian 的附件规则写入文件，再插入 `![[...]]`。')
+            .addToggle(toggle => toggle
+                .setValue(this.plugin.settings.enableSmartImagePaste)
+                .onChange(async (value) => {
+                    this.plugin.settings.enableSmartImagePaste = value;
+                    await this.plugin.saveSettings();
+                }));
+
+        new Setting(containerEl)
+            .setName('开启链接智能粘贴（自动标题）')
+            .setDesc('粘贴 URL 时尽量获取标题并插入 Markdown 链接；优先使用剪贴板 HTML，不联网。')
+            .addToggle(toggle => toggle
+                .setValue(this.plugin.settings.enableSmartLinkTitle)
+                .onChange(async (value) => {
+                    this.plugin.settings.enableSmartLinkTitle = value;
+                    await this.plugin.saveSettings();
+                }));
+
+        new Setting(containerEl)
+            .setName('允许联网抓取网页标题')
+            .setDesc('当剪贴板没有标题时，尝试联网请求网页并读取 `<title>`；失败会降级为纯 URL。')
+            .addToggle(toggle => toggle
+                .setValue(this.plugin.settings.enableSmartLinkTitleNetwork)
+                .onChange(async (value) => {
+                    this.plugin.settings.enableSmartLinkTitleNetwork = value;
+                    await this.plugin.saveSettings();
+                }));
+
+        new Setting(containerEl)
             .setName('开启打字机滚动（光标居中）')
             .setDesc('让光标行尽量保持在屏幕中间，适合长文写作。')
             .addToggle(toggle => toggle
                 .setValue(this.plugin.settings.enableTypewriterScroll)
                 .onChange(async (value) => {
                     this.plugin.settings.enableTypewriterScroll = value;
+                    await this.plugin.saveSettings();
+                }));
+
+        new Setting(containerEl)
+            .setName('开启光标记忆（Cursor memory）')
+            .setDesc('记忆并恢复每个文件的光标与滚动位置。')
+            .addToggle(toggle => toggle
+                .setValue(this.plugin.settings.enableCursorMemory)
+                .onChange(async (value) => {
+                    this.plugin.settings.enableCursorMemory = value;
+                    await this.plugin.saveSettings();
+                }));
+
+        new Setting(containerEl)
+            .setName('开启最近文件 HUD')
+            .setDesc('提供一个最近文件选择器（命令触发）。')
+            .addToggle(toggle => toggle
+                .setValue(this.plugin.settings.enableQuickHud)
+                .onChange(async (value) => {
+                    this.plugin.settings.enableQuickHud = value;
                     await this.plugin.saveSettings();
                 }));
 
@@ -204,6 +300,16 @@ export class EditorProSettingTab extends PluginSettingTab {
                 .setValue(this.plugin.settings.enableSmartInput)
                 .onChange(async (value) => {
                     this.plugin.settings.enableSmartInput = value;
+                    await this.plugin.saveSettings();
+                }));
+
+        new Setting(containerEl)
+            .setName('开启魔法输入（自然语言日期 + 符号替换）')
+            .setDesc('例如：`@tomorrow`/`@next mon`/`@下周一`；以及 `-->` → `→`（仅在光标处生效）。')
+            .addToggle(toggle => toggle
+                .setValue(this.plugin.settings.enableMagicInput)
+                .onChange(async (value) => {
+                    this.plugin.settings.enableMagicInput = value;
                     await this.plugin.saveSettings();
                 }));
 
@@ -241,7 +347,149 @@ export class EditorProSettingTab extends PluginSettingTab {
                     await this.plugin.saveSettings();
                 }));
 
-        // --- 第四组：自动化 ---
+        // --- 第四组：文本处理 ---
+        containerEl.createEl('h3', { text: '🧹 文本处理与清理' });
+
+        new Setting(containerEl)
+            .setName('开启保存时清理（Save cleaner）')
+            .setDesc('保存时自动移除行尾空格，并确保文件以换行符结尾（尽量低侵入）。')
+            .addToggle(toggle => toggle
+                .setValue(this.plugin.settings.enableSaveCleaner)
+                .onChange(async (value) => {
+                    this.plugin.settings.enableSaveCleaner = value;
+                    await this.plugin.saveSettings();
+                }));
+
+        new Setting(containerEl)
+            .setName('开启文本转换器（Text transformer）')
+            .setDesc('提供大小写/排序/去空行等转换命令，并可在右键菜单中使用。')
+            .addToggle(toggle => toggle
+                .setValue(this.plugin.settings.enableTextTransformer)
+                .onChange(async (value) => {
+                    this.plugin.settings.enableTextTransformer = value;
+                    await this.plugin.saveSettings();
+                }));
+
+        new Setting(containerEl)
+            .setName('开启选区查找替换（Search in selection）')
+            .setDesc('只在选中文本范围内做查找替换（命令与右键入口）。')
+            .addToggle(toggle => toggle
+                .setValue(this.plugin.settings.enableSearchInSelection)
+                .onChange(async (value) => {
+                    this.plugin.settings.enableSearchInSelection = value;
+                    await this.plugin.saveSettings();
+                }));
+
+        // --- 第五组：专注与导航 ---
+        containerEl.createEl('h3', { text: '🧭 专注与导航' });
+
+        new Setting(containerEl)
+            .setName('开启状态栏统计（字数/阅读时间/选中数）')
+            .setDesc('在状态栏显示统计信息（可关闭）。')
+            .addToggle(toggle => toggle
+                .setValue(this.plugin.settings.enableStatusBarStats)
+                .onChange(async (value) => {
+                    this.plugin.settings.enableStatusBarStats = value;
+                    await this.plugin.saveSettings();
+                }));
+
+        new Setting(containerEl)
+            .setName('开启界面清理（Focus UI / Zen）')
+            .setDesc('提供一个命令，用 CSS 隐藏侧边栏/状态栏等界面元素。')
+            .addToggle(toggle => toggle
+                .setValue(this.plugin.settings.enableFocusUi)
+                .onChange(async (value) => {
+                    this.plugin.settings.enableFocusUi = value;
+                    await this.plugin.saveSettings();
+                }));
+
+        new Setting(containerEl)
+            .setName('开启浮动大纲（Floating outline）')
+            .setDesc('提供一个命令，弹出极简目录（Esc 关闭）。')
+            .addToggle(toggle => toggle
+                .setValue(this.plugin.settings.enableFloatingOutline)
+                .onChange(async (value) => {
+                    this.plugin.settings.enableFloatingOutline = value;
+                    await this.plugin.saveSettings();
+                }));
+
+        new Setting(containerEl)
+            .setName('开启局部聚焦（Heading/List zoom）')
+            .setDesc('提供命令：聚焦当前标题段落 / 聚焦当前列表块（在弹窗里编辑并应用回原文）。')
+            .addToggle(toggle => toggle
+                .setValue(this.plugin.settings.enableZoom)
+                .onChange(async (value) => {
+                    this.plugin.settings.enableZoom = value;
+                    await this.plugin.saveSettings();
+                }));
+
+        new Setting(containerEl)
+            .setName('开启文档流看板（Flow board）')
+            .setDesc('提供命令：用“标题=列、列表块=卡片”的方式重组文章结构（拖拽会改写当前文档）。')
+            .addToggle(toggle => toggle
+                .setValue(this.plugin.settings.enableFlowBoard)
+                .onChange(async (value) => {
+                    this.plugin.settings.enableFlowBoard = value;
+                    await this.plugin.saveSettings();
+                }));
+
+        // --- 第六组：小工具 ---
+        containerEl.createEl('h3', { text: '🧰 小工具' });
+
+        new Setting(containerEl)
+            .setName('开启脚注助手（Footnotes）')
+            .setDesc('提供命令：插入 `[^n]` 并在文末追加 `[^n]: `。')
+            .addToggle(toggle => toggle
+                .setValue(this.plugin.settings.enableFootnotes)
+                .onChange(async (value) => {
+                    this.plugin.settings.enableFootnotes = value;
+                    await this.plugin.saveSettings();
+                }));
+
+        new Setting(containerEl)
+            .setName('开启行内计算（Inline calc）')
+            .setDesc('提供命令：选中表达式后计算并替换（仅支持 + - * / ^ 和括号）。')
+            .addToggle(toggle => toggle
+                .setValue(this.plugin.settings.enableInlineCalc)
+                .onChange(async (value) => {
+                    this.plugin.settings.enableInlineCalc = value;
+                    await this.plugin.saveSettings();
+                }));
+
+        new Setting(containerEl)
+            .setName('开启随机生成器（Random generator）')
+            .setDesc('提供命令：插入 UUID / 随机整数 / 掷骰子。')
+            .addToggle(toggle => toggle
+                .setValue(this.plugin.settings.enableRandomGenerator)
+                .onChange(async (value) => {
+                    this.plugin.settings.enableRandomGenerator = value;
+                    await this.plugin.saveSettings();
+                }));
+
+        // --- 第七组：文件列表增强 ---
+        containerEl.createEl('h3', { text: '🎨 文件列表增强' });
+
+        new Setting(containerEl)
+            .setName('开启 Frontmatter 图标/头图（Inline decorator）')
+            .setDesc('从 Frontmatter 读取 `icon`/`banner`，在文件列表展示图标，并在笔记顶部展示头图（轻量实现）。')
+            .addToggle(toggle => toggle
+                .setValue(this.plugin.settings.enableInlineDecorator)
+                .onChange(async (value) => {
+                    this.plugin.settings.enableInlineDecorator = value;
+                    await this.plugin.saveSettings();
+                }));
+
+        new Setting(containerEl)
+            .setName('开启文件树高亮（File tree highlight）')
+            .setDesc('提供命令：为文件/文件夹加高亮标记（用于项目文件夹）。')
+            .addToggle(toggle => toggle
+                .setValue(this.plugin.settings.enableFileTreeHighlight)
+                .onChange(async (value) => {
+                    this.plugin.settings.enableFileTreeHighlight = value;
+                    await this.plugin.saveSettings();
+                }));
+
+        // --- 第八组：自动化 ---
         containerEl.createEl('h3', { text: '🤖 自动化 (YAML)' });
 
         new Setting(containerEl)
