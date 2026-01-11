@@ -9,6 +9,7 @@ export interface EditorProSettings {
     enableTaskHotkeys: boolean;
     enableYaml: boolean;
     enableSmartPasteUrl: boolean;
+    enableTypewriterScroll: boolean;
     yamlCreatedKey: string;
     yamlUpdatedKey: string;
     yamlDateFormat: string;
@@ -23,6 +24,7 @@ export const DEFAULT_SETTINGS: EditorProSettings = {
     enableTaskHotkeys: true,
     enableYaml: true,
     enableSmartPasteUrl: true,
+    enableTypewriterScroll: false,
     yamlCreatedKey: 'created',
     yamlUpdatedKey: 'updated',
     yamlDateFormat: 'YYYY-MM-DD HH:mm',
@@ -84,6 +86,16 @@ export class EditorProSettingTab extends PluginSettingTab {
                 .setValue(this.plugin.settings.enableSmartPasteUrl)
                 .onChange(async (value) => {
                     this.plugin.settings.enableSmartPasteUrl = value;
+                    await this.plugin.saveSettings();
+                }));
+
+        new Setting(containerEl)
+            .setName('开启打字机滚动（光标居中）')
+            .setDesc('让光标行尽量保持在屏幕中间，适合长文写作。')
+            .addToggle(toggle => toggle
+                .setValue(this.plugin.settings.enableTypewriterScroll)
+                .onChange(async (value) => {
+                    this.plugin.settings.enableTypewriterScroll = value;
                     await this.plugin.saveSettings();
                 }));
 

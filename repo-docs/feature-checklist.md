@@ -22,6 +22,9 @@
 - 智能粘贴链接（Paste URL into selection）
   - 选中文字后粘贴 URL -> `[...] (URL)`（Notion 风格）
   - 代码：`src/features/editing/smart-paste-url.ts`，注册：`src/main.ts`
+- 打字机滚动（Typewriter scroll）
+  - 光标行尽量保持在屏幕中间（适合长文写作）
+  - 代码：`src/features/editing/typewriter-mode.ts`，注册：`src/main.ts`
 
 ### 块转换
 - 选区 → Callout（带类型选择器）
