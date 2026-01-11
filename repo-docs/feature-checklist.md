@@ -19,6 +19,9 @@
 - 引用/Callout 内跳出
   - Shift+Enter 在引用/Callout 中插入“跳出”的换行
   - 代码：`src/features/formatting/block-navigation.ts`，注册：`src/main.ts`
+- 智能粘贴链接（Paste URL into selection）
+  - 选中文字后粘贴 URL -> `[...] (URL)`（Notion 风格）
+  - 代码：`src/features/editing/smart-paste-url.ts`，注册：`src/main.ts`
 
 ### 块转换
 - 选区 → Callout（带类型选择器）

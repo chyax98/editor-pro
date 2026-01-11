@@ -8,6 +8,7 @@ export interface EditorProSettings {
     enableHeadingHotkeys: boolean;
     enableTaskHotkeys: boolean;
     enableYaml: boolean;
+    enableSmartPasteUrl: boolean;
     yamlCreatedKey: string;
     yamlUpdatedKey: string;
     yamlDateFormat: string;
@@ -21,6 +22,7 @@ export const DEFAULT_SETTINGS: EditorProSettings = {
     enableHeadingHotkeys: true,
     enableTaskHotkeys: true,
     enableYaml: true,
+    enableSmartPasteUrl: true,
     yamlCreatedKey: 'created',
     yamlUpdatedKey: 'updated',
     yamlDateFormat: 'YYYY-MM-DD HH:mm',
@@ -72,6 +74,16 @@ export class EditorProSettingTab extends PluginSettingTab {
                 .setValue(this.plugin.settings.enableContextMenu)
                 .onChange(async (value) => {
                     this.plugin.settings.enableContextMenu = value;
+                    await this.plugin.saveSettings();
+                }));
+
+        new Setting(containerEl)
+            .setName('开启智能粘贴链接')
+            .setDesc('选中文字后粘贴 URL，将自动变为 Markdown 链接（例如：选中 "Obsidian" 后粘贴 https://... -> [Obsidian](https://...)）。')
+            .addToggle(toggle => toggle
+                .setValue(this.plugin.settings.enableSmartPasteUrl)
+                .onChange(async (value) => {
+                    this.plugin.settings.enableSmartPasteUrl = value;
                     await this.plugin.saveSettings();
                 }));
 

@@ -16,6 +16,7 @@ import { registerInfographicRenderer } from './features/infographic/renderer';
 import { DEFAULT_SETTINGS, EditorProSettings, EditorProSettingTab } from "./settings";
 import { deleteLine, duplicateLine, moveLineDown, moveLineUp, selectLine } from './features/editing/keyshots';
 import { handleAutoPair, handleSmartBackspace, handleSmartSpacing } from './features/editing/smart-typography';
+import { smartPasteUrlIntoSelection } from './features/editing/smart-paste-url';
 
 export default class EditorProPlugin extends Plugin {
     settings: EditorProSettings;
@@ -182,6 +183,23 @@ export default class EditorProPlugin extends Plugin {
                 handleBlockNavigation(evt, view.editor);
             }
         });
+
+        // 8.1 智能粘贴链接：选中标题后粘贴 URL -> [标题](URL)
+        if (this.settings.enableSmartPasteUrl) {
+            this.registerDomEvent(document, 'paste', (evt: ClipboardEvent) => {
+                const view = this.app.workspace.getActiveViewOfType(MarkdownView);
+                if (!view) return;
+
+                const target = evt.target instanceof HTMLElement ? evt.target : null;
+                if (target && !target.closest('.cm-editor')) return;
+
+                const text = evt.clipboardData?.getData('text/plain') ?? '';
+                if (!text) return;
+
+                const handled = smartPasteUrlIntoSelection(view.editor, text);
+                if (handled) evt.preventDefault();
+            });
+        }
 
         // 9. 智能输入展开 (@today, @time) + 智能排版 (Smart Spacing)
         this.registerEvent(
