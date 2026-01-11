@@ -71,10 +71,7 @@ export default class EditorProPlugin extends Plugin {
 
         // 注册多维看板视图
         if (this.settings.enableBoard) {
-            this.registerView(
-                VIEW_TYPE_BOARD,
-                (leaf) => new BoardView(leaf)
-            );
+            this.safeRegisterView(VIEW_TYPE_BOARD, (leaf) => new BoardView(leaf));
             this.registerExtensions(['board'], VIEW_TYPE_BOARD);
 
             // 侧边栏图标：打开项目看板
@@ -97,7 +94,7 @@ export default class EditorProPlugin extends Plugin {
 
         // 注册文档流看板（Flow board）
         if (this.settings.enableFlowBoard) {
-            this.registerView(VIEW_TYPE_FLOW_BOARD, (leaf) => new FlowBoardView(leaf));
+            this.safeRegisterView(VIEW_TYPE_FLOW_BOARD, (leaf) => new FlowBoardView(leaf));
             this.addCommand({
                 id: 'open-flow-board',
                 name: '打开文档流看板 (Flow board)',
@@ -828,6 +825,21 @@ export default class EditorProPlugin extends Plugin {
             await leaf.openFile(file, { active: true });
         }
         await this.app.workspace.revealLeaf(leaf);
+    }
+
+    private safeRegisterView(viewType: string, creator: Parameters<Plugin["registerView"]>[1]) {
+        try {
+            this.registerView(viewType, creator);
+        } catch (e) {
+            const message = e instanceof Error ? e.message : String(e);
+            // Obsidian will throw if the view type was registered earlier in the session
+            // (e.g. plugin reload after a crash). Don't fail the whole plugin in that case.
+            if (message.includes('Attempting to register an existing view type')) {
+                console.warn(`[Editor Pro] View type already registered: ${viewType}`);
+                return;
+            }
+            throw e;
+        }
     }
 
     private async openFlowBoard(file: TFile) {
