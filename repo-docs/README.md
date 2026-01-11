@@ -6,6 +6,7 @@
 
 - [功能清单与缺口](./feature-checklist.md)
 - [项目状态（勾选待办）](./project-status.md)
+- [插件融合映射表（评审版）](./plugin-mapping.md)
 - [插件融合候选清单](./plugin-inspiration.md)
 - [路线图（低负担版本）](./roadmap.md)
 - [画图语法参考](./diagram-syntax.md)

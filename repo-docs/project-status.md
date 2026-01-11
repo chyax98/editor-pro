@@ -132,12 +132,24 @@
   - [ ] 插列/删列  
   - [ ] 左/中/右对齐  
   - [ ] 一键格式化/对齐 `|`（谨慎，避免误改）
+- [ ] Auto Link Title（来源：Auto Link Title）  
+  - [ ] 粘贴 URL 自动抓网页标题（失败降级为 URL）  
+  - [ ] 单独开关（涉及网络；默认建议关闭）
+- [ ] Paste Image Rename（来源：Paste Image Rename）  
+  - [ ] 粘贴图片按模板重命名并移动到目标目录  
+  - [ ] 冲突策略（追加序号）与回退策略（保留原名）
 - [ ] Smart Typography（来源：Smart Typography）  
   - [ ] 仅做最小、安全、可关闭的替换集（比如 `...`->`…`，`--`->`—` 等）  
   - [ ] 明确“只在编辑时触发/可撤销/可关闭”
 - [ ] Slash command：动态模板 Lite（非脚本）  
   - [ ] 支持 `{{date}}` `{{time}}` `{{cursor}}`（不做复杂变量系统）  
   - [ ] 可选：只提供“内置模板管理”，不让用户写规则（降低负担）
+- [ ] Remember Cursor Position（来源：Remember Cursor Position）  
+  - [ ] 记录并恢复光标与滚动（谨慎避免和 Obsidian 行为冲突）
+- [ ] Natural Language Dates（来源：Natural Language Dates）  
+  - [ ] 离线最小解析（中英常见：today/tomorrow/next mon/下周一/明天）
+- [ ] Text Transformer（来源：Text Format / Split and Join 等）  
+  - [ ] 右键菜单 + 命令：大小写、去空行、合并多行、列表排序
 
 ### T2：后置（高风险/高负担，先不做）
 - [ ] Linter Lite（来源：Linter）：只做极少数规则（默认建议关闭）  
@@ -161,4 +173,3 @@
 - Outliner（Workflowy-like lists）：https://github.com/vslinko/obsidian-outliner
 - Advanced Tables（table editing）：https://github.com/tgrosinger/advanced-tables-obsidian
 - Linter（format/styling rules）：https://github.com/platers/obsidian-linter
-
