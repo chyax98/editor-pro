@@ -50,6 +50,7 @@ export class BoardView extends FileView {
     private parseError: { message: string; rawText: string } | null = null;
     private saveInFlight: Promise<void> | null = null;
     private saveQueued = false;
+    private internalWriteTimeoutIds: number[] = [];
 
     getViewType() { return VIEW_TYPE_BOARD; }
     getDisplayText() { return this.file ? this.file.basename : "项目看板"; }
@@ -172,6 +173,11 @@ export class BoardView extends FileView {
 
     async onClose() {
         await this.flushPendingSave();
+        // Clear any pending timeouts to avoid memory leaks
+        for (const timeoutId of this.internalWriteTimeoutIds) {
+            window.clearTimeout(timeoutId);
+        }
+        this.internalWriteTimeoutIds = [];
         this.root?.unmount();
         this.root = null;
         this.mountEl = null;
@@ -222,9 +228,15 @@ export class BoardView extends FileView {
                 console.error("[Editor Pro] Board save failed", e);
             } finally {
                 this.renderReact();
-                window.setTimeout(() => {
+                const timeoutId = window.setTimeout(() => {
                     this.internalWrite = false;
+                    // Remove this timeout ID from tracking array
+                    const idx = this.internalWriteTimeoutIds.indexOf(timeoutId);
+                    if (idx !== -1) {
+                        this.internalWriteTimeoutIds.splice(idx, 1);
+                    }
                 }, 300);
+                this.internalWriteTimeoutIds.push(timeoutId);
             }
         })();
 
@@ -262,9 +274,15 @@ export class BoardView extends FileView {
             try {
                 await this.app.vault.modify(this.file, normalized);
             } finally {
-                window.setTimeout(() => {
+                const timeoutId = window.setTimeout(() => {
                     this.internalWrite = false;
+                    // Remove this timeout ID from tracking array
+                    const idx = this.internalWriteTimeoutIds.indexOf(timeoutId);
+                    if (idx !== -1) {
+                        this.internalWriteTimeoutIds.splice(idx, 1);
+                    }
                 }, 300);
+                this.internalWriteTimeoutIds.push(timeoutId);
             }
 
             this.parseError = null;

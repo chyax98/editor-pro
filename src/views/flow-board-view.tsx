@@ -24,6 +24,7 @@ export class FlowBoardView extends FileView {
 	private cards: FlowCard[] = [];
 	private internalWrite = false;
 	private saveDebounced: (() => void) | null = null;
+	private internalWriteTimeoutIds: number[] = [];
 
 	getViewType() {
 		return VIEW_TYPE_FLOW_BOARD;
@@ -115,6 +116,12 @@ export class FlowBoardView extends FileView {
 	}
 
 	async onClose() {
+		// Clear any pending timeouts to avoid memory leaks
+		for (const timeoutId of this.internalWriteTimeoutIds) {
+			window.clearTimeout(timeoutId);
+		}
+		this.internalWriteTimeoutIds = [];
+		// Note: saveDebounced will be cancelled by Obsidian's event cleanup
 		this.root?.unmount();
 		this.root = null;
 		this.mountEl = null;
@@ -133,9 +140,15 @@ export class FlowBoardView extends FileView {
 				this.parsed = parseMarkdownToFlowBoard(this.markdown);
 				this.cards = this.parsed.cards.slice();
 			} finally {
-				window.setTimeout(() => {
+				const timeoutId = window.setTimeout(() => {
 					this.internalWrite = false;
+					// Remove this timeout ID from tracking array
+					const idx = this.internalWriteTimeoutIds.indexOf(timeoutId);
+					if (idx !== -1) {
+						this.internalWriteTimeoutIds.splice(idx, 1);
+					}
 				}, 400);
+				this.internalWriteTimeoutIds.push(timeoutId);
 			}
 		} catch (e) {
 			console.error("[Editor Pro] Flow board save failed", e);
