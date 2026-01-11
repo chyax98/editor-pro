@@ -21,6 +21,8 @@ export class YamlManager {
     private updateDebounced: (file: TFile) => void;
     // Prevent infinite loops where updating the file triggers the modify event again
     private inProgressFiles: Set<string> = new Set();
+    // Track timeout IDs for cleanup (use ReturnType for Node/Browser compatibility)
+    private timeoutIds: Map<string, ReturnType<typeof setTimeout>> = new Map();
 
     constructor(app: App, settings: YamlSettings) {
         this.app = app;
@@ -88,9 +90,24 @@ export class YamlManager {
             console.error(`[Editor Pro] Failed to update date for ${file.path}`, error);
         } finally {
             // Release the lock after a short delay to allow file system to settle
-            setTimeout(() => {
+            // Track timeout for potential cleanup
+            const timeoutId = setTimeout(() => {
                 this.inProgressFiles.delete(file.path);
+                this.timeoutIds.delete(file.path);
             }, 500);
+            this.timeoutIds.set(file.path, timeoutId);
         }
+    }
+
+    /**
+     * Cleanup method to clear all pending timeouts
+     * Call this when the plugin is unloaded
+     */
+    cleanup() {
+        for (const [filePath, timeoutId] of this.timeoutIds) {
+            clearTimeout(timeoutId);
+            this.inProgressFiles.delete(filePath);
+        }
+        this.timeoutIds.clear();
     }
 }

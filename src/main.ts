@@ -726,7 +726,10 @@ export default class EditorProPlugin extends Plugin {
         await this.savePluginData({ fileTreeHighlights: this.fileTreeHighlights });
     }
 
-    onunload() {}
+    onunload() {
+        // Cleanup YamlManager to clear any pending timeouts
+        this.yamlManager?.cleanup();
+    }
 
     async loadSettings() {
         const loaded = (await this.loadData()) as unknown;
