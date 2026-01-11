@@ -73,11 +73,15 @@ function findSiblingBlock(
 ): { start: number; end: number; indent: number } | null {
 	const step = direction;
 	let i = direction === -1 ? block.start - 1 : block.end + 1;
+	// Prevent infinite loop by adding iteration limit
+	const maxIterations = editor.lineCount();
+	let iterations = 0;
 
-	while (i >= 0 && i < editor.lineCount()) {
+	while (i >= 0 && i < editor.lineCount() && iterations < maxIterations) {
 		const t = editor.getLine(i);
 		if (!t.trim()) {
 			i += step;
+			iterations++;
 			continue;
 		}
 
@@ -87,6 +91,7 @@ function findSiblingBlock(
 		}
 
 		i += step;
+		iterations++;
 	}
 
 	return null;

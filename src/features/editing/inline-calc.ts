@@ -153,6 +153,7 @@ function evalRpn(tokens: Token[]): number | null {
 					stack.push(a * b);
 					break;
 				case "/":
+					if (b === 0) return null; // Handle division by zero
 					stack.push(a / b);
 					break;
 				case "^":

@@ -4,6 +4,10 @@ import { Editor } from "obsidian";
  * 智能排版与输入增强
  */
 
+// Cache regex patterns for performance
+const CN_REGEX = /[\u4e00-\u9fa5]/;
+const EN_REGEX = /[a-zA-Z0-9]/;
+
 // 1. 中英文之间自动加空格
 // 规则：CN+EN -> CN + space + EN
 // 规则：EN+CN -> EN + space + CN
@@ -11,17 +15,17 @@ export function handleSmartSpacing(editor: Editor) {
     const cursor = editor.getCursor();
     // 只检查光标前2个字符和光标后1个字符（简单版，避免全文档扫描）
     // 实际上 editor-change 事件触发时，字符已经上屏。
-    
+
     const line = editor.getLine(cursor.line);
     if (line.length < 2) return;
-    
+
     const leftChar = line.charAt(cursor.ch - 2);
     const rightChar = line.charAt(cursor.ch - 1);
-    
+
     if (!leftChar || !rightChar) return;
 
-    const isCN = (char: string) => /[\u4e00-\u9fa5]/.test(char);
-    const isEN = (char: string) => /[a-zA-Z0-9]/.test(char);
+    const isCN = (char: string) => CN_REGEX.test(char);
+    const isEN = (char: string) => EN_REGEX.test(char);
 
     // 情况 A：输入了英文，前面是中文 -> 中 [空格] 英
     if (isCN(leftChar) && isEN(rightChar)) {

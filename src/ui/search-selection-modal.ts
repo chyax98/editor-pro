@@ -1,5 +1,7 @@
 import { App, Editor, Modal, Notice, Setting } from "obsidian";
 
+const MAX_SEARCH_LENGTH = 1000; // Prevent ReDoS with extremely long patterns
+
 export class SearchInSelectionModal extends Modal {
 	private editor: Editor;
 	private find = "";
@@ -21,11 +23,11 @@ export class SearchInSelectionModal extends Modal {
 		}
 
 		new Setting(this.contentEl).setName("查找").addText((text) => {
-			text.setPlaceholder("要查找的内容").onChange((v) => (this.find = v));
+			text.setPlaceholder("要查找的内容").onChange((v: string) => (this.find = v));
 		});
 
 		new Setting(this.contentEl).setName("替换为").addText((text) => {
-			text.setPlaceholder("替换成什么").onChange((v) => (this.replace = v));
+			text.setPlaceholder("替换成什么").onChange((v: string) => (this.replace = v));
 		});
 
 		new Setting(this.contentEl).setName("区分大小写").addToggle((t) => {
@@ -37,6 +39,12 @@ export class SearchInSelectionModal extends Modal {
 				btn.setButtonText("替换全部").setCta().onClick(() => {
 					if (!this.find) {
 						new Notice("Editor Pro：请输入要查找的内容");
+						return;
+					}
+
+					// Prevent ReDoS by limiting search pattern length
+					if (this.find.length > MAX_SEARCH_LENGTH) {
+						new Notice(`Editor Pro：查找内容过长，最大支持 ${MAX_SEARCH_LENGTH} 个字符`);
 						return;
 					}
 

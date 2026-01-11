@@ -1,22 +1,24 @@
 // Robust table parsing utils using placeholders for escaped pipes
 
 const ESCAPED_PIPE_PLACEHOLDER = '%%ESCAPED_PIPE%%';
+// Cache regex for performance
+const RESTORE_PIPE_REGEX = new RegExp(ESCAPED_PIPE_PLACEHOLDER, 'g');
 
 export function splitTableRow(row: string): string[] {
     let cleanRow = row.trim();
-    
+
     // Protect escaped pipes
     cleanRow = cleanRow.replace(/\\\|/g, ESCAPED_PIPE_PLACEHOLDER);
-    
+
     // Remove starting/ending pipes if they exist
     if (cleanRow.startsWith('|')) cleanRow = cleanRow.substring(1);
     if (cleanRow.endsWith('|')) cleanRow = cleanRow.substring(0, cleanRow.length - 1);
-    
+
     // Split by pipe
     const cells = cleanRow.split('|');
-    
+
     // Restore escaped pipes
-    return cells.map(c => c.replace(new RegExp(ESCAPED_PIPE_PLACEHOLDER, 'g'), '\\|'));
+    return cells.map(c => c.replace(RESTORE_PIPE_REGEX, '\\|'));
 }
 
 export function joinTableRow(cells: string[]): string {
@@ -26,22 +28,25 @@ export function joinTableRow(cells: string[]): string {
 export function insertColumn(rows: string[], colIndex: number, side: 'left' | 'right'): string[] {
     return rows.map((row) => {
         if (!row.trim().startsWith('|')) return row;
-        
+
         const cells = splitTableRow(row);
-        const insertAt = side === 'left' ? colIndex : colIndex + 1;
-        
+        let insertAt = side === 'left' ? colIndex : colIndex + 1;
+
+        // Validate insertAt bounds
+        if (insertAt < 0) insertAt = 0;
+
         let newCell = '';
         if (isSeparatorRow(row)) {
             newCell = '---';
         }
-        
+
         // Handle insertion
         if (insertAt > cells.length) {
              cells.push(newCell);
         } else {
              cells.splice(insertAt, 0, newCell);
         }
-        
+
         return joinTableRow(cells);
     });
 }

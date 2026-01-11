@@ -6,7 +6,6 @@ type DragState = { type: "card"; cardId: string } | { type: "none" };
 function getCardsInColumn(cards: FlowCard[], columnId: string): FlowCard[] {
 	return cards
 		.filter((c) => c.columnId === columnId)
-		.slice()
 		.sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
 }
 

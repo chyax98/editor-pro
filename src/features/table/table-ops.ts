@@ -23,20 +23,23 @@ function getTableRows(editor: Editor, bounds: { from: number; to: number }): str
 }
 
 function getColumnIndexAtCh(row: string, ch: number): number {
+	if (!row || row.length === 0) return 0;
+
 	const cells = splitTableRow(row);
 	if (cells.length <= 1) return 0;
 
 	let boundaryCount = 0;
-	for (let i = 0; i < Math.min(ch, row.length); i++) {
-		if (row[i] !== "|") continue;
-		if (i > 0 && row[i - 1] === "\\") continue;
-		boundaryCount++;
+	const maxI = Math.min(ch, row.length);
+	for (let i = 0; i < maxI; i++) {
+		if (row[i] === "|" && !(i > 0 && row[i - 1] === "\\")) {
+			boundaryCount++;
+		}
 	}
 
 	// If row starts with "|", first boundary is before col 0.
 	const startsWithPipe = row.trimStart().startsWith("|");
 	let col = startsWithPipe ? boundaryCount - 1 : boundaryCount;
-	if (Number.isNaN(col)) col = 0;
+	if (Number.isNaN(col) || col < 0) col = 0;
 	return Math.max(0, Math.min(cells.length - 1, col));
 }
 

@@ -21,7 +21,7 @@ export function moveTaskToColumn(lines: string[], taskLineIndex: number, targetC
     // Enhanced: Check if heading contains the target keyword.
     for (let i = 0; i < filteredLines.length; i++) {
         const line = filteredLines[i];
-        if (line && line.trim().startsWith('##') && line.includes(targetColumn)) {
+        if (typeof line === 'string' && line.trim().startsWith('##') && line.includes(targetColumn)) {
             targetIndex = i;
             break;
         }

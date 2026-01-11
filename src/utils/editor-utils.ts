@@ -19,8 +19,12 @@ export function unwrap(text: string, marker: string): string {
 }
 
 export function getWordBoundaries(line: string, pos: number): SelectionRange {
+    // Validate position bounds
+    if (pos < 0) pos = 0;
+    if (pos > line.length) pos = line.length;
+
     // Simple word boundary detection (alphanumeric + some symbols)
-    
+
     // Let's use a simpler regex expand approach
     let start = pos;
     while (start > 0) {
@@ -31,7 +35,7 @@ export function getWordBoundaries(line: string, pos: number): SelectionRange {
             break;
         }
     }
-    
+
     let end = pos;
     while (end < line.length) {
         const char = line[end];
@@ -41,7 +45,7 @@ export function getWordBoundaries(line: string, pos: number): SelectionRange {
             break;
         }
     }
-    
+
     return { from: start, to: end };
 }
 
@@ -50,10 +54,15 @@ function isWordChar(char: string): boolean {
 }
 
 export function findEnclosingMarker(line: string, cursorIndex: number, marker: string): SelectionRange | null {
+    // Validate marker is not empty to avoid invalid regex
+    if (!marker || marker.length === 0) {
+        return null;
+    }
+
     // Better approach: regex match all occurrences and check range
     const escapedMarker = marker.replace(/[-/\\^$*+?.()|[\]{}]/g, '\\$&');
     const regex = new RegExp(`${escapedMarker}(.*?)${escapedMarker}`, 'g');
-    
+
     let match;
     while ((match = regex.exec(line)) !== null) {
         const start = match.index;
@@ -62,6 +71,6 @@ export function findEnclosingMarker(line: string, cursorIndex: number, marker: s
             return { from: start, to: end };
         }
     }
-    
+
     return null;
 }

@@ -601,7 +601,7 @@ export function BoardApp(props: {
 												<span className={`board-badge priority-${card.priority}`}>
 													{card.priority === "high" ? "高" : card.priority === "medium" ? "中" : "低"}
 												</span>
-												{card.tags.slice(0, 3).map((t) => (
+												{(card.tags ?? []).slice(0, 3).map((t) => (
 													<span key={t} className="board-badge tag-badge">
 														#{t}
 													</span>

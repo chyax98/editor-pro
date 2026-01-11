@@ -19,6 +19,7 @@ export interface FlowParseResult {
 }
 
 function hash(text: string): string {
+	if (!text || text.length === 0) return '0';
 	let h = 2166136261;
 	for (let i = 0; i < text.length; i++) {
 		h ^= text.charCodeAt(i);
@@ -74,8 +75,16 @@ function stripListMarker(line: string): string {
 }
 
 function trimTrailingBlank(lines: string[]): string[] {
+	if (!lines || lines.length === 0) return [];
 	let end = lines.length;
-	while (end > 0 && !lines[end - 1]?.trim()) end--;
+	while (end > 0) {
+		const line = lines[end - 1];
+		if (!line || !line.trim()) {
+			end--;
+		} else {
+			break;
+		}
+	}
 	return lines.slice(0, end);
 }
 
