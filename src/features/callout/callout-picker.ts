@@ -23,7 +23,9 @@ export class CalloutTypePicker extends SuggestModal<string> {
 
     onChooseSuggestion(item: string, evt: MouseEvent | KeyboardEvent) {
         // Strip icon for the actual type
-        const type = item.split(' ')[1] || item;
+        // Format: "emoji type" -> extract "type", fallback to full item
+        const parts = item.split(' ');
+        const type = parts.length > 1 ? parts.slice(1).join(' ') : item;
         this.onChoose(type);
     }
 }

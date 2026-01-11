@@ -6,6 +6,11 @@ export interface KanbanResult {
 }
 
 export function moveTaskToColumn(lines: string[], taskLineIndex: number, targetColumn: string): KanbanResult {
+    // Boundary check: ensure taskLineIndex is valid
+    if (taskLineIndex < 0 || taskLineIndex >= lines.length) {
+        return { newLines: lines, newCursorLine: taskLineIndex };
+    }
+
     const taskContent = lines[taskLineIndex];
     if (!taskContent || !taskContent.trim().startsWith('- [')) return { newLines: lines, newCursorLine: taskLineIndex };
 
