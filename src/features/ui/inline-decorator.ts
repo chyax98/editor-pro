@@ -85,7 +85,9 @@ export class InlineDecorator {
 		// Avoid setting raw style attributes; keep the mutation scoped to a single CSS property.
 		// Also ignore suspicious schemes (users can still use vault-relative paths).
 		if (/^(https?:\/\/|app:\/\/)/i.test(url)) {
-			if (this.bannerEl) this.bannerEl.setCssProps({ "background-image": `url("${url}")` });
+			// Escape URL to prevent CSS injection: quotes and backslashes
+			const safeUrl = url.replace(/"/g, '%22').replace(/'/g, '%27').replace(/\\/g, '%5C');
+			if (this.bannerEl) this.bannerEl.setCssProps({ "background-image": `url("${safeUrl}")` });
 		} else {
 			if (this.bannerEl) this.bannerEl.setCssProps({ "background-image": "" });
 		}

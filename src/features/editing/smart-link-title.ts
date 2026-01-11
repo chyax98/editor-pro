@@ -1,5 +1,52 @@
 import { requestUrl } from "obsidian";
 
+/**
+ * Check if a URL is safe to fetch.
+ * Blocks private/local addresses to prevent SSRF attacks.
+ */
+function isSafeUrl(urlStr: string): boolean {
+	try {
+		const url = new URL(urlStr);
+
+		// Only allow http and https protocols
+		if (url.protocol !== 'http:' && url.protocol !== 'https:') {
+			return false;
+		}
+
+		// Block private/local IPs (IPv4)
+		const hostname = url.hostname;
+		const privateIpPatterns = [
+			/^127\./,                           // Loopback (127.0.0.0/8)
+			/^10\./,                            // Private Class A (10.0.0.0/8)
+			/^172\.(1[6-9]|2\d|3[01])\./,      // Private Class B (172.16.0.0/12)
+			/^192\.168\./,                      // Private Class C (192.168.0.0/16)
+			/^169\.254\./,                      // Link-local (169.254.0.0/16)
+			/^::1$/,                            // IPv6 loopback
+			/^fc00:/i,                          // IPv6 private (fc00::/7)
+			/^fe80:/i,                          // IPv6 link-local (fe80::/10)
+			/^localhost$/i,                     // localhost hostname
+			/^0\.0\.0\.0$/,                     // All interfaces
+		];
+
+		for (const pattern of privateIpPatterns) {
+			if (pattern.test(hostname)) {
+				return false;
+			}
+		}
+
+		// Also block internal TLDs commonly used for development
+		const internalTlds = ['.local', '.example', '.test', '.localhost', '.invalid'];
+		if (internalTlds.some(tld => hostname.endsWith(tld))) {
+			return false;
+		}
+
+		return true;
+	} catch {
+		// Invalid URL
+		return false;
+	}
+}
+
 export function isHttpUrl(text: string): boolean {
 	const t = text.trim();
 	if (!t) return false;
@@ -39,6 +86,11 @@ export function sanitizeLinkTitle(title: string): string {
 }
 
 export async function fetchPageTitle(url: string): Promise<string | null> {
+	// SSRF protection: validate URL before fetching
+	if (!isSafeUrl(url)) {
+		return null;
+	}
+
 	try {
 		const res = await requestUrl({ url, method: "GET", throw: false });
 		const html = res.text ?? "";
