@@ -18,10 +18,15 @@
 /* Project Board (JSON) */
 .editor-pro-board {
     height: 100%;
-    padding: 20px;
+    padding: 16px 18px;
     overflow-x: auto;
     background-color: var(--background-primary);
     font-family: var(--font-interface);
+}
+
+.kanban-empty {
+    padding: 18px;
+    color: var(--text-muted);
 }
 
 .board-container {
@@ -29,6 +34,7 @@
     gap: 16px;
     height: 100%;
     align-items: flex-start;
+    padding-bottom: 4px;
 }
 
 .board-column {
@@ -40,17 +46,55 @@
     flex-direction: column;
     padding: 8px;
     border: 1px solid var(--background-modifier-border);
+    box-shadow: 0 1px 1px rgba(0,0,0,0.06);
 }
 
-.board-column.drag-over {
+.board-column.is-drag-over {
     background: var(--background-modifier-active-hover);
+    border-color: var(--interactive-accent);
 }
 
 .board-column-header {
-    padding: 8px 4px;
-    font-weight: 600;
+    padding: 8px 6px 10px;
     margin-bottom: 8px;
     color: var(--text-normal);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    border-bottom: 1px solid var(--background-modifier-border);
+}
+
+.board-column-title {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-width: 0;
+    user-select: none;
+    cursor: default;
+}
+
+.board-column-title h4 {
+    margin: 0;
+    font-size: 0.95em;
+    font-weight: 650;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.board-column-count {
+    font-size: 0.75em;
+    color: var(--text-muted);
+    background: var(--background-modifier-hover);
+    padding: 2px 8px;
+    border-radius: 999px;
+}
+
+.board-column-actions {
+    display: flex;
+    gap: 6px;
+    flex: 0 0 auto;
 }
 
 .board-card-list {
@@ -66,9 +110,9 @@
     border-radius: 4px;
     padding: 12px;
     margin-bottom: 10px;
-    box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+    box-shadow: 0 1px 2px rgba(0,0,0,0.08);
     cursor: pointer;
-    border: 1px solid transparent;
+    border: 1px solid var(--background-modifier-border);
     transition: all 0.15s ease;
 }
 
@@ -78,9 +122,14 @@
     border-color: var(--interactive-accent);
 }
 
-.board-card.dragging {
+.board-card.is-dragging {
     opacity: 0.4;
     border: 1px dashed var(--text-muted);
+}
+
+.board-card.is-drop-target {
+    border-color: var(--interactive-accent);
+    box-shadow: 0 0 0 2px color-mix(in srgb, var(--interactive-accent) 30%, transparent);
 }
 
 .board-card-title {
@@ -115,6 +164,16 @@
     font-weight: bold;
 }
 
+.date-badge.today {
+    color: #faad14;
+    font-weight: bold;
+}
+
+.date-badge.invalid {
+    color: var(--text-faint);
+    font-style: italic;
+}
+
 /* Buttons */
 .board-add-card, .board-add-col-btn {
     padding: 8px;
@@ -138,6 +197,46 @@
     display: flex;
     align-items: center;
     justify-content: center;
+}
+
+.board-col-btn {
+    appearance: none;
+    border: 1px solid var(--background-modifier-border);
+    background: var(--background-primary);
+    color: var(--text-normal);
+    padding: 6px 10px;
+    border-radius: 6px;
+    font-size: 0.85em;
+    line-height: 1;
+    cursor: pointer;
+    transition: background 0.15s ease, border-color 0.15s ease, transform 0.1s ease;
+}
+
+.board-col-btn:hover {
+    background: var(--background-modifier-hover);
+    border-color: var(--interactive-accent);
+}
+
+.board-col-btn:active {
+    transform: translateY(1px);
+}
+
+.board-col-btn-primary {
+    background: var(--interactive-accent);
+    border-color: var(--interactive-accent);
+    color: var(--text-on-accent);
+}
+
+.board-col-btn-primary:hover {
+    background: color-mix(in srgb, var(--interactive-accent) 92%, black);
+    border-color: color-mix(in srgb, var(--interactive-accent) 92%, black);
+}
+
+.board-col-btn-ghost {
+    padding: 6px 8px;
+    min-width: 34px;
+    font-weight: 700;
+    background: transparent;
 }
 
 /* Modal Styles */

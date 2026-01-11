@@ -4,7 +4,6 @@ import { wrapWithCallout, wrapWithCodeBlock } from "../callout/wrap-callout";
 import { CalloutTypePicker } from "../callout/callout-picker";
 
 import { generateFencedCodeBlock, generateTable, generateDate, generateMath, generateDaily, generateWeekly, generateHTML } from "../../utils/markdown-generators";
-import { InfographicTemplatePicker } from "../infographic/template-picker";
 import { setDueDate } from "../kanban/due-date";
 
 const COMMANDS: SlashCommand[] = [
@@ -20,7 +19,6 @@ const COMMANDS: SlashCommand[] = [
     { id: 'd2', name: 'D2 图表 (D2)', aliases: ['d2'] },
     { id: 'graph', name: 'Graph 图表 (DOT/Graphviz)', aliases: ['graph', 'dot', 'graphviz'] },
     { id: 'infographic', name: '信息图 (Infographic)', aliases: ['infographic', 'info', 'xx'] },
-    { id: 'infographic-template', name: '信息图模板 (Infographic template)', aliases: ['infographic-template', 'infot', 'infotpl'] },
     { id: 'daily', name: '日记模板 (Daily)', aliases: ['daily', 'rj'] },
     { id: 'weekly', name: '周记模板 (Weekly)', aliases: ['weekly', 'zj'] },
     { id: 'html', name: 'HTML 片段 (HTML)', aliases: ['html', 'dm'] },
@@ -134,29 +132,12 @@ export class SlashCommandMenu extends EditorSuggest<SlashCommand> {
                 editor.setCursor({ line: cursor.line + 1, ch: 0 });
                 break;
             case 'graph':
-                editor.replaceSelection(
-                    generateFencedCodeBlock(
-                        'dot',
-                        [
-                            'digraph G {',
-                            '  rankdir=LR;',
-                            '  A -> B;',
-                            '}',
-                        ].join('\n'),
-                    ),
-                );
+                editor.replaceSelection(generateFencedCodeBlock('dot'));
                 editor.setCursor({ line: cursor.line + 1, ch: 0 });
                 break;
             case 'infographic':
                 editor.replaceSelection(generateFencedCodeBlock('infographic'));
                 editor.setCursor({ line: cursor.line + 1, ch: 0 });
-                break;
-            case 'infographic-template':
-                new InfographicTemplatePicker(this.app, (template) => {
-                    const cursorBefore = editor.getCursor();
-                    editor.replaceSelection(generateFencedCodeBlock('infographic', template.body));
-                    editor.setCursor({ line: cursorBefore.line + 1, ch: 0 });
-                }).open();
                 break;
             case 'h1':
                 this.setHeading(editor, 1);

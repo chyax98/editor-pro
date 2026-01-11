@@ -70,10 +70,7 @@ API -> App: response
 
 ```md
 ```dot
-digraph G {
-  rankdir=LR;
-  A -> B;
-}
+
 ```
 ```
 
@@ -98,15 +95,15 @@ data
 ```
 ```
 
-### 4.2 重要规则（建议直接给 AI）
+### 4.2 语法规范（建议直接给 AI）
 
-1. 第一行必须是 `infographic <template-id>`（`template-id` 必须完整且拼写正确）
-2. 必须有 `data` 块（与 `infographic` 同级，不要缩进）
-3. 如果使用 `theme`，它必须与 `data` **同级**（不要写进 `data` 里）
-4. 缩进统一 **2 空格**（不要 tab；缩进错会解析失败）
-5. 列表语法使用 `-`（看起来像 YAML，但并不是 YAML frontmatter）
-6. 层级数据用 `children` 做嵌套（仍在 `items` 数组里）
-7. 常见字段（模板不同会有差异）：`title`、`items`、`label`、`value`、`desc`、`icon`、`children`
+以下内容来自 AntV Infographic 官方语法规范（类 Mermaid 语法）：
+
+1. 入口必须是 `infographic <template-name>`
+2. 键值对用空格分隔；缩进统一 **2 空格**
+3. `data` / `design` / `theme` 都是“顶层块”（与 `data` 同级，不要缩进到别的块里）
+4. 对象数组用 `-`（如 `data.items`），简单数组可行内写（如 `palette #fff #000`）
+5. 层级数据用 `children` 嵌套（仍在 `items` 数组里）
 
 ### 4.3 层级示例（Hierarchy）
 
@@ -127,17 +124,41 @@ data
 ```
 ```
 
-### 4.4 在插件里怎么写（推荐工作流）
+### 4.4 `design` / `theme`（官方示例）
+
+```md
+```infographic
+infographic list-row-horizontal-icon-arrow
+design
+  structure default
+    gap 12
+  item default
+    showIcon true
+theme
+  colorBg #0b1220
+  colorPrimary #ff5a5f
+  palette #ff5a5f #1fb6ff #13ce66
+data
+  title 客户增长引擎
+  desc 多渠道触达与复购提升
+  items
+    - label 线索获取
+      value 18.6
+      desc 渠道投放与内容获客
+      icon company-021_v1_lineal
+```
+```
+
+### 4.5 在插件里怎么写（推荐工作流）
 
 - `/infographic`：只插入空的 ` ```infographic` 代码块（从零写，最自由）
-- `/infographic-template`：插入“可渲染的参考模板”（不想从零写 / 避免语法坑时用）
 
-### 4.5 template-id 列表（B）
+### 4.6 template-id 列表（B）
 
 - 完整 template-id 列表见：`repo-docs/infographic-template-ids.md`
-- 也可以先用 `/infographic-template` 插入一个能跑的例子，再改内容（最省心）
+- 该列表的目的：帮你快速“选模板名”，不是语法必需（渲染器可以渲染所有内置模板）
 
-### 4.6 常用 template-id（速查）
+### 4.7 常用 template-id（速查）
 
 - `list-row-simple-horizontal-arrow`（流程）
 - `sequence-timeline-simple`（时间线）
@@ -146,10 +167,15 @@ data
 
 模板定义位置：`src/features/infographic/templates.ts`
 
-### 4.7 渲染错误时展示什么？（你提到的点）
+### 4.8 渲染错误时展示什么？（你提到的点）
 
 本插件的策略是：
 - 默认展示“错误摘要”（你能立刻知道为什么没渲染出来）
 - 同时提供一个可展开区域“显示源代码”（用于排查缩进/拼写问题）
 
 这样比“完全不显示”更可控，也比“直接把源码铺满预览”更不打扰阅读。
+
+### 4.9 官方文档
+
+- 语法：`https://infographic.antv.vision/learn/infographic-syntax`
+- 主题：`https://infographic.antv.vision/learn/theme`

@@ -37,7 +37,7 @@
   - Callout、代码块、引用
   - 表格、日期/时间、数学公式、HTML 片段
   - Mermaid/D2/Graph(DOT)（插入代码块）
-  - Infographic（空代码块插入 + 模板插入）
+  - Infographic（空代码块插入；预览支持渲染）
   - 日记/周记模板
   - H1/H2/H3
   - 代码：`src/features/slash-command/menu.ts`
@@ -59,7 +59,7 @@
 ### 轻量看板（.board / JSON）
 - 侧边栏图标：创建/打开 `.board` 文件（默认 `Kanban.board`）
 - 自定义视图：拖拽卡片、编辑卡片详情（Modal）
-- 代码：`src/views/board-view.ts`、`src/views/card-modal.ts`、`src/features/board/board-model.ts`
+- 代码：`src/views/board-view.tsx`、`src/views/board-app.tsx`、`src/views/card-modal.ts`、`src/features/board/board-model.ts`
 
 ### 预览渲染
 - ` ```infographic` 代码块渲染（预览/阅读模式）

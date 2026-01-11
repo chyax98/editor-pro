@@ -14,6 +14,8 @@ import { BoardView, VIEW_TYPE_BOARD } from './views/board-view';
 import { DEFAULT_BOARD } from './features/board/board-model';
 import { registerInfographicRenderer } from './features/infographic/renderer';
 import { DEFAULT_SETTINGS, EditorProSettings, EditorProSettingTab } from "./settings";
+import { deleteLine, duplicateLine, moveLineDown, moveLineUp, selectLine } from './features/editing/keyshots';
+import { handleAutoPair, handleSmartBackspace, handleSmartSpacing } from './features/editing/smart-typography';
 
 export default class EditorProPlugin extends Plugin {
     settings: EditorProSettings;
@@ -32,6 +34,28 @@ export default class EditorProPlugin extends Plugin {
         // 侧边栏图标：打开项目看板
         this.addRibbonIcon('layout-dashboard', '打开项目看板', () => {
             void this.openBoard();
+        });
+
+        // --- Editor UX Enhancements (Keyshots) ---
+        this.addCommand({
+            id: 'move-line-up', name: '上移当前行 (Move Line Up)',
+            editorCallback: (editor: Editor) => moveLineUp(editor)
+        });
+        this.addCommand({
+            id: 'move-line-down', name: '下移当前行 (Move Line Down)',
+            editorCallback: (editor: Editor) => moveLineDown(editor)
+        });
+        this.addCommand({
+            id: 'duplicate-line', name: '向下复制当前行 (Duplicate Line)',
+            editorCallback: (editor: Editor) => duplicateLine(editor)
+        });
+        this.addCommand({
+            id: 'delete-line', name: '删除当前行 (Delete Line)',
+            editorCallback: (editor: Editor) => deleteLine(editor)
+        });
+        this.addCommand({
+            id: 'select-line', name: '选中当前行 (Select Line)',
+            editorCallback: (editor: Editor) => selectLine(editor)
         });
 
         // 1. 智能格式切换
@@ -139,18 +163,33 @@ export default class EditorProPlugin extends Plugin {
         });
         this.yamlManager.register(this);
 
-        // 8. 表格 Tab 导航 & 块跳出 (Shift+Enter)
+        // 8. 表格 Tab 导航 & 块跳出 (Shift+Enter) & 自动配对 & 智能退格
         this.registerDomEvent(document, 'keydown', (evt: KeyboardEvent) => {
             const view = this.app.workspace.getActiveViewOfType(MarkdownView);
             if (view) {
+                // 1. 智能退格 (Backspace)
+                if (evt.key === 'Backspace') {
+                    if (handleSmartBackspace(view.editor, evt)) return;
+                }
+
+                // 2. 自动配对 / 包裹 (Any Char)
+                // 注意：evt.key 可能是 'Enter', 'Tab' 等，PAIR_MAP 查不到会返回 false，安全。
+                if (evt.key.length === 1 && !evt.ctrlKey && !evt.metaKey && !evt.altKey) {
+                     if (handleAutoPair(view.editor, evt.key, evt)) return;
+                }
+
                 handleTableNavigation(evt, view.editor);
                 handleBlockNavigation(evt, view.editor);
             }
         });
 
-        // 9. 智能输入展开 (@today, @time)
+        // 9. 智能输入展开 (@today, @time) + 智能排版 (Smart Spacing)
         this.registerEvent(
             this.app.workspace.on('editor-change', (editor: Editor) => {
+                // A. 智能排版 (中英自动空格) - 暂时无开关，默认启用测试
+                handleSmartSpacing(editor);
+
+                // B. 智能输入展开
                 const cursor = editor.getCursor();
                 const line = editor.getLine(cursor.line);
                 const match = checkSmartInput(line, cursor.ch);

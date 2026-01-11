@@ -19,6 +19,9 @@ export interface BoardCard {
     priority: 'low' | 'medium' | 'high';
     dueDate: string | null;
     tags: string[];
+
+    // Sorting within a column (optional for backward compatibility)
+    order?: number;
 }
 
 export const DEFAULT_BOARD: BoardData = {
