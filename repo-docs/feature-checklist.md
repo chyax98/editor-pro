@@ -37,7 +37,7 @@
   - Callout、代码块、引用
   - 表格、日期/时间、数学公式、HTML 片段
   - Mermaid/D2/Graph(DOT)（插入代码块）
-  - Infographic（模板选择 + 插入）
+  - Infographic（空代码块插入 + 模板插入）
   - 日记/周记模板
   - H1/H2/H3
   - 代码：`src/features/slash-command/menu.ts`

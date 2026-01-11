@@ -189,6 +189,15 @@
     border-radius: 6px;
 }
 
+.editor-pro-infographic-error-details {
+    margin-top: 6px;
+}
+
+.editor-pro-infographic-error-details summary {
+    cursor: pointer;
+    color: var(--text-faint);
+}
+
 .editor-pro-infographic-template-id {
     color: var(--text-faint);
     font-size: 0.8em;

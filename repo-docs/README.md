@@ -6,4 +6,4 @@
 
 - [功能清单与缺口](./feature-checklist.md)
 - [画图语法参考](./diagram-syntax.md)
-
+- [Infographic template-id 列表](./infographic-template-ids.md)

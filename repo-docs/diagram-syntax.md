@@ -81,7 +81,7 @@ digraph G {
 
 > 说明：本插件会在预览/阅读模式渲染 ` ```infographic` 代码块为 SVG。
 
-### 3.1 语法骨架
+### 4.1 语法骨架（必须遵守）
 
 ```md
 ```infographic
@@ -98,15 +98,17 @@ data
 ```
 ```
 
-### 3.2 重要语法规则（建议给 AI）
+### 4.2 重要规则（建议直接给 AI）
 
-1. 模板名必须是有效的完整 `template-id`
-2. `theme` 块必须与 `data` 同级（同缩进），不能写进 `data` 里
-3. 层级类模板用 `items` 数组，子节点用 `children`
-4. 统一使用 **2 空格缩进**
-5. 常见字段：`label`、`value`、`desc`、`icon`、`children`
+1. 第一行必须是 `infographic <template-id>`（`template-id` 必须完整且拼写正确）
+2. 必须有 `data` 块（与 `infographic` 同级，不要缩进）
+3. 如果使用 `theme`，它必须与 `data` **同级**（不要写进 `data` 里）
+4. 缩进统一 **2 空格**（不要 tab；缩进错会解析失败）
+5. 列表语法使用 `-`（看起来像 YAML，但并不是 YAML frontmatter）
+6. 层级数据用 `children` 做嵌套（仍在 `items` 数组里）
+7. 常见字段（模板不同会有差异）：`title`、`items`、`label`、`value`、`desc`、`icon`、`children`
 
-### 3.3 层级示例（Hierarchy）
+### 4.3 层级示例（Hierarchy）
 
 ```md
 ```infographic
@@ -125,7 +127,17 @@ data
 ```
 ```
 
-### 3.4 当前内置模板（插件模板选择器）
+### 4.4 在插件里怎么写（推荐工作流）
+
+- `/infographic`：只插入空的 ` ```infographic` 代码块（从零写，最自由）
+- `/infographic-template`：插入“可渲染的参考模板”（不想从零写 / 避免语法坑时用）
+
+### 4.5 template-id 列表（B）
+
+- 完整 template-id 列表见：`repo-docs/infographic-template-ids.md`
+- 也可以先用 `/infographic-template` 插入一个能跑的例子，再改内容（最省心）
+
+### 4.6 常用 template-id（速查）
 
 - `list-row-simple-horizontal-arrow`（流程）
 - `sequence-timeline-simple`（时间线）
@@ -133,3 +145,11 @@ data
 - `hierarchy-tree-tech-style-rounded-rect-node`（层级树）
 
 模板定义位置：`src/features/infographic/templates.ts`
+
+### 4.7 渲染错误时展示什么？（你提到的点）
+
+本插件的策略是：
+- 默认展示“错误摘要”（你能立刻知道为什么没渲染出来）
+- 同时提供一个可展开区域“显示源代码”（用于排查缩进/拼写问题）
+
+这样比“完全不显示”更可控，也比“直接把源码铺满预览”更不打扰阅读。

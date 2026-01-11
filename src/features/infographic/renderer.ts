@@ -27,11 +27,12 @@ export function registerInfographicRenderer(plugin: Plugin) {
 				} catch (error) {
 					const message = error instanceof Error ? error.message : String(error);
 					container.empty();
-					container.createEl("div", {
-						text: `Editor Pro：Infographic 渲染失败：${message}`,
-						cls: "editor-pro-infographic-error",
-					});
-					container.createEl("pre", { text: input });
+					const errorEl = container.createDiv({ cls: "editor-pro-infographic-error" });
+					errorEl.createEl("div", { text: `Editor Pro：Infographic 渲染失败：${message}` });
+
+					const details = errorEl.createEl("details", { cls: "editor-pro-infographic-error-details" });
+					details.createEl("summary", { text: "显示源代码" });
+					details.createEl("pre", { text: input });
 				}
 			}
 
