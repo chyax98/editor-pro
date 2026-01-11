@@ -727,8 +727,16 @@ export default class EditorProPlugin extends Plugin {
     }
 
     onunload() {
-        // Cleanup YamlManager to clear any pending timeouts
+        // Cleanup YamlManager (has manual cleanup for timeouts)
         this.yamlManager?.cleanup();
+
+        // Other managers use registerEvent/registerDomEvent which auto-cleanup
+        // Just clear references to help garbage collection
+        this.cursorMemory = null;
+        this.focusUi = null;
+        this.floatingOutline = null;
+        this.inlineDecorator = null;
+        this.fileTreeHighlightManager = null;
     }
 
     async loadSettings() {

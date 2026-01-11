@@ -18,6 +18,7 @@ export class SaveCleaner {
 	private enabled: () => boolean;
 	private internalWrite = new Set<string>();
 	private runDebounced: (file: TFile) => void;
+	private timeoutIds: Set<ReturnType<typeof setTimeout>> = new Set();
 
 	constructor(options: SaveCleanerOptions) {
 		this.app = options.app;
@@ -35,6 +36,9 @@ export class SaveCleaner {
 				this.runDebounced(file);
 			}),
 		);
+
+		// Register cleanup function
+		plugin.register(() => this.cleanup());
 	}
 
 	private async run(file: TFile) {
@@ -47,12 +51,23 @@ export class SaveCleaner {
 			try {
 				await this.app.vault.modify(file, next);
 			} finally {
-				window.setTimeout(() => this.internalWrite.delete(file.path), 500);
+				const timeoutId = setTimeout(() => {
+					this.internalWrite.delete(file.path);
+					this.timeoutIds.delete(timeoutId);
+				}, 500);
+				this.timeoutIds.add(timeoutId);
 			}
 		} catch (e) {
 			// Silent by default: save-cleaner should never block editing.
 			console.error("[Editor Pro] SaveCleaner failed", e);
 		}
+	}
+
+	cleanup() {
+		for (const timeoutId of this.timeoutIds) {
+			clearTimeout(timeoutId);
+		}
+		this.timeoutIds.clear();
 	}
 }
 

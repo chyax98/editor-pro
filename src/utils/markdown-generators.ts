@@ -135,15 +135,15 @@ export function generateInfographicListRowSimpleHorizontalArrow(): string {
 
 export function generateDate(format: 'YYYY-MM-DD' | 'HH:mm' | 'YYYY-MM-DD HH:mm'): string {
     const now = new Date();
-    
+
     const pad = (n: number) => n.toString().padStart(2, '0');
-    
+
     const year = now.getFullYear();
     const month = pad(now.getMonth() + 1);
     const day = pad(now.getDate());
     const hours = pad(now.getHours());
     const minutes = pad(now.getMinutes());
-    
+
     if (format === 'YYYY-MM-DD') {
         return `${year}-${month}-${day}`;
     }
@@ -153,7 +153,9 @@ export function generateDate(format: 'YYYY-MM-DD' | 'HH:mm' | 'YYYY-MM-DD HH:mm'
     if (format === 'YYYY-MM-DD HH:mm') {
         return `${year}-${month}-${day} ${hours}:${minutes}`;
     }
-    
+
+    // Handle unexpected format values gracefully
+    console.warn(`[Editor Pro] Unexpected date format: ${format}, falling back to ISO date`);
     return now.toDateString();
 }
 
@@ -162,8 +164,18 @@ export function insertRow(lines: string[], currentRowIndex: number): string[] {
     if (!currentLine || !currentLine.trim().startsWith('|')) return lines;
 
     const colCount = (currentLine.match(/\|/g) || []).length - 1;
+
+    // Guard against invalid column count
+    if (colCount <= 0) {
+        // If we can't determine column count, use a default
+        const newRow = '|  |';
+        const newLines = [...lines];
+        newLines.splice(currentRowIndex + 1, 0, newRow);
+        return newLines;
+    }
+
     const newRow = '| ' + Array(colCount).fill('').join(' | ') + ' |';
-    
+
     const newLines = [...lines];
     newLines.splice(currentRowIndex + 1, 0, newRow);
     return newLines;

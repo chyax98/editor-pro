@@ -5,27 +5,30 @@ function findHeadingSection(editor: Editor, fromLine: number): { start: number; 
 	let level = 0;
 	for (let i = fromLine; i >= 0; i--) {
 		const line = editor.getLine(i);
-			const m = line.match(/^(#{1,6})\s+(.*)$/);
-			if (!m) continue;
-			start = i;
-			level = (m[1] ?? "").length;
-			break;
-		}
+		if (!line) continue; // Defensive: skip null/undefined lines
+		const m = line.match(/^(#{1,6})\s+(.*)$/);
+		if (!m) continue;
+		start = i;
+		level = (m[1] ?? "").length;
+		break;
+	}
 	if (start < 0) return null;
 
 	let end = editor.lineCount() - 1;
 	for (let i = start + 1; i < editor.lineCount(); i++) {
 		const line = editor.getLine(i);
-			const m = line.match(/^(#{1,6})\s+/);
-			if (!m) continue;
-			const nextLevel = (m[1] ?? "").length;
-			if (nextLevel <= level) {
-				end = i - 1;
-				break;
-			}
+		if (!line) continue; // Defensive: skip null/undefined lines
+		const m = line.match(/^(#{1,6})\s+/);
+		if (!m) continue;
+		const nextLevel = (m[1] ?? "").length;
+		if (nextLevel <= level) {
+			end = i - 1;
+			break;
+		}
 	}
 
 	const titleLine = editor.getLine(start);
+	if (!titleLine) return null; // Defensive: should not happen after finding start
 	const title = titleLine.replace(/^#{1,6}\s+/, "").trim() || "Heading";
 	return { start, end, title };
 }
@@ -45,13 +48,16 @@ function isListItemLine(text: string): { indent: number } | null {
 }
 
 function findListBlock(editor: Editor, line: number): { start: number; end: number } | null {
-	const info = isListItemLine(editor.getLine(line));
+	const currentLine = editor.getLine(line);
+	if (!currentLine) return null;
+	const info = isListItemLine(currentLine);
 	if (!info) return null;
 	const indent = info.indent;
 
 	let start = line;
 	for (let i = line - 1; i >= 0; i--) {
 		const t = editor.getLine(i);
+		if (!t) break; // Defensive: handle null lines
 		if (!t.trim()) break;
 		const li = isListItemLine(t);
 		if (li && li.indent === indent) {
@@ -68,6 +74,7 @@ function findListBlock(editor: Editor, line: number): { start: number; end: numb
 	let end = line;
 	for (let i = line + 1; i < editor.lineCount(); i++) {
 		const t = editor.getLine(i);
+		if (!t) break; // Defensive: handle null lines
 		if (!t.trim()) break;
 		if (getLeadingSpaces(t) > indent) {
 			end = i;
@@ -93,12 +100,22 @@ class ZoomEditModal extends Modal {
 	constructor(app: App, editor: Editor, startLine: number, endLine: number, title: string) {
 		super(app);
 		this.editor = editor;
+
+		// Validate line bounds
+		const lineCount = editor.lineCount();
+		if (startLine < 0 || startLine >= lineCount || endLine < 0 || endLine >= lineCount || startLine > endLine) {
+			throw new Error(`Invalid line range: startLine=${startLine}, endLine=${endLine}, lineCount=${lineCount}`);
+		}
+
 		this.startLine = startLine;
 		this.endLine = endLine;
 		this.setTitle(title);
 
 		const lines: string[] = [];
-		for (let i = startLine; i <= endLine; i++) lines.push(editor.getLine(i));
+		for (let i = startLine; i <= endLine; i++) {
+			const line = editor.getLine(i);
+			lines.push(line ?? ''); // Defensive: handle potential null
+		}
 		this.initial = lines.join("\n");
 		this.value = this.initial;
 	}
@@ -116,8 +133,20 @@ class ZoomEditModal extends Modal {
 						this.close();
 						return;
 					}
-					const endText = this.editor.getLine(this.endLine);
-					this.editor.replaceRange(this.value, { line: this.startLine, ch: 0 }, { line: this.endLine, ch: endText.length });
+
+					// Re-fetch the end line to get current document state
+					const currentEndLine = this.editor.getLine(this.endLine);
+					if (!currentEndLine) {
+						new Notice("Editor Pro：无法获取文档内容，可能文档已被修改");
+						this.close();
+						return;
+					}
+
+					this.editor.replaceRange(
+						this.value,
+						{ line: this.startLine, ch: 0 },
+						{ line: this.endLine, ch: currentEndLine.length }
+					);
 					this.close();
 				});
 			})
