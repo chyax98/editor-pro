@@ -71,13 +71,14 @@ export class CardModal extends Modal {
             cls: 'board-card-description',
             text: this.card.description 
         });
-        descArea.onblur = () => { this.card.description = descArea.value; };
+        descArea.oninput = () => { this.card.description = descArea.value; };
 
         // Buttons
         const btnContainer = contentEl.createDiv({ cls: 'board-modal-buttons' });
         
         const saveBtn = btnContainer.createEl('button', { text: '保存', cls: 'mod-cta' });
         saveBtn.onclick = () => {
+            this.card.description = descArea.value;
             this.onSave(this.card);
             this.close();
         };
