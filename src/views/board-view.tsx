@@ -48,6 +48,8 @@ export class BoardView extends FileView {
     private saveStatus: BoardSaveStatus = "saved";
     private saveError: string | null = null;
     private parseError: { message: string; rawText: string } | null = null;
+    private saveInFlight: Promise<void> | null = null;
+    private saveQueued = false;
 
     getViewType() { return VIEW_TYPE_BOARD; }
     getDisplayText() { return this.file ? this.file.basename : "项目看板"; }
@@ -68,9 +70,10 @@ export class BoardView extends FileView {
     }
 
     async onOpen() {
+        // Trailing debounce: avoid losing the last keystroke changes.
         this.saveDebounced = debounce(() => {
             void this.saveData();
-        }, 300, true);
+        }, 400);
 
         this.registerEvent(this.app.vault.on('modify', (f) => {
             if (this.internalWrite) return;
@@ -178,40 +181,62 @@ export class BoardView extends FileView {
     private async flushPendingSave() {
         if (!this.saveDebounced) return;
         this.saveDebounced.cancel();
+        await (this.saveInFlight ?? Promise.resolve());
         await this.saveData();
+        await (this.saveInFlight ?? Promise.resolve());
     }
 
     async saveData() {
-        if (!this.file) return;
+        const file = this.file;
+        if (!file) return;
         if (this.parseError) return;
+        if (this.saveInFlight) {
+            this.saveQueued = true;
+            return;
+        }
         if (!this.dirty && this.lastSavedText !== null) return;
 
         const nextText = JSON.stringify(this.data, null, 2);
         if (this.lastSavedText !== null && nextText === this.lastSavedText) {
             this.dirty = false;
             this.saveStatus = "saved";
+            this.renderReact();
             return;
         }
 
-        this.internalWrite = true;
-        this.saveStatus = "saving";
-        this.saveError = null;
-        this.renderReact();
-        try {
-            await this.app.vault.modify(this.file, nextText);
-            this.lastSavedText = nextText;
-            this.dirty = false;
-            this.saveStatus = "saved";
-        } catch (e) {
-            const message = e instanceof Error ? e.message : String(e);
-            this.saveStatus = "error";
-            this.saveError = `保存失败：${message}`;
-            console.error("[Editor Pro] Board save failed", e);
+        const run = (async () => {
+            this.internalWrite = true;
+            this.saveStatus = "saving";
+            this.saveError = null;
             this.renderReact();
+            try {
+                await this.app.vault.modify(file, nextText);
+                this.lastSavedText = nextText;
+                this.dirty = false;
+                this.saveStatus = "saved";
+                this.saveError = null;
+            } catch (e) {
+                const message = e instanceof Error ? e.message : String(e);
+                this.saveStatus = "error";
+                this.saveError = `保存失败：${message}`;
+                console.error("[Editor Pro] Board save failed", e);
+            } finally {
+                this.renderReact();
+                window.setTimeout(() => {
+                    this.internalWrite = false;
+                }, 300);
+            }
+        })();
+
+        this.saveInFlight = run;
+        try {
+            await run;
         } finally {
-            window.setTimeout(() => {
-                this.internalWrite = false;
-            }, 300);
+            this.saveInFlight = null;
+            if (this.saveQueued) {
+                this.saveQueued = false;
+                void this.saveData();
+            }
         }
     }
 

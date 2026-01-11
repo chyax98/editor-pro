@@ -800,7 +800,7 @@ export default class EditorProPlugin extends Plugin {
         const file = existing instanceof TFile ? existing : null;
         if (!file) {
             try {
-                const created = await this.app.vault.create(path, JSON.stringify(DEFAULT_BOARD, null, 2));
+                const created = await this.app.vault.create(path, JSON.stringify(DEFAULT_BOARD, null, 2) + "\n");
                 new Notice(`已创建看板: ${path}`);
 
                 const leaf = this.app.workspace.getLeaf(true);
@@ -888,7 +888,7 @@ export default class EditorProPlugin extends Plugin {
         }
 
         try {
-            await this.app.vault.create(path, JSON.stringify(DEFAULT_BOARD, null, 2));
+            await this.app.vault.create(path, JSON.stringify(DEFAULT_BOARD, null, 2) + "\n");
         } catch (e) {
             const message = e instanceof Error ? e.message : String(e);
             new Notice(`Editor Pro：创建看板失败：${message}`);
