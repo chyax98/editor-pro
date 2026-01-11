@@ -18,6 +18,8 @@ import { deleteLine, duplicateLine, moveLineDown, moveLineUp, selectLine } from 
 import { handleAutoPair, handleSmartBackspace, handleSmartSpacing } from './features/editing/smart-typography';
 import { smartPasteUrlIntoSelection } from './features/editing/smart-paste-url';
 import { createTypewriterScrollExtension } from './features/editing/typewriter-mode';
+import { handleOutlinerIndent, toggleFold } from './features/editing/outliner';
+import { applyTableOp } from './features/table/table-ops';
 
 export default class EditorProPlugin extends Plugin {
     settings: EditorProSettings;
@@ -125,6 +127,78 @@ export default class EditorProPlugin extends Plugin {
             });
         }
 
+        // 5.1 Outliner（折叠命令）
+        if (this.settings.enableOutliner) {
+            this.addCommand({
+                id: 'outliner-toggle-fold',
+                name: '大纲：折叠/展开 (Toggle fold)',
+                editorCallback: (editor: Editor) => toggleFold(editor),
+            });
+            this.addCommand({
+                id: 'outliner-fold-all',
+                name: '大纲：全部折叠 (Fold all)',
+                editorCallback: (editor: Editor) => editor.exec('foldAll'),
+            });
+            this.addCommand({
+                id: 'outliner-unfold-all',
+                name: '大纲：全部展开 (Unfold all)',
+                editorCallback: (editor: Editor) => editor.exec('unfoldAll'),
+            });
+        }
+
+        // 5.2 表格操作（Advanced Tables Lite）
+        if (this.settings.enableTableOps) {
+            this.addCommand({
+                id: 'table-insert-column-left',
+                name: '表格：在当前列左侧插入列',
+                editorCallback: (editor: Editor) => {
+                    applyTableOp(editor, { type: 'insert-col', side: 'left' });
+                },
+            });
+            this.addCommand({
+                id: 'table-insert-column-right',
+                name: '表格：在当前列右侧插入列',
+                editorCallback: (editor: Editor) => {
+                    applyTableOp(editor, { type: 'insert-col', side: 'right' });
+                },
+            });
+            this.addCommand({
+                id: 'table-delete-column',
+                name: '表格：删除当前列',
+                editorCallback: (editor: Editor) => {
+                    applyTableOp(editor, { type: 'delete-col' });
+                },
+            });
+            this.addCommand({
+                id: 'table-align-left',
+                name: '表格：当前列左对齐',
+                editorCallback: (editor: Editor) => {
+                    applyTableOp(editor, { type: 'align-col', align: 'left' });
+                },
+            });
+            this.addCommand({
+                id: 'table-align-center',
+                name: '表格：当前列居中',
+                editorCallback: (editor: Editor) => {
+                    applyTableOp(editor, { type: 'align-col', align: 'center' });
+                },
+            });
+            this.addCommand({
+                id: 'table-align-right',
+                name: '表格：当前列右对齐',
+                editorCallback: (editor: Editor) => {
+                    applyTableOp(editor, { type: 'align-col', align: 'right' });
+                },
+            });
+            this.addCommand({
+                id: 'table-format',
+                name: '表格：格式化当前表格',
+                editorCallback: (editor: Editor) => {
+                    applyTableOp(editor, { type: 'format' });
+                },
+            });
+        }
+
         // 6. 右键菜单集成
         if (this.settings.enableContextMenu) {
             this.registerEvent(
@@ -155,6 +229,45 @@ export default class EditorProPlugin extends Plugin {
                                     editor.setValue(newLines.join('\n'));
                                 });
                         });
+
+                        if (this.settings.enableTableOps) {
+                            menu.addSeparator();
+                            menu.addItem((item) => {
+                                item.setTitle("表格：插入列（左）")
+                                    .setIcon("table")
+                                    .onClick(() => applyTableOp(editor, { type: 'insert-col', side: 'left' }));
+                            });
+                            menu.addItem((item) => {
+                                item.setTitle("表格：插入列（右）")
+                                    .setIcon("table")
+                                    .onClick(() => applyTableOp(editor, { type: 'insert-col', side: 'right' }));
+                            });
+                            menu.addItem((item) => {
+                                item.setTitle("表格：删除列")
+                                    .setIcon("table")
+                                    .onClick(() => applyTableOp(editor, { type: 'delete-col' }));
+                            });
+                            menu.addItem((item) => {
+                                item.setTitle("表格：列左对齐")
+                                    .setIcon("table")
+                                    .onClick(() => applyTableOp(editor, { type: 'align-col', align: 'left' }));
+                            });
+                            menu.addItem((item) => {
+                                item.setTitle("表格：列居中")
+                                    .setIcon("table")
+                                    .onClick(() => applyTableOp(editor, { type: 'align-col', align: 'center' }));
+                            });
+                            menu.addItem((item) => {
+                                item.setTitle("表格：列右对齐")
+                                    .setIcon("table")
+                                    .onClick(() => applyTableOp(editor, { type: 'align-col', align: 'right' }));
+                            });
+                            menu.addItem((item) => {
+                                item.setTitle("表格：格式化")
+                                    .setIcon("table")
+                                    .onClick(() => applyTableOp(editor, { type: 'format' }));
+                            });
+                        }
                     }
                 })
             );
@@ -178,7 +291,7 @@ export default class EditorProPlugin extends Plugin {
         this.registerDomEvent(document, 'keydown', (evt: KeyboardEvent) => {
             const view = this.app.workspace.getActiveViewOfType(MarkdownView);
             if (view) {
-                if (!this.settings.enableSmartTyping && !this.settings.enableEditorNavigation) return;
+                if (!this.settings.enableSmartTyping && !this.settings.enableEditorNavigation && !this.settings.enableOutliner) return;
 
                 // 1. 智能退格 (Backspace)
                 if (this.settings.enableSmartTyping && evt.key === 'Backspace') {
@@ -189,6 +302,10 @@ export default class EditorProPlugin extends Plugin {
                 // 注意：evt.key 可能是 'Enter', 'Tab' 等，PAIR_MAP 查不到会返回 false，安全。
                 if (this.settings.enableSmartTyping && evt.key.length === 1 && !evt.ctrlKey && !evt.metaKey && !evt.altKey) {
                      if (handleAutoPair(view.editor, evt.key, evt)) return;
+                }
+
+                if (this.settings.enableOutliner) {
+                    if (handleOutlinerIndent(view.editor, evt)) return;
                 }
 
                 if (this.settings.enableEditorNavigation) {

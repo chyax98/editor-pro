@@ -118,10 +118,10 @@
 ## 4) 待办（你勾选后我就按顺序做）
 
 ### T0：幸福感爆炸（低负担）
-- [ ] Outliner 最小集（来源：Outliner）  
-  - [ ] 列表项 Tab/Shift+Tab 缩进/反缩进（只在列表行生效）  
+- [x] Outliner 最小集（来源：Outliner）  
+  - [x] 列表项 Tab/Shift+Tab 缩进/反缩进（只在列表行生效）  
   - [ ] Alt+↑↓ 移动 list item（含子项）  
-  - [ ] 可选：折叠/展开当前列表分支（快捷键）
+  - [x] 折叠/展开（命令：Toggle fold / Fold all / Unfold all）
 - [ ] Typewriter 模式增强（来源：Typewriter Mode）  
   - [ ] 可选：高亮当前行  
   - [ ] 可选：淡化非当前段落（Focus / Dim）
@@ -129,9 +129,9 @@
 
 ### T1：效率增强（中等负担）
 - [ ] Advanced Tables 入口补齐（来源：Advanced Tables）  
-  - [ ] 插列/删列  
-  - [ ] 左/中/右对齐  
-  - [ ] 一键格式化/对齐 `|`（谨慎，避免误改）
+  - [x] 插列/删列（命令 + 表格右键入口）  
+  - [x] 左/中/右对齐（命令 + 表格右键入口）  
+  - [x] 表格格式化（命令 + 表格右键入口）
 - [ ] Auto Link Title（来源：Auto Link Title）  
   - [ ] 粘贴 URL 自动抓网页标题（失败降级为 URL）  
   - [ ] 单独开关（涉及网络；默认建议关闭）

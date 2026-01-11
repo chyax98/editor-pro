@@ -56,6 +56,9 @@
 - 表格行操作（插入行）
   - 入口：编辑器右键菜单 “在下方插入行”
   - 代码：`src/utils/markdown-generators.ts` + `src/main.ts`
+- 表格列/对齐/格式化（Advanced Tables Lite）
+  - 入口：命令 + 表格右键菜单
+  - 代码：`src/features/table/table-ops.ts` + `src/utils/table-generators.ts`
 
 ### YAML 自动化
 - 自动维护 frontmatter：`created` / `updated`

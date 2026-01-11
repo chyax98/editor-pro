@@ -16,6 +16,8 @@ export interface EditorProSettings {
     enableSmartTyping: boolean;
     enableSmartInput: boolean;
     enableEditorNavigation: boolean;
+    enableOutliner: boolean;
+    enableTableOps: boolean;
     enableOverdueHighlighter: boolean;
     enableInfographicRenderer: boolean;
 
@@ -40,6 +42,8 @@ export const DEFAULT_SETTINGS: EditorProSettings = {
     enableSmartTyping: true,
     enableSmartInput: true,
     enableEditorNavigation: true,
+    enableOutliner: true,
+    enableTableOps: true,
     enableOverdueHighlighter: true,
     enableInfographicRenderer: true,
 
@@ -107,6 +111,26 @@ export class EditorProSettingTab extends PluginSettingTab {
                 .setValue(this.plugin.settings.enableEditorNavigation)
                 .onChange(async (value) => {
                     this.plugin.settings.enableEditorNavigation = value;
+                    await this.plugin.saveSettings();
+                }));
+
+        new Setting(containerEl)
+            .setName('开启大纲编辑（Outliner）')
+            .setDesc('在列表项上使用 Tab/Shift+Tab 缩进/反缩进；提供折叠命令。')
+            .addToggle(toggle => toggle
+                .setValue(this.plugin.settings.enableOutliner)
+                .onChange(async (value) => {
+                    this.plugin.settings.enableOutliner = value;
+                    await this.plugin.saveSettings();
+                }));
+
+        new Setting(containerEl)
+            .setName('开启表格操作（Advanced Tables Lite）')
+            .setDesc('提供表格列插入/删除、对齐、格式化等命令与右键入口（不自动改写）。')
+            .addToggle(toggle => toggle
+                .setValue(this.plugin.settings.enableTableOps)
+                .onChange(async (value) => {
+                    this.plugin.settings.enableTableOps = value;
                     await this.plugin.saveSettings();
                 }));
 
