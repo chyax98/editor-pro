@@ -626,6 +626,8 @@
 }
 
 /* Focus UI / Zen */
+/* Note: !important is necessary here to override Obsidian's default styles
+   which may have higher specificity. This is intentional for the focus mode feature. */
 body.editor-pro-focus-ui .status-bar,
 body.editor-pro-focus-ui .workspace-ribbon,
 body.editor-pro-focus-ui .workspace-split.mod-left-split,

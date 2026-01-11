@@ -25,12 +25,20 @@ export class TextPromptModal extends Modal {
 	}
 
 	onOpen() {
-		new Setting(this.contentEl).addText((text) => {
+		const inputEl = new Setting(this.contentEl).addText((text) => {
 			if (this.placeholder) text.setPlaceholder(this.placeholder);
 			text.setValue(this.value).onChange((value) => {
 				this.value = value;
 			});
 		});
+
+		// 自动聚焦到输入框（无障碍支持）
+		const textInput = inputEl.controlEl.querySelector('input');
+		if (textInput instanceof HTMLElement) {
+			textInput.focus();
+			// 选中全部文本，方便用户直接替换
+			textInput.select();
+		}
 
 		new Setting(this.contentEl)
 			.addButton((btn) => {
@@ -87,6 +95,8 @@ export class ConfirmModal extends Modal {
 			})
 			.addButton((btn) => {
 				btn.setButtonText(this.cancelText).onClick(() => this.close());
+				// 聚焦到取消按钮（默认操作，防止误操作）
+				btn.buttonEl.focus();
 			});
 	}
 

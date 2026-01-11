@@ -842,11 +842,16 @@ export default class EditorProPlugin extends Plugin {
             const message = e instanceof Error ? e.message : String(e);
             // Obsidian will throw if the view type was registered earlier in the session
             // (e.g. plugin reload after a crash). Don't fail the whole plugin in that case.
-            if (message.includes('Attempting to register an existing view type')) {
+            const duplicatePatterns = [
+                'Attempting to register an existing view type',
+                'View type already registered',
+            ];
+            if (duplicatePatterns.some(pattern => message.includes(pattern))) {
                 console.warn(`[Editor Pro] View type already registered: ${viewType}`);
                 return;
             }
-            throw e;
+            // For other errors, log but don't crash the plugin
+            console.error(`[Editor Pro] Failed to register view ${viewType}:`, message);
         }
     }
 
