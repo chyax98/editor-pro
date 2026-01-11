@@ -82,7 +82,13 @@ export class InlineDecorator {
 			}
 		}
 
-		this.bannerEl?.setAttribute("style", `background-image: url("${url.replace(/"/g, '\\"')}");`);
+		// Avoid setting raw style attributes; keep the mutation scoped to a single CSS property.
+		// Also ignore suspicious schemes (users can still use vault-relative paths).
+		if (/^(https?:\/\/|app:\/\/)/i.test(url)) {
+			if (this.bannerEl) this.bannerEl.setCssProps({ "background-image": `url("${url}")` });
+		} else {
+			if (this.bannerEl) this.bannerEl.setCssProps({ "background-image": "" });
+		}
 	}
 
 	private updateFileListIcons() {
@@ -101,17 +107,17 @@ export class InlineDecorator {
 				const icon = fm ? readString(fm.icon) : null;
 
 				let iconEl = title.querySelector<HTMLElement>(".editor-pro-file-icon");
-				if (!icon) {
-					iconEl?.remove();
-					continue;
-				}
 
-				if (!iconEl) {
-					iconEl = title.createSpan({ cls: "editor-pro-file-icon" });
-					const content = title.querySelector(".nav-file-title-content");
-					if (content) content.before(iconEl);
+				if (icon) {
+					if (!iconEl) {
+						iconEl = title.createSpan({ cls: "editor-pro-file-icon" });
+						const content = title.querySelector(".nav-file-title-content");
+						if (content) content.before(iconEl);
+					}
+					iconEl.setText(icon);
+				} else {
+					iconEl?.remove();
 				}
-				iconEl.setText(icon);
 			}
 		}
 	}
