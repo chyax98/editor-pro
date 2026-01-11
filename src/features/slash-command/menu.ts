@@ -5,6 +5,8 @@ import { CalloutTypePicker } from "../callout/callout-picker";
 
 import { generateFencedCodeBlock, generateTable, generateDate, generateMath, generateDaily, generateWeekly, generateHTML } from "../../utils/markdown-generators";
 import { setDueDate } from "../kanban/due-date";
+import { BUILTIN_TEMPLATES } from "../templates/snippets";
+import { defaultTemplateContext, insertExpandedTemplate } from "../templates/template-engine";
 
 const COMMANDS: SlashCommand[] = [
     { id: 'callout', name: '提示块 (Callout)', aliases: ['callout', 'tip', 'tsk'] },
@@ -21,6 +23,7 @@ const COMMANDS: SlashCommand[] = [
     { id: 'infographic', name: '信息图 (Infographic)', aliases: ['infographic', 'info', 'xx'] },
     { id: 'daily', name: '日记模板 (Daily)', aliases: ['daily', 'rj'] },
     { id: 'weekly', name: '周记模板 (Weekly)', aliases: ['weekly', 'zj'] },
+    ...BUILTIN_TEMPLATES.map((t) => ({ id: t.id, name: t.name, aliases: t.aliases })),
     { id: 'html', name: 'HTML 片段 (HTML)', aliases: ['html', 'dm'] },
     { id: 'h1', name: '一级标题 (H1)', aliases: ['h1', 'yjbt'] },
     { id: 'h2', name: '二级标题 (H2)', aliases: ['h2', 'ejbt'] },
@@ -87,6 +90,16 @@ export class SlashCommandMenu extends EditorSuggest<SlashCommand> {
                 break;
             case 'weekly':
                 editor.replaceSelection(generateWeekly());
+                break;
+            default:
+                {
+                    const tpl = BUILTIN_TEMPLATES.find((t) => t.id === id);
+                    if (tpl) {
+                        const fileName = this.app.workspace.getActiveFile()?.basename;
+                        insertExpandedTemplate(editor, tpl.template, defaultTemplateContext(fileName));
+                        break;
+                    }
+                }
                 break;
             case 'html':
                 editor.replaceSelection(generateHTML());
