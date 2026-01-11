@@ -101,11 +101,31 @@ export class Editor {
 
   setSelection(from: { line: number; ch: number }, to?: { line: number; ch: number }): void {
       this.selection = { from, to: to || from };
+      // Also update cursor to the end of selection
+      this.cursor = { ...to || from };
   }
 
   exec(command: string): void {
       // Mock implementation for toggleFold and other commands
       // For testing purposes, we just track that it was called
+  }
+
+  transaction(tx: any, origin?: string): void {
+      // Mock implementation for transaction API
+      // For replaceSelection
+      if (tx.replaceSelection !== undefined) {
+          this.replaceSelection(tx.replaceSelection);
+      }
+      // For changes
+      if (tx.changes && Array.isArray(tx.changes)) {
+          for (const change of tx.changes) {
+              this.replaceRange(change.text, change.from, change.to);
+          }
+      }
+      // For selection
+      if (tx.selection) {
+          this.setSelection(tx.selection.from, tx.selection.to);
+      }
   }
 
   replaceRange(text: string, from: { line: number; ch: number }, to?: { line: number; ch: number }): void {
