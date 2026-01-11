@@ -30,19 +30,10 @@ export function handleSmartSpacing(editor: Editor) {
     const isCN = (char: string) => CN_REGEX.test(char);
     const isEN = (char: string) => EN_REGEX.test(char);
 
-    // 情况 A：输入了英文，前面是中文 -> 中 [空格] 英
-    if (isCN(leftChar) && isEN(rightChar)) {
+    // 中英文混排自动加空格（合并情况 A 和 B 的重复逻辑）
+    if ((isCN(leftChar) && isEN(rightChar)) || (isEN(leftChar) && isCN(rightChar))) {
         editor.replaceRange(' ' + rightChar, { line: cursor.line, ch: cursor.ch - 1 }, { line: cursor.line, ch: cursor.ch });
-        // 光标会自动后移吗？replaceRange通常会。我们需要确认光标位置。
-        // Obsidian API: replaceRange updates cursor if it's inside or at edge.
-        // 但为了保险，我们最好不手动 setCursor，除非乱了。
         return;
-    }
-
-    // 情况 B：输入了中文，前面是英文 -> 英 [空格] 中
-    if (isEN(leftChar) && isCN(rightChar)) {
-         editor.replaceRange(' ' + rightChar, { line: cursor.line, ch: cursor.ch - 1 }, { line: cursor.line, ch: cursor.ch });
-         return;
     }
 }
 

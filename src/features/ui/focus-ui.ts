@@ -34,5 +34,9 @@ export class FocusUiManager {
 		this.enabled = false;
 		document.body.classList.remove(this.cls);
 	}
+
+	cleanup() {
+		this.disable();
+	}
 }
 

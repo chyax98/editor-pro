@@ -62,8 +62,11 @@ function applyTransform(text: string, t: TextTransform): string {
 				.join("\n");
 		case "sort-lines": {
 			const lines = splitLines(text);
-			const sorted = lines.slice().sort((a, b) => a.localeCompare(b));
-			if (t.descending) sorted.reverse();
+			// 避免修改原数组，直接在排序时决定升降序
+			const sorted = lines.slice().sort((a, b) => {
+				const cmp = a.localeCompare(b);
+				return t.descending ? -cmp : cmp;
+			});
 			return sorted.join("\n");
 		}
 		case "join-lines":

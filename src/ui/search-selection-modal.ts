@@ -7,6 +7,8 @@ export class SearchInSelectionModal extends Modal {
 	private find = "";
 	private replace = "";
 	private caseSensitive = false;
+	private savedFocus: { line: number; ch: number } | null = null;
+	private findInputEl: HTMLInputElement | null = null;
 
 	constructor(app: App, editor: Editor) {
 		super(app);
@@ -22,16 +24,23 @@ export class SearchInSelectionModal extends Modal {
 			return;
 		}
 
+		// Save focus for restoration
+		this.savedFocus = this.editor.getCursor();
+
 		new Setting(this.contentEl).setName("查找").addText((text) => {
 			text.setPlaceholder("要查找的内容").onChange((v: string) => (this.find = v));
+			text.inputEl.setAttribute("aria-label", "查找内容");
+			this.findInputEl = text.inputEl;
 		});
 
 		new Setting(this.contentEl).setName("替换为").addText((text) => {
 			text.setPlaceholder("替换成什么").onChange((v: string) => (this.replace = v));
+			text.inputEl.setAttribute("aria-label", "替换为");
 		});
 
-		new Setting(this.contentEl).setName("区分大小写").addToggle((t) => {
-			t.setValue(this.caseSensitive).onChange((v) => (this.caseSensitive = v));
+		new Setting(this.contentEl).setName("区分大小写").addToggle((toggle) => {
+			toggle.setValue(this.caseSensitive).onChange((v) => (this.caseSensitive = v));
+			toggle.toggleEl.setAttribute("aria-label", "区分大小写");
 		});
 
 		new Setting(this.contentEl)
@@ -48,12 +57,28 @@ export class SearchInSelectionModal extends Modal {
 						return;
 					}
 
+					// Prevent ReDoS: limit nested quantifiers
+					const nestedQuantifierPattern = /(\{[0-9,]+\}){3,}|(\*|\+|\?|\{[0-9,]+\})\1{5,}/;
+					if (nestedQuantifierPattern.test(this.find)) {
+						new Notice("Editor Pro：查找模式过于复杂，可能影响性能");
+						return;
+					}
+
 					const from = this.editor.getCursor("from");
 					const to = this.editor.getCursor("to");
 					const selected = this.editor.getSelection();
 
 					const flags = this.caseSensitive ? "g" : "gi";
 					const escaped = this.find.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+
+					// Validate escaped regex
+					try {
+						new RegExp(escaped, flags);
+					} catch (error) {
+						new Notice("Editor Pro：查找内容包含不支持的字符");
+						return;
+					}
+
 					const re = new RegExp(escaped, flags);
 					const next = selected.replace(re, this.replace);
 					this.editor.replaceRange(next, from, to);
@@ -62,11 +87,26 @@ export class SearchInSelectionModal extends Modal {
 			})
 			.addExtraButton((btn) => {
 				btn.setIcon("x").setTooltip("Cancel").onClick(() => this.close());
+				// ExtraButton uses internal button via icon/tooltip API
+				// ARIA label is set via setTooltip
 			});
+
+		// Focus trap: focus to first input
+		requestAnimationFrame(() => {
+			this.findInputEl?.focus();
+		});
 	}
 
 	onClose() {
 		this.contentEl.empty();
+		this.findInputEl = null;
+
+		// Restore focus to editor
+		if (this.savedFocus) {
+			this.editor.focus();
+			this.editor.setCursor(this.savedFocus);
+			this.savedFocus = null;
+		}
 	}
 }
 

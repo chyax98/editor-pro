@@ -64,7 +64,16 @@ export function findEnclosingMarker(line: string, cursorIndex: number, marker: s
     const regex = new RegExp(`${escapedMarker}(.*?)${escapedMarker}`, 'g');
 
     let match;
+    let iterations = 0;
+    const MAX_ITERATIONS = 1000; // 防止 ReDoS
+
     while ((match = regex.exec(line)) !== null) {
+        iterations++;
+        if (iterations > MAX_ITERATIONS) {
+            console.warn('[Editor Pro] findEnclosingMarker: too many matches, possible ReDoS');
+            break;
+        }
+
         const start = match.index;
         const end = start + match[0].length;
         if (cursorIndex >= start && cursorIndex <= end) {

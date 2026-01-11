@@ -23,7 +23,7 @@ function isListItemLine(text: string): { indent: number } | null {
 	// - item
 	// * item
 	// + item
-	// 1. item
+	//1. item
 	// - [ ] task
 	const indent = getLeadingSpaces(text);
 	const rest = text.slice(indent);
@@ -108,7 +108,7 @@ export function moveListItemBlock(editor: Editor, direction: -1 | 1): boolean {
 	const a = direction === -1 ? sibling : block;
 	const b = direction === -1 ? block : sibling;
 
-	// Preserve whitespace gap between the two blocks.
+	// Preserve whitespace gap between blocks.
 	const gapStart = a.end + 1;
 	const gapEnd = b.start - 1;
 	const gap = gapEnd >= gapStart ? getLines(editor, gapStart, gapEnd) : [];
@@ -119,7 +119,7 @@ export function moveListItemBlock(editor: Editor, direction: -1 | 1): boolean {
 
 	replaceLineRange(editor, a.start, b.end, next);
 
-	const shift = (sibling.end - sibling.start + 1) + gap.length;
+	const shift = (b.end - b.start + 1) + gap.length;
 	const nextLine = direction === -1 ? cursor.line - shift : cursor.line + shift;
 	editor.setCursor({ line: Math.max(0, Math.min(editor.lineCount() - 1, nextLine)), ch: cursor.ch });
 	return true;
@@ -156,4 +156,9 @@ export function handleOutlinerIndent(editor: Editor, evt: KeyboardEvent): boolea
 
 export function toggleFold(editor: Editor) {
 	editor.exec("toggleFold");
+}
+
+// 清理缓存函数，供插件卸载时调用
+export function clearFenceCache() {
+	// 无缓存需要清理
 }

@@ -55,8 +55,8 @@ export class FloatingOutline {
 		this.cleanup(); // hide 时也清理
 	}
 
-	// 清理方法
-	private cleanup() {
+	// 清理方法（public，供 main.ts 调用）
+	cleanup() {
 		this.eventHandlers.forEach(cleanup => cleanup());
 		this.eventHandlers = [];
 	}
@@ -81,16 +81,16 @@ export class FloatingOutline {
 
 		const header = this.root.createDiv({ cls: "editor-pro-floating-outline-header" });
 		header.createDiv({ text: "目录" });
-		const closeBtn = header.createEl("button", { text: "×", cls: "editor-pro-floating-outline-close" });
+		const closeBtn = header.createEl("button", { text: "×", cls: "editor-pro-floating-outline-close", attr: { "aria-label": "关闭" } });
 
 		// 保存清理函数
 		const closeHandler = () => this.hide();
 		closeBtn.onclick = closeHandler;
 		this.eventHandlers.push(() => { closeBtn.onclick = null; });
 
-		const list = this.root.createDiv({ cls: "editor-pro-floating-outline-list" });
+		const list = this.root.createDiv({ cls: "editor-pro-floating-outline-list", attr: { "role": "list", "aria-label": "文档目录" } });
 		for (const h of headings) {
-			const item = list.createDiv({ cls: "editor-pro-floating-outline-item" });
+			const item = list.createDiv({ cls: "editor-pro-floating-outline-item", attr: { "role": "listitem", "tabindex": "0", "aria-label": h.heading } });
 			item.style.paddingLeft = `${(h.level - 1) * 12}px`;
 			item.setText(h.heading);
 
@@ -102,6 +102,18 @@ export class FloatingOutline {
 			};
 			item.onclick = clickHandler;
 			this.eventHandlers.push(() => { item.onclick = null; });
+
+			// Keyboard navigation support
+			const keyHandler = (evt: KeyboardEvent) => {
+				if (evt.key === "Enter" || evt.key === " ") {
+					evt.preventDefault();
+					editor.focus();
+					editor.setCursor({ line: h.position.start.line, ch: 0 });
+					this.hide();
+				}
+			};
+			item.addEventListener("keydown", keyHandler);
+			this.eventHandlers.push(() => { item.removeEventListener("keydown", keyHandler); });
 		}
 	}
 }

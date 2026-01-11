@@ -32,7 +32,17 @@ export class FileTreeHighlightManager {
 		// Save callback reference for cleanup
 		this.observerCallback = () => this.updateDebounced();
 		this.observer = new MutationObserver(this.observerCallback);
-		this.observer.observe(document.body, { childList: true, subtree: true });
+
+		// 优化：缩小观察范围到 .nav-files-container 而非整个 document.body
+		const containers = Array.from(document.querySelectorAll<HTMLElement>(".nav-files-container"));
+		for (const container of containers) {
+			this.observer.observe(container, { childList: true, subtree: true });
+		}
+
+		// 如果没有找到容器，则回退到观察 document.body（但只监听新增的容器）
+		if (containers.length === 0) {
+			this.observer.observe(document.body, { childList: true, subtree: false });
+		}
 	}
 
 	private disconnect() {
@@ -42,6 +52,10 @@ export class FileTreeHighlightManager {
 		}
 		// Clear callback reference to help garbage collection
 		this.observerCallback = null;
+	}
+
+	cleanup() {
+		this.disconnect();
 	}
 
 	update() {

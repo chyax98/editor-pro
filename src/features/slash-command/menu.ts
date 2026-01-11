@@ -90,8 +90,15 @@ export class SlashCommandMenu extends EditorSuggest<SlashCommand> {
                 {
                     const tpl = BUILTIN_TEMPLATES.find((t) => t.id === id);
                     if (tpl) {
-                        const fileName = this.app.workspace.getActiveFile()?.basename;
-                        insertExpandedTemplate(editor, tpl.template, defaultTemplateContext(fileName));
+                        const activeFile = this.app.workspace.getActiveFile();
+                        const fileName = activeFile?.basename ?? 'untitled';
+                        const context = defaultTemplateContext(fileName);
+                        if (context) {
+                            insertExpandedTemplate(editor, tpl.template, context);
+                        } else {
+                            // Fallback: insert template as-is
+                            editor.replaceSelection(tpl.template);
+                        }
                         break;
                     }
                 }

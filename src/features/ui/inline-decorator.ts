@@ -13,16 +13,22 @@ function readString(value: unknown): string | null {
 	return trimmed ? trimmed : null;
 }
 
+// 文件图标缓存，避免重复查询 metadataCache
+const fileIconCache = new WeakMap<TFile, { icon: string | null; timestamp: number }>();
+const CACHE_DURATION = 5000; // 5秒缓存
+
 export class InlineDecorator {
 	private app: App;
 	private enabled: () => boolean;
 	private updateDebounced: () => void;
 	private bannerEl: HTMLElement | null = null;
+	// 追踪已处理的文件，避免重复处理
+	private processedPaths = new Set<string>();
 
 	constructor(options: { app: App; enabled: () => boolean }) {
 		this.app = options.app;
 		this.enabled = options.enabled;
-		this.updateDebounced = debounce(() => this.updateAll(), 200, true);
+		this.updateDebounced = debounce(() => this.updateAll(), 500, true);
 	}
 
 	register(plugin: Plugin) {
@@ -34,9 +40,23 @@ export class InlineDecorator {
 		this.updateDebounced();
 	}
 
-	private cleanup() {
+	// 清理方法（public，供 main.ts 调用）
+	cleanup() {
 		this.bannerEl?.remove();
 		this.bannerEl = null;
+		this.processedPaths.clear();
+	}
+
+	private getCachedIcon(file: TFile): string | null {
+		const cached = fileIconCache.get(file);
+		if (cached && Date.now() - cached.timestamp < CACHE_DURATION) {
+			return cached.icon;
+		}
+		return null;
+	}
+
+	private setCachedIcon(file: TFile, icon: string | null) {
+		fileIconCache.set(file, { icon, timestamp: Date.now() });
 	}
 
 	private ensureBannerEl(view: MarkdownView) {
@@ -85,9 +105,21 @@ export class InlineDecorator {
 		// Avoid setting raw style attributes; keep the mutation scoped to a single CSS property.
 		// Also ignore suspicious schemes (users can still use vault-relative paths).
 		if (/^(https?:\/\/|app:\/\/)/i.test(url)) {
-			// Escape URL to prevent CSS injection: quotes and backslashes
-			const safeUrl = url.replace(/"/g, '%22').replace(/'/g, '%27').replace(/\\/g, '%5C');
-			if (this.bannerEl) this.bannerEl.setCssProps({ "background-image": `url("${safeUrl}")` });
+			// 更严格的 URL 转义：转义所有可能的 CSS 注入字符
+			const safeUrl = url
+				.replace(/"/g, '%22')
+				.replace(/'/g, '%27')
+				.replace(/\\/g, '%5C')
+				.replace(/\n/g, '')
+				.replace(/\r/g, '')
+				.replace(/\(/g, '%28')
+				.replace(/\)/g, '%29')
+				.replace(/;/g, '%3B');
+
+			if (this.bannerEl) {
+				// 直接使用 style 属性，避免 setCssProps 可能的注入
+				this.bannerEl.style.backgroundImage = `url("${safeUrl}")`;
+			}
 		} else {
 			if (this.bannerEl) this.bannerEl.setCssProps({ "background-image": "" });
 		}
@@ -97,23 +129,44 @@ export class InlineDecorator {
 		if (!this.enabled()) return;
 
 		const containers = Array.from(document.querySelectorAll<HTMLElement>(".nav-files-container"));
+		const currentBatch: Array<{ el: HTMLElement; icon: string | null }> = [];
+
 		for (const container of containers) {
+			// 只处理可见的容器
+			if (!this.isContainerVisible(container)) continue;
+
 			const titles = Array.from(container.querySelectorAll<HTMLElement>(".nav-file-title"));
 			for (const title of titles) {
 				const path = title.getAttribute("data-path");
 				if (!path) continue;
+
+				// 跳过已处理的文件
+				if (this.processedPaths.has(path)) continue;
+
 				const abs = this.app.vault.getAbstractFileByPath(path);
 				if (!(abs instanceof TFile)) continue;
 
-				const fm = getFrontmatter(this.app, abs);
-				const icon = fm ? readString(fm.icon) : null;
+				// 使用缓存
+				let icon = this.getCachedIcon(abs);
+				if (icon === null) {
+					const fm = getFrontmatter(this.app, abs);
+					icon = readString(fm?.icon);
+					this.setCachedIcon(abs, icon);
+				}
 
-				let iconEl = title.querySelector<HTMLElement>(".editor-pro-file-icon");
+				currentBatch.push({ el: title, icon });
+				this.processedPaths.add(path);
+			}
+		}
 
+		// 批量 DOM 更新
+		requestAnimationFrame(() => {
+			for (const { el, icon } of currentBatch) {
+				let iconEl = el.querySelector<HTMLElement>(".editor-pro-file-icon");
 				if (icon) {
 					if (!iconEl) {
-						iconEl = title.createSpan({ cls: "editor-pro-file-icon" });
-						const content = title.querySelector(".nav-file-title-content");
+						iconEl = el.createSpan({ cls: "editor-pro-file-icon" });
+						const content = el.querySelector(".nav-file-title-content");
 						if (content) content.before(iconEl);
 					}
 					iconEl.setText(icon);
@@ -121,7 +174,12 @@ export class InlineDecorator {
 					iconEl?.remove();
 				}
 			}
-		}
+		});
+	}
+
+	private isContainerVisible(el: HTMLElement): boolean {
+		const rect = el.getBoundingClientRect();
+		return rect.top < window.innerHeight && rect.bottom > 0;
 	}
 
 	private updateAll() {

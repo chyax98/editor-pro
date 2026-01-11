@@ -96,6 +96,8 @@ class ZoomEditModal extends Modal {
 	private endLine: number;
 	private initial: string;
 	private value: string;
+	private textareaEl: HTMLTextAreaElement | null = null;
+	private savedFocus: { line: number; ch: number } | null = null;
 
 	constructor(app: App, editor: Editor, startLine: number, endLine: number, title: string) {
 		super(app);
@@ -121,9 +123,16 @@ class ZoomEditModal extends Modal {
 	}
 
 	onOpen() {
+		// Save focus position for restoration
+		this.savedFocus = this.editor.getCursor();
+
 		new Setting(this.contentEl).setName("内容").addTextArea((ta) => {
 			ta.setValue(this.value).onChange((v) => (this.value = v));
 			ta.inputEl.addClass("editor-pro-zoom-textarea");
+			// Add ARIA labels for accessibility
+			ta.inputEl.setAttribute("aria-label", "编辑内容");
+			ta.inputEl.setAttribute("aria-multiline", "true");
+			this.textareaEl = ta.inputEl;
 		});
 
 		new Setting(this.contentEl)
@@ -153,10 +162,23 @@ class ZoomEditModal extends Modal {
 			.addExtraButton((btn) => {
 				btn.setIcon("x").setTooltip("Cancel").onClick(() => this.close());
 			});
+
+		// Focus trap: focus to textarea after modal is fully opened
+		requestAnimationFrame(() => {
+			this.textareaEl?.focus();
+		});
 	}
 
 	onClose() {
 		this.contentEl.empty();
+		this.textareaEl = null;
+
+		// Restore focus to editor
+		if (this.savedFocus) {
+			this.editor.focus();
+			this.editor.setCursor(this.savedFocus);
+			this.savedFocus = null;
+		}
 	}
 }
 

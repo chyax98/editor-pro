@@ -51,9 +51,22 @@ async function handleSmartImagePasteImpl(app: App, editor: Editor, fileInfo: { f
 	const ext = guessExtension(image);
 	const filename = `${base}.${ext}`;
 
-	const targetPath = await app.fileManager.getAvailablePathForAttachment(filename, activeFile?.path);
+	let targetPath: string;
+	try {
+		targetPath = await app.fileManager.getAvailablePathForAttachment(filename, activeFile?.path);
+	} catch (error) {
+		console.error('[Editor Pro] Failed to get available path for attachment:', error);
+		throw new Error('无法获取附件保存路径');
+	}
+
 	const data = await image.arrayBuffer();
-	const created = await app.vault.createBinary(targetPath, data);
+	let created: TFile;
+	try {
+		created = await app.vault.createBinary(targetPath, data);
+	} catch (error) {
+		console.error('[Editor Pro] Failed to create image file:', error);
+		throw new Error('创建图片文件失败');
+	}
 
 	editor.replaceSelection(`![[${created.path}]]`);
 	return true;

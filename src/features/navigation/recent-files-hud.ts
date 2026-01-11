@@ -26,8 +26,8 @@ export class RecentFilesHud extends SuggestModal<TFile> {
 	}
 
 	renderSuggestion(value: TFile, el: HTMLElement): void {
-		el.createEl("div", { text: value.basename });
-		el.createEl("div", { text: value.path, cls: "editor-pro-hud-path" });
+		const nameEl = el.createEl("div", { text: value.basename, attr: { "aria-label": `文件名：${value.basename}` } });
+		el.createEl("div", { text: value.path, cls: "editor-pro-hud-path", attr: { "aria-label": `路径：${value.path}` } });
 	}
 
 	onChooseSuggestion(item: TFile): void {

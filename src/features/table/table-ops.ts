@@ -6,12 +6,21 @@ function isTableLine(line: string): boolean {
 }
 
 function getTableBounds(editor: Editor, line: number): { from: number; to: number } | null {
-	if (!isTableLine(editor.getLine(line))) return null;
+	const currentLine = editor.getLine(line);
+	if (!currentLine || !isTableLine(currentLine)) return null;
 	let from = line;
 	let to = line;
 
-	while (from > 0 && isTableLine(editor.getLine(from - 1))) from--;
-	while (to < editor.lineCount() - 1 && isTableLine(editor.getLine(to + 1))) to++;
+	while (from > 0) {
+		const prevLine = editor.getLine(from - 1);
+		if (!prevLine || !isTableLine(prevLine)) break;
+		from--;
+	}
+	while (to < editor.lineCount() - 1) {
+		const nextLine = editor.getLine(to + 1);
+		if (!nextLine || !isTableLine(nextLine)) break;
+		to++;
+	}
 
 	return { from, to };
 }
