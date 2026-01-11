@@ -1,16 +1,28 @@
+/* Editor Pro Theme Custom Properties
+   Override these in your theme to customize colors
+   Fallback colors provided for default appearance */
+:root {
+    --editor-pro-color-danger: #ff4d4f;
+    --editor-pro-color-warning: #faad14;
+    --editor-pro-color-success: #52c41a;
+    --editor-pro-color-info: #1677ff;
+    --editor-pro-color-orange: #fa8c16;
+    --editor-pro-color-purple: #722ed1;
+}
+
 /* Global */
 .editor-pro-overdue {
-    color: #ff4d4f !important;
+    color: var(--editor-pro-color-danger, #ff4d4f) !important;
     font-weight: bold;
-    background-color: rgba(255, 77, 79, 0.1);
+    background-color: color-mix(in srgb, var(--editor-pro-color-danger, #ff4d4f) 10%, transparent);
     border-radius: 2px;
     padding: 0 2px;
 }
 
 .editor-pro-today {
-    color: #faad14 !important;
+    color: var(--editor-pro-color-warning, #faad14) !important;
     font-weight: bold;
-    background-color: rgba(250, 173, 20, 0.1);
+    background-color: color-mix(in srgb, var(--editor-pro-color-warning, #faad14) 10%, transparent);
     border-radius: 2px;
     padding: 0 2px;
 }
@@ -105,10 +117,10 @@
     background: var(--text-faint);
 }
 
-.editor-pro-board-status.is-saved .dot { background: #52c41a; }
-.editor-pro-board-status.is-dirty .dot { background: #faad14; }
-.editor-pro-board-status.is-saving .dot { background: #1677ff; }
-.editor-pro-board-status.is-error .dot { background: #ff4d4f; }
+.editor-pro-board-status.is-saved .dot { background: var(--editor-pro-color-success, #52c41a); }
+.editor-pro-board-status.is-dirty .dot { background: var(--editor-pro-color-warning, #faad14); }
+.editor-pro-board-status.is-saving .dot { background: var(--editor-pro-color-info, #1677ff); }
+.editor-pro-board-status.is-error .dot { background: var(--editor-pro-color-danger, #ff4d4f); }
 
 .kanban-empty {
     padding: 18px;
@@ -435,18 +447,27 @@
     display: inline-block;
 }
 
-.priority-high { background: rgba(255, 77, 79, 0.15); color: #ff4d4f; }
-.priority-medium { background: rgba(250, 173, 20, 0.15); color: #faad14; }
-.priority-low { background: rgba(82, 196, 26, 0.15); color: #52c41a; }
+.priority-high {
+    background: color-mix(in srgb, var(--editor-pro-color-danger, #ff4d4f) 15%, transparent);
+    color: var(--editor-pro-color-danger, #ff4d4f);
+}
+.priority-medium {
+    background: color-mix(in srgb, var(--editor-pro-color-warning, #faad14) 15%, transparent);
+    color: var(--editor-pro-color-warning, #faad14);
+}
+.priority-low {
+    background: color-mix(in srgb, var(--editor-pro-color-success, #52c41a) 15%, transparent);
+    color: var(--editor-pro-color-success, #52c41a);
+}
 .tag-badge { background: var(--background-modifier-hover); color: var(--text-faint); }
 
 .date-badge.overdue {
-    color: #ff4d4f;
+    color: var(--editor-pro-color-danger, #ff4d4f);
     font-weight: bold;
 }
 
 .date-badge.today {
-    color: #faad14;
+    color: var(--editor-pro-color-warning, #faad14);
     font-weight: bold;
 }
 
@@ -704,9 +725,106 @@ body.editor-pro-focus-ui .view-header {
     padding-left: 6px;
 }
 
-.editor-pro-filetree-red { border-left-color: #ff4d4f; }
-.editor-pro-filetree-orange { border-left-color: #fa8c16; }
-.editor-pro-filetree-yellow { border-left-color: #fadb14; }
-.editor-pro-filetree-green { border-left-color: #52c41a; }
-.editor-pro-filetree-blue { border-left-color: #1677ff; }
-.editor-pro-filetree-purple { border-left-color: #722ed1; }
+.editor-pro-filetree-red { border-left-color: var(--editor-pro-color-danger, #ff4d4f); }
+.editor-pro-filetree-orange { border-left-color: var(--editor-pro-color-orange, #fa8c16); }
+.editor-pro-filetree-yellow { border-left-color: var(--editor-pro-color-warning, #fadb14); }
+.editor-pro-filetree-green { border-left-color: var(--editor-pro-color-success, #52c41a); }
+.editor-pro-filetree-blue { border-left-color: var(--editor-pro-color-info, #1677ff); }
+.editor-pro-filetree-purple { border-left-color: var(--editor-pro-color-purple, #722ed1); }
+
+/* ============================================
+   Mobile Responsive Design
+   Multiple breakpoints for better mobile support
+   ============================================ */
+
+/* Extra small devices (phones, less than 480px) */
+@media (max-width: 479px) {
+    .editor-pro-board-content {
+        flex-direction: column;
+    }
+
+    .editor-pro-board-sidebar {
+        flex: 0 0 auto;
+        min-width: 0;
+        max-width: none;
+        padding: 8px;
+    }
+
+    .board-column {
+        flex: 1 1 auto;
+        min-width: 100%;
+        max-width: 100%;
+    }
+
+    .editor-pro-welcome {
+        padding: 12px;
+        font-size: 14px;
+    }
+
+    .editor-pro-welcome ul {
+        padding-left: 16px;
+    }
+}
+
+/* Small devices (landscape phones, 480px to 767px) */
+@media (min-width: 480px) and (max-width: 767px) {
+    .editor-pro-board-content {
+        flex-direction: column;
+    }
+
+    .board-column {
+        flex: 0 0 calc(50% - 8px);
+    }
+
+    .editor-pro-settings-search {
+        margin: 12px 0;
+    }
+}
+
+/* Medium devices (tablets, 768px to 1023px) */
+@media (min-width: 768px) and (max-width: 1023px) {
+    .board-column {
+        flex: 0 0 calc(33.333% - 12px);
+    }
+
+    .editor-pro-section {
+        margin-bottom: 16px;
+    }
+}
+
+/* Large devices (desktops, 1024px and up) */
+@media (min-width: 1024px) {
+    .board-column {
+        flex: 0 0 280px;
+    }
+}
+
+/* Existing 900px breakpoint - kept for compatibility */
+@media (max-width: 900px) {
+    .editor-pro-board-content {
+        flex-direction: column;
+    }
+
+    .editor-pro-board-sidebar {
+        flex: 0 0 auto;
+        min-width: 0;
+        max-width: none;
+    }
+}
+
+/* Touch device optimizations */
+@media (hover: none) and (pointer: coarse) {
+    .editor-pro-section-title {
+        min-height: 44px; /* Touch target size */
+        padding: 8px 0;
+    }
+
+    .editor-pro-search-input {
+        min-height: 44px;
+        font-size: 16px; /* Prevent iOS zoom */
+    }
+
+    .board-column {
+        touch-action: manipulation;
+    }
+}

@@ -51,48 +51,57 @@ export interface EditorProSettings {
 }
 
 export const DEFAULT_SETTINGS: EditorProSettings = {
-    enableBoard: true,
-
+    // 核心编辑功能（默认开启）
     enableSmartToggle: true,
-    enableSlashCommand: true,
-    enableContextMenu: true,
-    enableHeadingHotkeys: true,
-    enableTaskHotkeys: true,
-    enableYaml: true,
-    enableSmartPasteUrl: true,
-    enableTypewriterScroll: true,
     enableKeyshots: true,
     enableSmartTyping: true,
-    enableSmartInput: true,
     enableEditorNavigation: true,
     enableOutliner: true,
     enableTableOps: true,
-    enableOverdueHighlighter: true,
-    enableInfographicRenderer: true,
-    enableSmartImagePaste: true,
-    enableSmartLinkTitle: true,
-    enableSmartLinkTitleNetwork: false,
-    enableCursorMemory: true,
-    enableQuickHud: true,
-    enableMagicInput: true,
-
-    enableSaveCleaner: true,
+    enableTaskHotkeys: true,
+    enableHeadingHotkeys: true,
+    enableContextMenu: true,
+    enableSmartPasteUrl: true,
     enableTextTransformer: true,
-    enableSearchInSelection: true,
 
-    enableStatusBarStats: true,
-    enableFocusUi: true,
-    enableFloatingOutline: true,
-    enableZoom: true,
-    enableFlowBoard: true,
+    // 智能输入功能（默认开启）
+    enableSmartInput: true,
+    enableSlashCommand: true,
 
-    enableFootnotes: true,
-    enableInlineCalc: true,
-    enableRandomGenerator: true,
+    // 辅助功能（默认关闭，降低侵入性）
+    enableYaml: false,
+    enableSaveCleaner: false,
+    enableSmartLinkTitle: false,
+    enableSmartLinkTitleNetwork: false,
+    enableSmartImagePaste: false,
+    enableTypewriterScroll: false,
+    enableCursorMemory: false,
+    enableMagicInput: false,
+    enableOverdueHighlighter: false,
 
-    enableInlineDecorator: true,
-    enableFileTreeHighlight: true,
+    // UI 功能（默认关闭）
+    enableStatusBarStats: false,
+    enableFocusUi: false,
+    enableFloatingOutline: false,
+    enableZoom: false,
+    enableQuickHud: false,
 
+    // 小工具（默认关闭）
+    enableFootnotes: false,
+    enableInlineCalc: false,
+    enableRandomGenerator: false,
+    enableSearchInSelection: false,
+
+    // 看板功能（默认关闭）
+    enableBoard: false,
+    enableFlowBoard: false,
+    enableInfographicRenderer: false,
+
+    // 文件列表增强（默认关闭）
+    enableInlineDecorator: false,
+    enableFileTreeHighlight: false,
+
+    // YAML 配置
     yamlCreatedKey: 'created',
     yamlUpdatedKey: 'updated',
     yamlDateFormat: 'YYYY-MM-DD HH:mm',
@@ -105,6 +114,7 @@ interface SettingItem {
     key: keyof EditorProSettings;
     type: 'toggle' | 'text';
     placeholder?: string;
+    tooltip?: string; // 额外的悬停提示信息
 }
 
 interface SettingSection {
@@ -115,63 +125,66 @@ interface SettingSection {
 
 const SECTIONS: SettingSection[] = [
     {
-        title: '看板',
-        icon: '📋',
-        settings: [
-            { name: '开启项目看板（.board）', desc: '提供侧边栏看板入口与 `.board` 视图。部分开关需要重载插件生效。', key: 'enableBoard', type: 'toggle' },
-        ],
-    },
-    {
-        title: '核心编辑与格式化',
-        icon: '📝',
+        title: '基础编辑',
+        icon: '✏️',
         settings: [
             { name: '开启键盘行操作（Keyshots）', desc: '提供上移/下移/复制/删除/选中当前行等命令（需在 **Settings → Hotkeys** 绑定）。', key: 'enableKeyshots', type: 'toggle' },
             { name: '开启输入增强（自动配对/智能退格/中英空格）', desc: '自动配对括号与引号；在 `(|)` 中退格删除一对；中英混排自动加空格。', key: 'enableSmartTyping', type: 'toggle' },
             { name: '开启编辑器导航增强（表格 Tab + Shift+Enter 跳出）', desc: '表格单元格 Tab/Shift+Tab 跳转；引用/Callout 内 Shift+Enter 快速跳出。', key: 'enableEditorNavigation', type: 'toggle' },
             { name: '开启大纲编辑（Outliner）', desc: '在列表项上使用 Tab/Shift+Tab 缩进/反缩进；提供折叠命令。', key: 'enableOutliner', type: 'toggle' },
             { name: '开启表格操作（Advanced Tables Lite）', desc: '提供表格列插入/删除、对齐、格式化等命令与右键入口（不自动改写）。', key: 'enableTableOps', type: 'toggle' },
-            { name: '开启智能格式切换', desc: '智能处理加粗、斜体、行内代码（按下快捷键时，若光标在标记内则自动取消，避免符号叠加）。', key: 'enableSmartToggle', type: 'toggle' },
-            { name: '开启斜杠命令', desc: '支持通过 "/"、"、" 或反斜杠（\\）触发命令菜单；支持拼音首字母搜索（MVP）。', key: 'enableSlashCommand', type: 'toggle' },
-            { name: '开启右键菜单增强', desc: '在编辑器右键菜单中添加 "块包装" 和 "表格快速操作"。', key: 'enableContextMenu', type: 'toggle' },
-            { name: '开启智能粘贴链接', desc: '选中文字后粘贴 URL，将自动变为 Markdown 链接（例如：选中 "Obsidian" 后粘贴 https://... -> [Obsidian](https://...)）。', key: 'enableSmartPasteUrl', type: 'toggle' },
-            { name: '开启图片智能粘贴（重命名归档）', desc: '粘贴图片时按"笔记名+时间戳"重命名，并按 Obsidian 的附件规则写入文件，再插入 `![[...]]`。', key: 'enableSmartImagePaste', type: 'toggle' },
-            { name: '开启链接智能粘贴（自动标题）', desc: '粘贴 URL 时尽量获取标题并插入 Markdown 链接；优先使用剪贴板 HTML，不联网。', key: 'enableSmartLinkTitle', type: 'toggle' },
-            { name: '允许联网抓取网页标题', desc: '当剪贴板没有标题时，尝试联网请求网页并读取 `<title>`；失败会降级为纯 URL。', key: 'enableSmartLinkTitleNetwork', type: 'toggle' },
-            { name: '开启打字机滚动（光标居中）', desc: '让光标行尽量保持在屏幕中间，适合长文写作。', key: 'enableTypewriterScroll', type: 'toggle' },
-            { name: '开启光标记忆（Cursor memory）', desc: '记忆并恢复每个文件的光标与滚动位置。', key: 'enableCursorMemory', type: 'toggle' },
-            { name: '开启最近文件 HUD', desc: '提供一个最近文件选择器（命令触发）。', key: 'enableQuickHud', type: 'toggle' },
         ],
     },
     {
-        title: '任务与智能输入',
-        icon: '✅',
+        title: '格式化与转换',
+        icon: '🎨',
         settings: [
-            { name: '开启任务快捷键', desc: '提供任务状态循环命令（普通文本 / 待办 / 完成），可在 Obsidian 的快捷键设置中自行绑定。', key: 'enableTaskHotkeys', type: 'toggle' },
-            { name: '开启智能输入展开 (@today / @time / @now)', desc: '输入特殊片段后自动展开为日期/时间。', key: 'enableSmartInput', type: 'toggle' },
-            { name: '开启魔法输入（自然语言日期 + 符号替换）', desc: '例如：`@tomorrow`/`@next mon`/`@下周一`；以及 `-->` → `→`（仅在光标处生效）。', key: 'enableMagicInput', type: 'toggle' },
-            { name: '开启到期高亮 (@due)', desc: '在编辑器中高亮 `@due(YYYY-MM-DD)`：过期标红、今天标黄。', key: 'enableOverdueHighlighter', type: 'toggle' },
-            { name: '看板文件路径', desc: '库内相对路径（例如: Kanban.board 或 Projects/Kanban.board）。点击侧边栏图标将创建/打开此文件。', key: 'kanbanFilePath', type: 'text', placeholder: 'Kanban.board' },
+            { name: '开启智能格式切换', desc: '智能处理加粗、斜体、行内代码（按下快捷键时，若光标在标记内则自动取消，避免符号叠加）。', key: 'enableSmartToggle', type: 'toggle' },
+            { name: '开启文本转换器（Text transformer）', desc: '提供大小写/排序/去空行等转换命令，并可在右键菜单中使用。', key: 'enableTextTransformer', type: 'toggle' },
+            { name: '开启保存时清理（Save cleaner）', desc: '保存时自动移除行尾空格，并确保文件以换行符结尾（尽量低侵入）。', key: 'enableSaveCleaner', type: 'toggle' },
         ],
     },
     {
-        title: '标题快捷键',
+        title: '快捷键与命令',
         icon: '⌨️',
         settings: [
+            { name: '开启斜杠命令', desc: '支持通过 "/"、"、" 或反斜杠（\\）触发命令菜单；支持拼音首字母搜索（MVP）。', key: 'enableSlashCommand', type: 'toggle' },
+            { name: '开启智能输入展开 (@today / @time)', desc: '输入特殊片段后自动展开为日期/时间。', key: 'enableSmartInput', type: 'toggle' },
+            { name: '开启任务快捷键', desc: '提供任务状态循环命令（普通文本 / 待办 / 完成），可在 Obsidian 的快捷键设置中自行绑定。', key: 'enableTaskHotkeys', type: 'toggle' },
             { name: '开启标题快捷转换', desc: '提供设置标题等级的命令（1~6 级），可在 Obsidian 的快捷键设置中自行绑定。', key: 'enableHeadingHotkeys', type: 'toggle' },
         ],
     },
     {
-        title: '文本处理与清理',
-        icon: '🧹',
+        title: '智能粘贴',
+        icon: '📋',
         settings: [
-            { name: '开启保存时清理（Save cleaner）', desc: '保存时自动移除行尾空格，并确保文件以换行符结尾（尽量低侵入）。', key: 'enableSaveCleaner', type: 'toggle' },
-            { name: '开启文本转换器（Text transformer）', desc: '提供大小写/排序/去空行等转换命令，并可在右键菜单中使用。', key: 'enableTextTransformer', type: 'toggle' },
-            { name: '开启选区查找替换（Search in selection）', desc: '只在选中文本范围内做查找替换（命令与右键入口）。', key: 'enableSearchInSelection', type: 'toggle' },
+            { name: '开启智能粘贴链接', desc: '选中文字后粘贴 URL，将自动变为 Markdown 链接（例如：选中 "Obsidian" 后粘贴 https://... -> [Obsidian](https://...)）。', key: 'enableSmartPasteUrl', type: 'toggle' },
+            { name: '开启链接智能粘贴（自动标题）', desc: '粘贴 URL 时尽量获取标题并插入 Markdown 链接；优先使用剪贴板 HTML，不联网。', key: 'enableSmartLinkTitle', type: 'toggle' },
+            { name: '允许联网抓取网页标题', desc: '当剪贴板没有标题时，尝试联网请求网页并读取 `<title>`；失败会降级为纯 URL。', key: 'enableSmartLinkTitleNetwork', type: 'toggle' },
+            { name: '开启图片智能粘贴（重命名归档）', desc: '粘贴图片时按"笔记名+时间戳"重命名，并按 Obsidian 的附件规则写入文件，再插入 `![[...]]`。', key: 'enableSmartImagePaste', type: 'toggle' },
         ],
     },
     {
-        title: '专注与导航',
-        icon: '🧭',
+        title: '辅助功能',
+        icon: '🔧',
+        settings: [
+            { name: '开启右键菜单增强', desc: '在编辑器右键菜单中添加 "块包装" 和 "表格快速操作"。', key: 'enableContextMenu', type: 'toggle' },
+            { name: '开启选区查找替换（Search in selection）', desc: '只在选中文本范围内做查找替换（命令与右键入口）。', key: 'enableSearchInSelection', type: 'toggle' },
+            { name: '开启魔法输入（符号替换）', desc: '符号自动替换，例如：`-->` → `→`、`...` → `…`（仅在光标处生效）。', key: 'enableMagicInput', type: 'toggle' },
+            { name: '开启到期高亮 (@due)', desc: '在编辑器中高亮 `@due(YYYY-MM-DD)`：过期标红、今天标黄。', key: 'enableOverdueHighlighter', type: 'toggle' },
+        ],
+    },
+    {
+        title: '写作体验',
+        icon: '✍️',
+        settings: [
+            { name: '开启打字机滚动（光标居中）', desc: '让光标行尽量保持在屏幕中间，适合长文写作。', key: 'enableTypewriterScroll', type: 'toggle' },
+            { name: '开启光标记忆（Cursor memory）', desc: '记忆并恢复每个文件的光标与滚动位置。', key: 'enableCursorMemory', type: 'toggle' },
+        ],
+    },
+    {
+        title: '界面增强',
+        icon: '🖼️',
         settings: [
             { name: '开启状态栏统计（字数/阅读时间/选中数）', desc: '在状态栏显示统计信息（可关闭）。', key: 'enableStatusBarStats', type: 'toggle' },
             { name: '开启界面清理（Focus UI / Zen）', desc: '提供一个命令，用 CSS 隐藏侧边栏/状态栏等界面元素。', key: 'enableFocusUi', type: 'toggle' },
@@ -187,28 +200,25 @@ const SECTIONS: SettingSection[] = [
             { name: '开启脚注助手（Footnotes）', desc: '提供命令：插入 `[^n]` 并在文末追加 `[^n]: `。', key: 'enableFootnotes', type: 'toggle' },
             { name: '开启行内计算（Inline calc）', desc: '提供命令：选中表达式后计算并替换（仅支持 + - * / ^ 和括号）。', key: 'enableInlineCalc', type: 'toggle' },
             { name: '开启随机生成器（Random generator）', desc: '提供命令：插入 UUID / 随机整数 / 掷骰子。', key: 'enableRandomGenerator', type: 'toggle' },
+            { name: '开启最近文件 HUD', desc: '提供一个最近文件选择器（命令触发）。', key: 'enableQuickHud', type: 'toggle' },
         ],
     },
     {
-        title: '文件列表增强',
-        icon: '🎨',
+        title: '文件与库管理',
+        icon: '📁',
         settings: [
             { name: '开启 Frontmatter 图标/头图（Inline decorator）', desc: '从 Frontmatter 读取 `icon`/`banner`，在文件列表展示图标，并在笔记顶部展示头图（轻量实现）。', key: 'enableInlineDecorator', type: 'toggle' },
             { name: '开启文件树高亮（File tree highlight）', desc: '提供命令：为文件/文件夹加高亮标记（用于项目文件夹）。', key: 'enableFileTreeHighlight', type: 'toggle' },
-        ],
-    },
-    {
-        title: '自动化 (YAML)',
-        icon: '🤖',
-        settings: [
             { name: '开启 YAML 自动更新', desc: '自动维护笔记的 "创建时间" 和 "修改时间" 元数据（Frontmatter）。', key: 'enableYaml', type: 'toggle' },
-            { name: '日期格式', desc: '时间戳的显示格式 (例如: YYYY-MM-DD HH:mm)。', key: 'yamlDateFormat', type: 'text', placeholder: 'YYYY-MM-DD HH:mm' },
+            { name: 'YAML 日期格式', desc: '时间戳的显示格式 (例如: YYYY-MM-DD HH:mm)。', key: 'yamlDateFormat', type: 'text', placeholder: 'YYYY-MM-DD HH:mm' },
         ],
     },
     {
-        title: '预览渲染',
-        icon: '🖼️',
+        title: '看板与可视化',
+        icon: '📊',
         settings: [
+            { name: '开启项目看板（.board）', desc: '提供侧边栏看板入口与 `.board` 视图。部分开关需要重载插件生效。', key: 'enableBoard', type: 'toggle' },
+            { name: '看板文件路径', desc: '库内相对路径（例如: Kanban.board 或 Projects/Kanban.board）。点击侧边栏图标将创建/打开此文件。', key: 'kanbanFilePath', type: 'text', placeholder: 'Kanban.board' },
             { name: '开启 Infographic 渲染器', desc: '在预览/阅读模式渲染 ` ```infographic` 代码块。关闭后表示"禁用渲染器"，需要重载插件生效。', key: 'enableInfographicRenderer', type: 'toggle' },
         ],
     },
@@ -228,18 +238,52 @@ export class EditorProSettingTab extends PluginSettingTab {
         const { containerEl } = this;
         containerEl.empty();
 
-        // Header
-        containerEl.createEl('h1', { text: 'Editor Pro 插件设置' });
+        // Header with welcome message
+        const headerContainer = containerEl.createDiv({ cls: 'editor-pro-header' });
+        headerContainer.createEl('h1', { text: 'Editor Pro 插件设置' });
 
-        // Search bar
+        // Welcome message for new users (using safe DOM API)
+        const welcomeEl = headerContainer.createDiv({ cls: 'editor-pro-welcome' });
+        const welcomeTitle = welcomeEl.createEl('p');
+        welcomeTitle.createEl('strong').setText('欢迎使用 Editor Pro！');
+        welcomeEl.createEl('p').setText('本插件提供丰富的编辑增强功能，默认已启用核心编辑功能以确保最佳体验。');
+
+        const quickStartTitle = welcomeEl.createEl('p');
+        quickStartTitle.createEl('strong').setText('💡 快速入门：');
+
+        const quickStartList = welcomeEl.createEl('ul');
+        const items = [
+            '📝 基础编辑：行操作（上移/下移/复制）、智能配对、表格编辑',
+            '⌨️ 快捷键：在 Settings → Hotkeys 中绑定命令',
+            '🎨 格式化：选中文字后使用快捷键或右键菜单',
+            '🔧 更多功能：在下方分类中按需开启'
+        ];
+        items.forEach(item => {
+            quickStartList.createEl('li').setText(item);
+        });
+
+        const helpLink = welcomeEl.createEl('p', { cls: 'editor-pro-help-link' });
+        helpLink.setText('💬 需要帮助？访问 GitHub 或查看文档。');
+
+        // Add welcome styles
+        this.addWelcomeStyles(containerEl);
+
+        // Search bar with accessibility support
         const searchContainer = containerEl.createDiv({ cls: 'editor-pro-settings-search' });
         searchContainer.createEl('input', {
             type: 'text',
             placeholder: '🔍 搜索设置... (输入关键词过滤)',
-            cls: 'editor-pro-search-input'
+            cls: 'editor-pro-search-input',
+            attr: {
+                'aria-label': '搜索设置',
+                'aria-describedby': 'editor-pro-search-help',
+                'role': 'searchbox',
+            }
         }, (el) => {
             this.searchInput = el;
             el.addEventListener('input', () => this.filterSettings());
+            // Add keyboard shortcut hint
+            el.setAttribute('title', '输入以过滤设置选项');
         });
 
         // Add search styles
@@ -306,6 +350,47 @@ export class EditorProSettingTab extends PluginSettingTab {
         `;
     }
 
+    private addWelcomeStyles(container: HTMLElement): void {
+        const doc = container.ownerDocument;
+        if (!doc) return;
+
+        if (doc.getElementById('editor-pro-welcome-styles')) {
+            return; // Already added
+        }
+
+        const style = container.createEl('style', { attr: { id: 'editor-pro-welcome-styles' } });
+        style.innerHTML = `
+            .editor-pro-header {
+                margin-bottom: 20px;
+            }
+            .editor-pro-header h1 {
+                margin-bottom: 12px;
+            }
+            .editor-pro-welcome {
+                background: var(--background-secondary);
+                border: 1px solid var(--background-modifier-border);
+                border-radius: 8px;
+                padding: 16px;
+                margin-bottom: 20px;
+            }
+            .editor-pro-welcome p {
+                margin: 8px 0;
+            }
+            .editor-pro-welcome ul {
+                margin: 8px 0;
+                padding-left: 20px;
+            }
+            .editor-pro-welcome li {
+                margin: 4px 0;
+            }
+            .editor-pro-help-link {
+                font-size: 0.9em;
+                color: var(--text-faint);
+                margin-top: 12px;
+            }
+        `;
+    }
+
     private renderAllSettings(container: HTMLElement): void {
         this.settingElements = [];
 
@@ -319,31 +404,52 @@ export class EditorProSettingTab extends PluginSettingTab {
         const sectionContainer = container.createDiv({ cls: 'editor-pro-section' });
         sectionContainer.dataset.section = section.title;
 
-        // Section header with collapse toggle
+        // Section header with collapse toggle and accessibility
         const headerEl = sectionContainer.createEl('h3', {
-            cls: 'editor-pro-section-title'
+            cls: 'editor-pro-section-title',
+            attr: {
+                'role': 'button',
+                'tabindex': '0',
+                'aria-expanded': 'true',
+                'aria-controls': `${section.title}-settings`,
+            }
         });
-        headerEl.innerHTML = `
-            <span class="editor-pro-section-toggle">▼</span>
-            <span>${section.icon} ${section.title}</span>
-        `;
+        // Use safe DOM API instead of innerHTML to prevent XSS
+        const toggleSpan = headerEl.createEl('span', {
+            cls: 'editor-pro-section-toggle',
+            attr: { 'aria-hidden': 'true' }
+        });
+        toggleSpan.setText('▼');
+        const titleSpan = headerEl.createEl('span');
+        titleSpan.setText(`${section.icon} ${section.title}`);
 
-        // Toggle collapse on click
+        // Settings container with ID for accessibility
+        const settingsContainer = sectionContainer.createDiv({
+            cls: 'editor-pro-section-settings',
+            attr: { id: `${section.title}-settings` }
+        });
+
+        // Toggle collapse on click and keyboard
         const toggle = headerEl.querySelector('.editor-pro-section-toggle') as HTMLElement;
         let isCollapsed = false;
 
-        headerEl.addEventListener('click', () => {
+        const toggleCollapse = () => {
             isCollapsed = !isCollapsed;
             toggle.classList.toggle('collapsed', isCollapsed);
+            headerEl.setAttribute('aria-expanded', String(!isCollapsed));
 
-            const settingsContainer = sectionContainer.querySelector('.editor-pro-section-settings') as HTMLElement;
             if (settingsContainer) {
                 settingsContainer.style.display = isCollapsed ? 'none' : 'block';
             }
-        });
+        };
 
-        // Settings container
-        const settingsContainer = sectionContainer.createDiv({ cls: 'editor-pro-section-settings' });
+        headerEl.addEventListener('click', toggleCollapse);
+        headerEl.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                toggleCollapse();
+            }
+        });
 
         // Render each setting in the section
         for (const setting of section.settings) {
@@ -357,6 +463,11 @@ export class EditorProSettingTab extends PluginSettingTab {
         const settingEl = container.createDiv({ cls: 'editor-pro-setting-item' });
         settingEl.dataset.name = setting.name.toLowerCase();
         settingEl.dataset.desc = setting.desc.toLowerCase();
+
+        // Add tooltip if available
+        if (setting.tooltip) {
+            settingEl.setAttribute('title', `${setting.name}: ${setting.tooltip}`);
+        }
 
         if (setting.type === 'toggle') {
             new Setting(settingEl)
@@ -420,11 +531,16 @@ export class EditorProSettingTab extends PluginSettingTab {
             // Auto-expand section when searching
             const toggle = sectionEl.querySelector('.editor-pro-section-toggle') as HTMLElement;
             const settingsContainer = sectionEl.querySelector('.editor-pro-section-settings') as HTMLElement;
+            const headerEl = sectionEl.querySelector('.editor-pro-section-title') as HTMLElement;
 
             if (searchTerm !== '' && hasVisibleSettings) {
                 toggle?.classList.remove('collapsed');
                 if (settingsContainer) {
                     settingsContainer.style.display = 'block';
+                }
+                // Update ARIA state for accessibility
+                if (headerEl) {
+                    headerEl.setAttribute('aria-expanded', 'true');
                 }
             }
         }

@@ -172,17 +172,37 @@ export function insertRow(lines: string[], currentRowIndex: number): string[] {
 export function deleteRow(lines: string[], currentRowIndex: number): string[] {
     const line = lines[currentRowIndex];
     if (!line || !line.trim().startsWith('|')) return lines;
-    
+
     // Don't delete if it's the header or separator (first 2 rows of a table)
     // This is naive; in a real scenario we'd check if previous lines are table lines
     if (currentRowIndex === 0) return lines;
     const prevLine = lines[currentRowIndex - 1];
     if (prevLine && !prevLine.trim().startsWith('|')) return lines; // It's first row
-    
+
     // Check if it's separator row
     if (line.includes('---')) return lines;
 
     const newLines = [...lines];
     newLines.splice(currentRowIndex, 1);
     return newLines;
+}
+
+/**
+ * Generate a cryptographically random unique identifier.
+ * Falls back to Math.random() if crypto.randomUUID() is not available.
+ * @returns A unique identifier string
+ */
+export function generateUniqueId(): string {
+    // Try to use the modern crypto API
+    if (typeof crypto !== 'undefined' && crypto.randomUUID) {
+        return crypto.randomUUID();
+    }
+
+    // Fallback for environments without crypto.randomUUID()
+    // This is still better than Math.random() alone as we include more entropy
+    const timestamp = Date.now().toString(36);
+    const randomPart = Math.random().toString(36).substring(2, 15);
+    const counter = (Math.random() * 0xFFFFFF).toString(36).substring(0, 6);
+
+    return `${timestamp}-${randomPart}-${counter}`;
 }

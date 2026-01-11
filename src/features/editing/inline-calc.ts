@@ -183,7 +183,12 @@ export function inlineCalcReplaceSelection(editor: Editor): void {
 	const expr = editor.getSelection();
 	const value = evaluateArithmeticExpression(expr);
 	if (value === null) {
-		new Notice("Editor Pro：无法计算该表达式（仅支持 + - * / ^ 和括号）");
+		new Notice("Editor Pro：无法计算该表达式（仅支持 + - * / ^ 和括号，不能除以零）");
+		return;
+	}
+	// Handle Infinity and NaN cases (though checked in evaluateArithmeticExpression)
+	if (!Number.isFinite(value)) {
+		new Notice("Editor Pro：计算结果超出范围（无穷大或非数字）");
 		return;
 	}
 	editor.replaceSelection(String(value));

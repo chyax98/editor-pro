@@ -1,3 +1,5 @@
+import { generateUniqueId } from '../../utils/markdown-generators';
+
 export interface KanbanCard {
     id: string; // Unique ID for drag handling (can be index based or content hash)
     content: string; // The text content without checkbox
@@ -40,7 +42,7 @@ export class KanbanModel {
                 }
                 
                 currentColumn = {
-                    id: `col-${name}-${Date.now()}-${Math.random()}`,
+                    id: `col-${name}-${generateUniqueId()}`,
                     name: name,
                     cards: []
                 };
@@ -64,7 +66,7 @@ export class KanbanModel {
                 const tagsMatch = textContent.match(/#[一-龥a-zA-Z0-9_]+/g);
                 
                 currentColumn.cards.push({
-                    id: `card-${Math.random().toString(36).slice(2, 11)}`,
+                    id: `card-${generateUniqueId()}`,
                     content: textContent,
                     status: status,
                     originalText: trimmed,
