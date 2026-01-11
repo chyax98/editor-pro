@@ -1,4 +1,5 @@
 import { Editor } from "obsidian";
+import { moveListItemBlock } from "./outliner";
 
 /**
  * 模拟 IDE 的快捷操作
@@ -6,6 +7,7 @@ import { Editor } from "obsidian";
 
 // 1. 向上移动当前行
 export function moveLineUp(editor: Editor) {
+    if (moveListItemBlock(editor, -1)) return;
     const cursor = editor.getCursor();
     if (cursor.line === 0) return; // 已经在第一行
 
@@ -24,6 +26,7 @@ export function moveLineUp(editor: Editor) {
 
 // 2. 向下移动当前行
 export function moveLineDown(editor: Editor) {
+    if (moveListItemBlock(editor, 1)) return;
     const cursor = editor.getCursor();
     const lineCount = editor.lineCount();
     if (cursor.line === lineCount - 1) return; // 已经在最后一行
