@@ -19,6 +19,19 @@ function buildDecorations(view: EditorView): DecorationSet {
             const dateStr = match[1];
             if (!dateStr) continue;
 
+            // Validate date format (YYYY-MM-DD) and date validity
+            const dateMatch = dateStr.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+            if (!dateMatch) continue;
+
+            const year = dateMatch[1];
+            const month = dateMatch[2];
+            const day = dateMatch[3];
+            if (!year || !month || !day) continue;
+
+            const date = new Date(parseInt(year, 10), parseInt(month, 10) - 1, parseInt(day, 10));
+            // Check if date is valid (not NaN)
+            if (isNaN(date.getTime())) continue;
+
             const start = from + match.index;
             const end = start + match[0].length;
 
