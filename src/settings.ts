@@ -141,7 +141,7 @@ const SECTIONS: SettingSection[] = [
         settings: [
             { name: '开启智能格式切换', desc: '智能处理加粗、斜体、行内代码（按下快捷键时，若光标在标记内则自动取消，避免符号叠加）。', key: 'enableSmartToggle', type: 'toggle' },
             { name: '开启文本转换器（Text transformer）', desc: '提供大小写/排序/去空行等转换命令，并可在右键菜单中使用。', key: 'enableTextTransformer', type: 'toggle' },
-            { name: '开启保存时清理（Save cleaner）', desc: '保存时自动移除行尾空格，并确保文件以换行符结尾（尽量低侵入）。', key: 'enableSaveCleaner', type: 'toggle' },
+            { name: '开启保存时清理（Save cleaner）', desc: '保存时自动移除行尾空格，并确保文件以换行符结尾（尽量低侵入）。⚠️ 注意：与 YAML 自动更新同时使用可能产生冲突。', key: 'enableSaveCleaner', type: 'toggle' },
         ],
     },
     {
@@ -160,7 +160,7 @@ const SECTIONS: SettingSection[] = [
         settings: [
             { name: '开启智能粘贴链接', desc: '选中文字后粘贴 URL，将自动变为 Markdown 链接（例如：选中 "Obsidian" 后粘贴 https://... -> [Obsidian](https://...)）。', key: 'enableSmartPasteUrl', type: 'toggle' },
             { name: '开启链接智能粘贴（自动标题）', desc: '粘贴 URL 时尽量获取标题并插入 Markdown 链接；优先使用剪贴板 HTML，不联网。', key: 'enableSmartLinkTitle', type: 'toggle' },
-            { name: '允许联网抓取网页标题', desc: '当剪贴板没有标题时，尝试联网请求网页并读取 `<title>`；失败会降级为纯 URL。', key: 'enableSmartLinkTitleNetwork', type: 'toggle' },
+            { name: '允许联网抓取网页标题', desc: '当剪贴板没有标题时，尝试联网请求网页并读取 `<title>`；失败会降级为纯 URL。⚠️ 需要网络访问，已阻止内网地址保护隐私。', key: 'enableSmartLinkTitleNetwork', type: 'toggle' },
             { name: '开启图片智能粘贴（重命名归档）', desc: '粘贴图片时按"笔记名+时间戳"重命名，并按 Obsidian 的附件规则写入文件，再插入 `![[...]]`。', key: 'enableSmartImagePaste', type: 'toggle' },
         ],
     },
@@ -171,7 +171,7 @@ const SECTIONS: SettingSection[] = [
             { name: '开启右键菜单增强', desc: '在编辑器右键菜单中添加 "块包装" 和 "表格快速操作"。', key: 'enableContextMenu', type: 'toggle' },
             { name: '开启选区查找替换（Search in selection）', desc: '只在选中文本范围内做查找替换（命令与右键入口）。', key: 'enableSearchInSelection', type: 'toggle' },
             { name: '开启魔法输入（符号替换）', desc: '符号自动替换，例如：`-->` → `→`、`...` → `…`（仅在光标处生效）。', key: 'enableMagicInput', type: 'toggle' },
-            { name: '开启到期高亮 (@due)', desc: '在编辑器中高亮 `@due(YYYY-MM-DD)`：过期标红、今天标黄。', key: 'enableOverdueHighlighter', type: 'toggle' },
+            { name: '开启到期高亮 (@due)', desc: '在编辑器中高亮 `@due(YYYY-MM-DD)`：过期标红、今天标黄。💡 依赖特定日期格式。', key: 'enableOverdueHighlighter', type: 'toggle' },
         ],
     },
     {
@@ -190,7 +190,7 @@ const SECTIONS: SettingSection[] = [
             { name: '开启界面清理（Focus UI / Zen）', desc: '提供一个命令，用 CSS 隐藏侧边栏/状态栏等界面元素。', key: 'enableFocusUi', type: 'toggle' },
             { name: '开启浮动大纲（Floating outline）', desc: '提供一个命令，弹出极简目录（Esc 关闭）。', key: 'enableFloatingOutline', type: 'toggle' },
             { name: '开启局部聚焦（Heading/List zoom）', desc: '提供命令：聚焦当前标题段落 / 聚焦当前列表块（在弹窗里编辑并应用回原文）。', key: 'enableZoom', type: 'toggle' },
-            { name: '开启文档流看板（Flow board）', desc: '提供命令：用"标题=列、列表块=卡片"的方式重组文章结构（拖拽会改写当前文档）。', key: 'enableFlowBoard', type: 'toggle' },
+            { name: '开启文档流看板（Flow board）', desc: '提供命令：用"标题=列、列表块=卡片"的方式重组文章结构。⚠️ 拖拽会直接修改原始文档内容，请谨慎使用。', key: 'enableFlowBoard', type: 'toggle' },
         ],
     },
     {
@@ -209,7 +209,7 @@ const SECTIONS: SettingSection[] = [
         settings: [
             { name: '开启 Frontmatter 图标/头图（Inline decorator）', desc: '从 Frontmatter 读取 `icon`/`banner`，在文件列表展示图标，并在笔记顶部展示头图（轻量实现）。', key: 'enableInlineDecorator', type: 'toggle' },
             { name: '开启文件树高亮（File tree highlight）', desc: '提供命令：为文件/文件夹加高亮标记（用于项目文件夹）。', key: 'enableFileTreeHighlight', type: 'toggle' },
-            { name: '开启 YAML 自动更新', desc: '自动维护笔记的 "创建时间" 和 "修改时间" 元数据（Frontmatter）。', key: 'enableYaml', type: 'toggle' },
+            { name: '开启 YAML 自动更新', desc: '自动维护笔记的 "创建时间" 和 "修改时间" 元数据（Frontmatter）。⚠️ 会自动修改文件内容，与 SaveCleaner 同时使用可能产生冲突。', key: 'enableYaml', type: 'toggle' },
             { name: 'YAML 日期格式', desc: '时间戳的显示格式 (例如: YYYY-MM-DD HH:mm)。', key: 'yamlDateFormat', type: 'text', placeholder: 'YYYY-MM-DD HH:mm' },
         ],
     },
