@@ -27,48 +27,35 @@ function getDueBadge(dueDate: string | null): { label: string; cls: string } | n
 }
 
 function getCardsInColumn(data: BoardData, columnId: string): BoardCard[] {
-	const indexById = new Map<string, number>();
-	data.cards.forEach((c, i) => indexById.set(c.id, i));
-
 	return data.cards
 		.filter((c) => c.columnId === columnId)
 		.slice()
-		.sort((a, b) => {
-			const ao = a.order ?? Number.POSITIVE_INFINITY;
-			const bo = b.order ?? Number.POSITIVE_INFINITY;
-			if (ao !== bo) return ao - bo;
-			return (indexById.get(a.id) ?? 0) - (indexById.get(b.id) ?? 0);
-		});
+		.sort((a, b) => a.order - b.order);
 }
 
-function normalizeColumnOrder(data: BoardData, columnId: string): BoardData {
+	function normalizeColumnOrder(data: BoardData, columnId: string): BoardData {
 	const inCol = getCardsInColumn(data, columnId);
 	if (inCol.length === 0) return data;
 
 	const nextCards = data.cards.map((c) => ({ ...c }));
 	const cardById = new Map(nextCards.map((c) => [c.id, c] as const));
 
-	inCol.forEach((card, idx) => {
-		const target = cardById.get(card.id);
-		if (target) target.order = idx;
-	});
+		inCol.forEach((card, idx) => {
+			const target = cardById.get(card.id);
+			if (target) target.order = idx;
+		});
 
 	return { ...data, cards: nextCards };
 }
 
-function moveCardToColumn(data: BoardData, cardId: string, toColumnId: string): BoardData {
+	function moveCardToColumn(data: BoardData, cardId: string, toColumnId: string): BoardData {
 	const card = data.cards.find((c) => c.id === cardId);
 	if (!card) return data;
 
 	const fromColumnId = card.columnId;
 	if (fromColumnId === toColumnId) return data;
 
-	const maxOrder = Math.max(
-		-1,
-		...data.cards
-			.filter((c) => c.columnId === toColumnId)
-			.map((c) => c.order ?? -1),
-	);
+		const maxOrder = Math.max(-1, ...data.cards.filter((c) => c.columnId === toColumnId).map((c) => c.order));
 
 	const nextCards = data.cards.map((c) =>
 		c.id === cardId ? { ...c, columnId: toColumnId, order: maxOrder + 1 } : c,
@@ -291,23 +278,18 @@ export function BoardApp(props: {
 
 	const addCard = React.useCallback(
 		(columnId: string) => {
-			const maxOrder = Math.max(
-				-1,
-				...data.cards
-					.filter((c) => c.columnId === columnId)
-					.map((c) => c.order ?? -1),
-			);
+			const maxOrder = Math.max(-1, ...data.cards.filter((c) => c.columnId === columnId).map((c) => c.order));
 
-			const card: BoardCard = {
-				id: `card-${Date.now()}`,
-				columnId,
-				title: "新任务",
-				description: "",
-				priority: "medium",
-				dueDate: null,
-				tags: [],
-				order: maxOrder + 1,
-			};
+				const card: BoardCard = {
+					id: `card-${Date.now()}`,
+					columnId,
+					title: "新任务",
+					description: "",
+					priority: "medium",
+					dueDate: null,
+					tags: [],
+					order: maxOrder + 1,
+				};
 
 			onChange(normalizeColumnOrder({ ...data, cards: [...data.cards, card] }, columnId));
 			openCardModal(card);

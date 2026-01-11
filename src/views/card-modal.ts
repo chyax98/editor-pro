@@ -62,7 +62,22 @@ export class CardModal extends Modal {
             .addText(text => text
                 .setPlaceholder('YYYY-MM-DD')
                 .setValue(this.card.dueDate || '')
-                .onChange(value => this.card.dueDate = value));
+                .onChange(value => this.card.dueDate = value.trim() ? value.trim() : null));
+
+        // Tags
+        new Setting(contentEl)
+            .setName('标签')
+            .setDesc('用逗号分隔（例如：urgent, backend）')
+            .addText(text => text
+                .setPlaceholder('tag1, tag2')
+                .setValue((this.card.tags ?? []).join(', '))
+                .onChange(value => {
+                    const tags = value
+                        .split(',')
+                        .map(t => t.trim())
+                        .filter(Boolean);
+                    this.card.tags = Array.from(new Set(tags));
+                }));
 
         // Description (TextArea)
         const descContainer = contentEl.createDiv({ cls: 'board-modal-description' });

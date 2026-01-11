@@ -11,6 +11,7 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 
 function isBoardData(value: unknown): value is BoardData {
 	if (!isRecord(value)) return false;
+	if (value.schemaVersion !== 1) return false;
 	if (typeof value.title !== "string") return false;
 	if (!Array.isArray(value.columns)) return false;
 	if (!Array.isArray(value.cards)) return false;
@@ -30,6 +31,7 @@ function isBoardData(value: unknown): value is BoardData {
 		if (card.priority !== "low" && card.priority !== "medium" && card.priority !== "high") return false;
 		if (card.dueDate !== null && typeof card.dueDate !== "string") return false;
 		if (!Array.isArray(card.tags)) return false;
+		if (typeof card.order !== "number" || !Number.isFinite(card.order)) return false;
 	}
 
 	return true;

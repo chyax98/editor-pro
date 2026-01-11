@@ -8,14 +8,13 @@ import { setDueDate } from "../kanban/due-date";
 import { BUILTIN_TEMPLATES } from "../templates/snippets";
 import { defaultTemplateContext, insertExpandedTemplate } from "../templates/template-engine";
 
-const COMMANDS: SlashCommand[] = [
-    { id: 'callout', name: '提示块 (Callout)', aliases: ['callout', 'tip', 'tsk'] },
-    { id: 'codeblock', name: '代码块 (Code Block)', aliases: ['code', 'dmk'] },
-    { id: 'kanban', name: '看板模板 (Kanban)', aliases: ['kb', 'kb'] },
-    { id: 'due', name: '设置截止 (Due Date)', aliases: ['due', 'jz'] },
-    { id: 'math', name: '数学公式 (Math)', aliases: ['math', 'gs'] },
-    { id: 'table', name: '插入表格 (Table)', aliases: ['table', 'bg'] },
-    { id: 'date', name: '当前日期 (Date)', aliases: ['date', 'rq'] },
+	const COMMANDS: SlashCommand[] = [
+	    { id: 'callout', name: '提示块 (Callout)', aliases: ['callout', 'tip', 'tsk'] },
+	    { id: 'codeblock', name: '代码块 (Code Block)', aliases: ['code', 'dmk'] },
+	    { id: 'due', name: '设置截止 (Due Date)', aliases: ['due', 'jz'] },
+	    { id: 'math', name: '数学公式 (Math)', aliases: ['math', 'gs'] },
+	    { id: 'table', name: '插入表格 (Table)', aliases: ['table', 'bg'] },
+	    { id: 'date', name: '当前日期 (Date)', aliases: ['date', 'rq'] },
     { id: 'time', name: '当前时间 (Time)', aliases: ['time', 'sj'] },
     { id: 'mermaid', name: 'Mermaid 图表 (Mermaid)', aliases: ['mermaid', 'mm'] },
     { id: 'd2', name: 'D2 图表 (D2)', aliases: ['d2'] },
@@ -28,8 +27,8 @@ const COMMANDS: SlashCommand[] = [
     { id: 'h1', name: '一级标题 (H1)', aliases: ['h1', 'yjbt'] },
     { id: 'h2', name: '二级标题 (H2)', aliases: ['h2', 'ejbt'] },
     { id: 'h3', name: '三级标题 (H3)', aliases: ['h3', 'sjbt'] },
-    { id: 'quote', name: '引用 (Quote)', aliases: ['quote', 'yy'] },
-];
+	    { id: 'quote', name: '引用 (Quote)', aliases: ['quote', 'yy'] },
+	];
 
 export class SlashCommandMenu extends EditorSuggest<SlashCommand> {
     constructor(app: App) {
@@ -70,24 +69,20 @@ export class SlashCommandMenu extends EditorSuggest<SlashCommand> {
         }
     }
     
-    private executeCommand(id: string, editor: Editor) {
-        const cursor = editor.getCursor();
-        switch (id) {
+	    private executeCommand(id: string, editor: Editor) {
+	        const cursor = editor.getCursor();
+	        switch (id) {
             case 'callout':
                 new CalloutTypePicker(this.app, (type) => {
                      wrapWithCallout(editor, { type });
                 }).open();
                 break;
-            case 'codeblock':
-                wrapWithCodeBlock(editor);
-                break;
-            case 'kanban':
-                editor.replaceSelection('## Todo\n- [ ] \n\n## In Progress\n\n## Done\n');
-                editor.setCursor({ line: cursor.line + 1, ch: 6 });
-                break;
-            case 'daily':
-                editor.replaceSelection(generateDaily());
-                break;
+	            case 'codeblock':
+	                wrapWithCodeBlock(editor);
+	                break;
+	            case 'daily':
+	                editor.replaceSelection(generateDaily());
+	                break;
             case 'weekly':
                 editor.replaceSelection(generateWeekly());
                 break;
