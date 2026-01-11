@@ -54,7 +54,7 @@
 
 ### 2.6 结构化视图
 
-- `.board` JSON 看板（React UI，拖拽/编辑/列增删）：`src/views/board-view.tsx` `src/views/board-app.tsx` `src/views/card-modal.ts`
+- `.board` JSON 看板（React UI，拖拽/编辑/列增删 + 右侧详情面板）：`src/views/board-view.tsx` `src/views/board-app.tsx`
 - `.board` 格式为严格 JSON（`schemaVersion: 1`），不做向后兼容；旧格式会要求重置/手动修复
 - `.board` 解析失败不再自动覆盖文件：会展示“修复面板”（可直接编辑 JSON 并应用/或重置）：`src/views/board-app.tsx` + `src/views/board-view.tsx`
 - 看板文件管理：`open-board` / `recreate-board`（删除并重建）：`src/main.ts`
