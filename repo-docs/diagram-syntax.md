@@ -62,7 +62,22 @@ API -> App: response
 ```
 ```
 
-## 3) Infographic（AntV Infographic，本插件支持预览渲染）
+## 3) Graph（Graphviz / DOT，本插件目前仅“插入代码块”）
+
+> 说明：Obsidian 默认不会渲染 DOT。本插件提供 `/graph` 生成 ` ```dot` 代码块骨架；如果你安装了 Graphviz 渲染类插件/主题扩展，可在预览里看到效果。
+
+### 3.1 基本用法（示例）
+
+```md
+```dot
+digraph G {
+  rankdir=LR;
+  A -> B;
+}
+```
+```
+
+## 4) Infographic（AntV Infographic，本插件支持预览渲染）
 
 > 说明：本插件会在预览/阅读模式渲染 ` ```infographic` 代码块为 SVG。
 
@@ -118,4 +133,3 @@ data
 - `hierarchy-tree-tech-style-rounded-rect-node`（层级树）
 
 模板定义位置：`src/features/infographic/templates.ts`
-

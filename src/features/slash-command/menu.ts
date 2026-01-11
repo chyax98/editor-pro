@@ -18,6 +18,7 @@ const COMMANDS: SlashCommand[] = [
     { id: 'time', name: '当前时间 (Time)', aliases: ['time', 'sj'] },
     { id: 'mermaid', name: 'Mermaid 图表 (Mermaid)', aliases: ['mermaid', 'mm'] },
     { id: 'd2', name: 'D2 图表 (D2)', aliases: ['d2'] },
+    { id: 'graph', name: 'Graph 图表 (DOT/Graphviz)', aliases: ['graph', 'dot', 'graphviz'] },
     { id: 'infographic', name: '信息图 (Infographic)', aliases: ['infographic', 'info', 'xx'] },
     { id: 'daily', name: '日记模板 (Daily)', aliases: ['daily', 'rj'] },
     { id: 'weekly', name: '周记模板 (Weekly)', aliases: ['weekly', 'zj'] },
@@ -129,6 +130,20 @@ export class SlashCommandMenu extends EditorSuggest<SlashCommand> {
                 break;
             case 'd2':
                 editor.replaceSelection(generateFencedCodeBlock('d2'));
+                editor.setCursor({ line: cursor.line + 1, ch: 0 });
+                break;
+            case 'graph':
+                editor.replaceSelection(
+                    generateFencedCodeBlock(
+                        'dot',
+                        [
+                            'digraph G {',
+                            '  rankdir=LR;',
+                            '  A -> B;',
+                            '}',
+                        ].join('\n'),
+                    ),
+                );
                 editor.setCursor({ line: cursor.line + 1, ch: 0 });
                 break;
             case 'infographic':
