@@ -731,6 +731,14 @@ export default class EditorProPlugin extends Plugin {
     async loadSettings() {
         const loaded = (await this.loadData()) as unknown;
 
+        // Handle null/undefined (first load or corrupted data)
+        if (!loaded || typeof loaded !== 'object') {
+            this.settings = { ...DEFAULT_SETTINGS };
+            this.cursorMemoryInitial = undefined;
+            this.fileTreeHighlights = {};
+            return;
+        }
+
         // Backward compatible: old format stored settings at root.
         if (isPluginDataV2(loaded)) {
             this.settings = Object.assign({}, DEFAULT_SETTINGS, loaded.settings ?? {});

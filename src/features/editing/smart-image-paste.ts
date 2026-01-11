@@ -1,4 +1,4 @@
-import { App, Editor, TFile } from "obsidian";
+import { App, Editor, TFile, Notice } from "obsidian";
 
 function isImageFile(file: File): boolean {
 	return file.type.startsWith("image/");
@@ -27,7 +27,7 @@ function guessExtension(file: File): string {
 	return "png";
 }
 
-export async function handleSmartImagePaste(app: App, editor: Editor, fileInfo: { file: TFile | null } | null, evt: ClipboardEvent): Promise<boolean> {
+async function handleSmartImagePasteImpl(app: App, editor: Editor, fileInfo: { file: TFile | null } | null, evt: ClipboardEvent): Promise<boolean> {
 	const dt = evt.clipboardData;
 	if (!dt) return false;
 
@@ -59,3 +59,13 @@ export async function handleSmartImagePaste(app: App, editor: Editor, fileInfo: 
 	return true;
 }
 
+export async function handleSmartImagePaste(app: App, editor: Editor, fileInfo: { file: TFile | null } | null, evt: ClipboardEvent): Promise<boolean> {
+	try {
+		return await handleSmartImagePasteImpl(app, editor, fileInfo, evt);
+	} catch (error) {
+		const message = error instanceof Error ? error.message : String(error);
+		new Notice(`Editor Pro：图片粘贴失败 - ${message}`);
+		console.error('[Editor Pro] Image paste error:', error);
+		return false;
+	}
+}

@@ -19,6 +19,9 @@ export function handleSmartSpacing(editor: Editor) {
     const line = editor.getLine(cursor.line);
     if (line.length < 2) return;
 
+    // 防止负索引：确保 cursor.ch >= 2
+    if (cursor.ch < 2) return;
+
     const leftChar = line.charAt(cursor.ch - 2);
     const rightChar = line.charAt(cursor.ch - 1);
 
