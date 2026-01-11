@@ -67,12 +67,22 @@ export class Editor {
       }
   }
 
-  getCursor(): { line: number; ch: number } {
-    return { ...this.cursor };
+  getCursor(pos?: 'from' | 'to' | 'start' | 'end' | 'head'): { line: number; ch: number } {
+      if (pos === 'from' && this.selection) {
+          return { ...this.selection.from };
+      }
+      if (pos === 'to' && this.selection) {
+          return { ...this.selection.to };
+      }
+      return { ...this.cursor };
   }
-  
+
   setCursor(pos: { line: number; ch: number }): void {
       this.cursor = { ...pos };
+  }
+
+  somethingSelected(): boolean {
+      return this.selection !== null;
   }
 
   getLine(line: number): string {
@@ -85,11 +95,43 @@ export class Editor {
       }
   }
 
+  lineCount(): number {
+      return this.content.length;
+  }
+
+  setSelection(from: { line: number; ch: number }, to?: { line: number; ch: number }): void {
+      this.selection = { from, to: to || from };
+  }
+
+  exec(command: string): void {
+      // Mock implementation for toggleFold and other commands
+      // For testing purposes, we just track that it was called
+  }
+
   replaceRange(text: string, from: { line: number; ch: number }, to?: { line: number; ch: number }): void {
       const end = to || from;
+
       if (from.line === end.line) {
+          // Single-line replacement
           const line = this.content[from.line];
           this.content[from.line] = line.slice(0, from.ch) + text + line.slice(end.ch);
+      } else {
+          // Multi-line replacement
+          const newLines = text.split('\n');
+
+          // Get the prefix of the first line (before from.ch)
+          const firstLinePrefix = this.content[from.line].slice(0, from.ch);
+
+          // Get the suffix of the last line (after end.ch)
+          const lastLineSuffix = this.content[end.line].slice(end.ch);
+
+          // Replace the range from from.line to end.line with new content
+          const replacement = [...newLines];
+          replacement[0] = firstLinePrefix + replacement[0];
+          replacement[replacement.length - 1] = replacement[replacement.length - 1] + lastLineSuffix;
+
+          // Splice the replacement into the content
+          this.content.splice(from.line, end.line - from.line + 1, ...replacement);
       }
   }
 
