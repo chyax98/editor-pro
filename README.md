@@ -1,20 +1,46 @@
 # Editor Pro (Obsidian Community Plugin)
 
-Editor Pro 是一个“编辑增强”插件：把常用的编辑器效率功能整合到一个插件里（智能格式切换、块转换、斜杠命令、表格增强、YAML 自动化、轻量看板等），尽量减少额外插件依赖与配置成本。
+Editor Pro 是一个"编辑增强"插件：把常用的编辑器效率功能整合到一个插件里，尽量减少额外插件依赖与配置成本。
 
 ## 功能概览
 
-- 智能格式切换：加粗/斜体/删除线/高亮/行内代码（避免符号叠加）
-- 块转换：选中内容一键包裹为 Callout 或代码块
-- 斜杠命令：`/`、`、`、`\\` 触发命令菜单（支持拼音首字母 MVP）
-- 表格增强：Tab 在单元格间跳转
-- YAML 自动化：自动维护 frontmatter 的 `created`/`updated`
-- 项目看板：`.board`（JSON）文件的拖拽看板视图
-- Infographic：` ```infographic` 代码块在预览/阅读模式渲染为 SVG
+### 编辑器增强
+- **智能格式切换**：加粗/斜体/删除线/高亮/行内代码（避免符号叠加）
+- **Keyshots**：行上移/下移/复制/删除/选中；列表项整块移动
+- **Outliner**：列表 Tab/Shift+Tab 缩进、折叠/展开
+- **Smart Typing**：自动配对、智能退格、中英空格
+- **Block Break**：引用/Callout 内 Shift+Enter 跳出
 
-## 安装（手动）
+### 斜杠命令
+- 触发字符：`/`、`、`、`\\`
+- 支持拼音首字母搜索（如 `/dmk` → 代码块）
+- 内置命令：Callout/代码块/表格/日期/Mermaid/Infographic 等
 
-把本仓库构建产物复制到你的 vault：
+### 表格增强
+- Tab/Shift+Tab 单元格导航
+- 列插入/删除/对齐/格式化
+
+### 智能粘贴
+- URL into selection（选中文字粘贴 URL 变链接）
+- Auto link title（自动获取网页标题）
+- Smart image paste（图片重命名归档）
+
+### 自动化
+- YAML 自动维护 `created`/`updated`
+- 保存时清理（去行尾空格）
+- 光标/滚动位置记忆
+
+### 可视化
+- Infographic 渲染器（AntV，支持 219 种模板）
+- 浮动大纲、状态栏统计、Focus UI
+
+### 小工具
+- 脚注助手、行内计算、随机生成器（UUID/骰子）
+- 文本转换器、选区查找替换
+
+## 安装
+
+把构建产物复制到你的 vault：
 
 ```
 <Vault>/.obsidian/plugins/editor-pro/
@@ -25,53 +51,29 @@ Editor Pro 是一个“编辑增强”插件：把常用的编辑器效率功能
 
 ## 使用
 
-### 1) 打开项目看板
+### 斜杠命令
 
-- 点击左侧边栏图标 **打开项目看板**
-- 插件会在库内创建/打开设置里的 `.board` 文件（默认 `Kanban.board`）
+在编辑器中输入 `/`、`、` 或 `\\` 即可唤起命令菜单。
 
-### 2) 斜杠命令
+### 快捷键
 
-在编辑器中输入以下任意一个触发符号即可唤起菜单：
+Editor Pro **不会内置默认快捷键**（避免冲突）。请在 Obsidian 中自行绑定：
 
-- `/`
-- `、`（中文顿号）
-- `\\`（反斜杠）
-
-### 3) 快捷键
-
-Editor Pro **不会内置默认快捷键**（避免与用户已有快捷键冲突）。请在 Obsidian 中自行绑定：
-
-**Settings → Hotkeys** → 搜索 “Editor Pro” 对应命令。
+**Settings → Hotkeys** → 搜索 "Editor Pro"
 
 ## 开发
-
-### 环境
-
-- Node.js 18+
-- 包管理器：npm
-- 打包：esbuild（见 `esbuild.config.mjs`）
-
-### 命令
 
 ```bash
 npm install
 npm run dev    # watch
-npm run build  # 生产构建（生成 main.js，但 main.js 不应提交到 Git）
-npm test
-npm run lint
+npm run build  # 生产构建
+npm test       # 测试
+npm run lint   # 代码检查
 ```
 
-## 设计与需求文档
+详见 `DEVELOPMENT.md`。
 
-见 `docs/`：
+## 文档
 
-- `docs/requirements.md`
-- `docs/task-board.md`
-- `docs/research-painpoints.md`
-
-## 仓库内文档（可随 git 同步）
-
-由于本机的 `docs/` 可能是软链接（用于指向笔记库），为保证他人接手时可直接在仓库中查看，关键文档也会同步到：
-
-- `repo-docs/README.md`
+- `CHANGELOG.md` - 版本变更记录
+- `DEVELOPMENT.md` - 开发指南

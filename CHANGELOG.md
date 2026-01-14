@@ -2,19 +2,31 @@
 
 本文档记录了项目从初始化到当前版本的所有功能特性递进与代码关联。
 
-## [v0.1.1] - 仓库清理与维护 (Current)
+## [v0.1.1] - 仓库清理与功能精简 (Current)
 
 **日期**: 2026-01-14
 
 **变更内容**:
 1.  **仓库清理**:
     *   移除了 16 个代码评审临时文件 (`.review-checklist*.md`)。
-    *   这些文件是 v0.1.0 发布前代码评审过程的迭代记录，现已完成使命。
-2.  **功能兼容性核查**:
-    *   对比 Obsidian 1.11.4 官方更新，确认所有 Editor Pro 功能仍有独立价值：
+2.  **移除看板功能**:
+    *   移除了 `.board` 项目看板和 Flow Board 功能。
+    *   **原因**：Obsidian 1.9+ 原生 Bases 功能已提供更强大的多维表格能力（自定义列、筛选、排序、公式），官方 Kanban 视图也在 Roadmap 中。自研看板方案（JSON 文件）不符合 Obsidian 生态的 Markdown-first 理念，维护成本高于收益。
+    *   **用户迁移建议**：使用 Obsidian Bases 或社区插件 (如 mgmeyers/obsidian-kanban) 替代。
+    *   移除的文件：
+        - `src/features/kanban/` (整个目录)
+        - `src/features/board/` (整个目录)
+        - `src/views/board-*.tsx`、`flow-board-*.tsx`
+        - `tests/kanban-*.test.ts`
+3.  **功能兼容性核查**:
+    *   对比 Obsidian 1.11.4 官方更新，确认保留的 Editor Pro 功能仍有独立价值：
         - Bases 表格增强 ≠ Markdown 表格增强（Editor Pro 专注于 Markdown 表格）
         - 官方未提供：斜杠命令、智能格式切换、块转换、YAML 自动化等功能
-    *   **结论**：无需移除任何现有功能。
+4.  **文档清理**:
+    *   删除了 `docs/` 和 `repo-docs/` 目录（过时的开发计划/调研/状态文档）
+    *   核心文档收敛至：`README.md`（功能介绍）、`CHANGELOG.md`（变更记录）、`DEVELOPMENT.md`（开发指南）
+
+
 
 ---
 

@@ -4,17 +4,30 @@ import { wrapWithCallout, wrapWithCodeBlock } from "../callout/wrap-callout";
 import { CalloutTypePicker } from "../callout/callout-picker";
 
 import { generateFencedCodeBlock, generateTable, generateDate, generateMath, generateDaily, generateWeekly, generateHTML } from "../../utils/markdown-generators";
-import { setDueDate } from "../kanban/due-date";
 import { BUILTIN_TEMPLATES } from "../templates/snippets";
 import { defaultTemplateContext, insertExpandedTemplate } from "../templates/template-engine";
 
-	const COMMANDS: SlashCommand[] = [
-	    { id: 'callout', name: '提示块 (Callout)', aliases: ['callout', 'tip', 'tsk'] },
-	    { id: 'codeblock', name: '代码块 (Code Block)', aliases: ['code', 'dmk'] },
-	    { id: 'due', name: '设置截止 (Due Date)', aliases: ['due', 'jz'] },
-	    { id: 'math', name: '数学公式 (Math)', aliases: ['math', 'gs'] },
-	    { id: 'table', name: '插入表格 (Table)', aliases: ['table', 'bg'] },
-	    { id: 'date', name: '当前日期 (Date)', aliases: ['date', 'rq'] },
+// Inline helper for due date (previously from kanban module)
+function setDueDate(line: string, date: string): string {
+    if (!line.trim().startsWith('- [')) return line;
+    const dueRegex = /@due\([^)]+\)/;
+    const dueTag = `@due(${date})`;
+    if (dueRegex.test(line)) {
+        return line.replace(dueRegex, dueTag);
+    } else {
+        return `${line} ${dueTag}`;
+    }
+}
+
+
+
+const COMMANDS: SlashCommand[] = [
+    { id: 'callout', name: '提示块 (Callout)', aliases: ['callout', 'tip', 'tsk'] },
+    { id: 'codeblock', name: '代码块 (Code Block)', aliases: ['code', 'dmk'] },
+    { id: 'due', name: '设置截止 (Due Date)', aliases: ['due', 'jz'] },
+    { id: 'math', name: '数学公式 (Math)', aliases: ['math', 'gs'] },
+    { id: 'table', name: '插入表格 (Table)', aliases: ['table', 'bg'] },
+    { id: 'date', name: '当前日期 (Date)', aliases: ['date', 'rq'] },
     { id: 'time', name: '当前时间 (Time)', aliases: ['time', 'sj'] },
     { id: 'mermaid', name: 'Mermaid 图表 (Mermaid)', aliases: ['mermaid', 'mm'] },
     { id: 'd2', name: 'D2 图表 (D2)', aliases: ['d2'] },
@@ -27,8 +40,8 @@ import { defaultTemplateContext, insertExpandedTemplate } from "../templates/tem
     { id: 'h1', name: '一级标题 (H1)', aliases: ['h1', 'yjbt'] },
     { id: 'h2', name: '二级标题 (H2)', aliases: ['h2', 'ejbt'] },
     { id: 'h3', name: '三级标题 (H3)', aliases: ['h3', 'sjbt'] },
-	    { id: 'quote', name: '引用 (Quote)', aliases: ['quote', 'yy'] },
-	];
+    { id: 'quote', name: '引用 (Quote)', aliases: ['quote', 'yy'] },
+];
 
 export class SlashCommandMenu extends EditorSuggest<SlashCommand> {
     constructor(app: App) {
@@ -38,7 +51,7 @@ export class SlashCommandMenu extends EditorSuggest<SlashCommand> {
     onTrigger(cursor: EditorPosition, editor: Editor, file: TFile | null): EditorSuggestTriggerInfo | null {
         const line = editor.getLine(cursor.line);
         const trigger = shouldTriggerSlashCommand(line, cursor.ch);
-        
+
         if (trigger) {
             return {
                 start: { line: cursor.line, ch: cursor.ch - trigger.query.length - 1 },
@@ -60,29 +73,29 @@ export class SlashCommandMenu extends EditorSuggest<SlashCommand> {
     selectSuggestion(value: SlashCommand, evt: MouseEvent | KeyboardEvent): void {
         if (this.context) {
             const editor = this.context.editor;
-            
+
             // 1. Remove the trigger text (e.g. "/code")
             editor.replaceRange('', this.context.start, this.context.end);
-            
+
             // 2. Execute command
             this.executeCommand(value.id, editor);
         }
     }
-    
-	    private executeCommand(id: string, editor: Editor) {
-	        const cursor = editor.getCursor();
-	        switch (id) {
+
+    private executeCommand(id: string, editor: Editor) {
+        const cursor = editor.getCursor();
+        switch (id) {
             case 'callout':
                 new CalloutTypePicker(this.app, (type) => {
-                     wrapWithCallout(editor, { type });
+                    wrapWithCallout(editor, { type });
                 }).open();
                 break;
-	            case 'codeblock':
-	                wrapWithCodeBlock(editor);
-	                break;
-	            case 'daily':
-	                editor.replaceSelection(generateDaily());
-	                break;
+            case 'codeblock':
+                wrapWithCodeBlock(editor);
+                break;
+            case 'daily':
+                editor.replaceSelection(generateDaily());
+                break;
             case 'weekly':
                 editor.replaceSelection(generateWeekly());
                 break;
@@ -172,7 +185,7 @@ export class SlashCommandMenu extends EditorSuggest<SlashCommand> {
         if (line.trim() === '') {
             editor.setLine(cursor.line, '#'.repeat(level) + ' ');
         } else {
-             editor.setLine(cursor.line, '#'.repeat(level) + ' ' + line);
+            editor.setLine(cursor.line, '#'.repeat(level) + ' ' + line);
         }
         const newLineLen = editor.getLine(cursor.line).length;
         editor.setCursor({ line: cursor.line, ch: newLineLen });

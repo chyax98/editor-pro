@@ -10,9 +10,7 @@ import { handleTableNavigation } from './features/table/table-navigation';
 import { handleBlockNavigation } from './features/formatting/block-navigation';
 import { checkSmartInput } from './features/smart-input/input-handler';
 import { createOverdueHighlighter } from './features/visuals/overdue-highlighter';
-import { BoardView, VIEW_TYPE_BOARD } from './views/board-view';
-import { FlowBoardView, VIEW_TYPE_FLOW_BOARD } from './views/flow-board-view';
-import { DEFAULT_BOARD } from './features/board/board-model';
+
 import { registerInfographicRenderer } from './features/infographic/renderer';
 import { DEFAULT_SETTINGS, EditorProSettings, EditorProSettingTab } from "./settings";
 import { deleteLine, duplicateLine, moveLineDown, moveLineUp, selectLine } from './features/editing/keyshots';
@@ -69,44 +67,7 @@ export default class EditorProPlugin extends Plugin {
     async onload() {
         await this.loadSettings();
 
-        // 注册多维看板视图
-        if (this.settings.enableBoard) {
-            this.safeRegisterView(VIEW_TYPE_BOARD, (leaf) => new BoardView(leaf));
-            this.registerExtensions(['board'], VIEW_TYPE_BOARD);
 
-            // 侧边栏图标：打开项目看板
-            this.addRibbonIcon('layout-dashboard', '打开项目看板', () => {
-                void this.openBoard();
-            });
-
-            this.addCommand({
-                id: 'open-board',
-                name: '打开项目看板（.board）',
-                callback: () => void this.openBoard(),
-            });
-
-            this.addCommand({
-                id: 'recreate-board',
-                name: '重置项目看板文件（删除并重新创建）',
-                callback: () => void this.recreateBoard(),
-            });
-        }
-
-        // 注册文档流看板（Flow board）
-        if (this.settings.enableFlowBoard) {
-            this.safeRegisterView(VIEW_TYPE_FLOW_BOARD, (leaf) => new FlowBoardView(leaf));
-            this.addCommand({
-                id: 'open-flow-board',
-                name: '打开文档流看板 (Flow board)',
-                checkCallback: (checking) => {
-                    const file = this.app.workspace.getActiveFile();
-                    if (!file || file.extension !== 'md') return false;
-                    if (checking) return true;
-                    void this.openFlowBoard(file);
-                    return true;
-                },
-            });
-        }
 
         // --- Editor UX Enhancements (Keyshots) ---
         if (this.settings.enableKeyshots) {
@@ -391,7 +352,7 @@ export default class EditorProPlugin extends Plugin {
                             item.setTitle("包裹为 Callout 提示块")
                                 .setIcon("info")
                                 .onClick(() => {
-                                     new CalloutTypePicker(this.app, (type) => wrapWithCallout(editor, { type })).open();
+                                    new CalloutTypePicker(this.app, (type) => wrapWithCallout(editor, { type })).open();
                                 });
                         });
                     }
@@ -524,7 +485,7 @@ export default class EditorProPlugin extends Plugin {
                 // 2. 自动配对 / 包裹 (Any Char)
                 // 注意：evt.key 可能是 'Enter', 'Tab' 等，PAIR_MAP 查不到会返回 false，安全。
                 if (this.settings.enableSmartTyping && evt.key.length === 1 && !evt.ctrlKey && !evt.metaKey && !evt.altKey) {
-                     if (handleAutoPair(view.editor, evt.key, evt)) return;
+                    if (handleAutoPair(view.editor, evt.key, evt)) return;
                 }
 
                 if (this.settings.enableOutliner) {
@@ -798,142 +759,7 @@ export default class EditorProPlugin extends Plugin {
         await this.saveData(next);
     }
 
-    async openBoard() {
-        const rawPath = this.settings.kanbanFilePath?.trim() || 'Kanban.board';
 
-        let path = rawPath.endsWith('.board')
-            ? rawPath
-            : `${rawPath.replace(/\.md$/i, '')}.board`;
-
-        path = normalizePath(path);
-
-        // Obsidian vault paths must be relative.
-        if (path.startsWith('/') || /^[A-Za-z]:[\\/]/.test(path)) {
-            new Notice('Editor Pro：看板路径必须是库内相对路径（例如：Kanban.board 或 Projects/Kanban.board）');
-            return;
-        }
-
-        try {
-            const folderPath = path.split('/').slice(0, -1).join('/');
-            if (folderPath) await this.ensureFolderExists(folderPath);
-        } catch (e) {
-            const message = e instanceof Error ? e.message : String(e);
-            new Notice(`Editor Pro：创建文件夹失败：${message}`);
-            return;
-        }
-
-        const existing = this.app.vault.getAbstractFileByPath(path);
-        if (existing && !(existing instanceof TFile)) {
-            new Notice(`Editor Pro：看板路径被文件夹占用：${path}`);
-            return;
-        }
-
-        const file = existing instanceof TFile ? existing : null;
-        if (!file) {
-            try {
-                const created = await this.app.vault.create(path, JSON.stringify(DEFAULT_BOARD, null, 2) + "\n");
-                new Notice(`已创建看板: ${path}`);
-
-                const leaf = this.app.workspace.getLeaf(true);
-                try {
-                    await leaf.setViewState({ type: VIEW_TYPE_BOARD, state: { file: created.path }, active: true });
-                } catch {
-                    await leaf.openFile(created, { active: true });
-                }
-                await this.app.workspace.revealLeaf(leaf);
-                return;
-            } catch (e) {
-                const message = e instanceof Error ? e.message : String(e);
-                new Notice(`创建看板失败: ${message}`);
-                return;
-            }
-        }
-
-        const leaf = this.app.workspace.getLeaf(true);
-        try {
-            await leaf.setViewState({ type: VIEW_TYPE_BOARD, state: { file: file.path }, active: true });
-        } catch {
-            await leaf.openFile(file, { active: true });
-        }
-        await this.app.workspace.revealLeaf(leaf);
-    }
-
-    private safeRegisterView(viewType: string, creator: Parameters<Plugin["registerView"]>[1]) {
-        try {
-            this.registerView(viewType, creator);
-        } catch (e) {
-            const message = e instanceof Error ? e.message : String(e);
-            // Obsidian will throw if the view type was registered earlier in the session
-            // (e.g. plugin reload after a crash). Don't fail the whole plugin in that case.
-            const duplicatePatterns = [
-                'Attempting to register an existing view type',
-                'View type already registered',
-            ];
-            if (duplicatePatterns.some(pattern => message.includes(pattern))) {
-                console.warn(`[Editor Pro] View type already registered: ${viewType}`);
-                return;
-            }
-            // For other errors, log but don't crash the plugin
-            console.error(`[Editor Pro] Failed to register view ${viewType}:`, message);
-        }
-    }
-
-    private async openFlowBoard(file: TFile) {
-        const leaf = this.app.workspace.getLeaf(true);
-        await leaf.setViewState({ type: VIEW_TYPE_FLOW_BOARD, state: { file: file.path }, active: true });
-        await this.app.workspace.revealLeaf(leaf);
-    }
-
-    private async recreateBoard() {
-        const rawPath = this.settings.kanbanFilePath?.trim() || 'Kanban.board';
-
-        let path = rawPath.endsWith('.board')
-            ? rawPath
-            : `${rawPath.replace(/\.md$/i, '')}.board`;
-
-        path = normalizePath(path);
-
-        if (path.startsWith('/') || /^[A-Za-z]:[\\/]/.test(path)) {
-            new Notice('Editor Pro：看板路径必须是库内相对路径（例如：Kanban.board 或 Projects/Kanban.board）');
-            return;
-        }
-
-        const existing = this.app.vault.getAbstractFileByPath(path);
-        if (existing instanceof TFolder) {
-            new Notice(`Editor Pro：看板路径被文件夹占用：${path}`);
-            return;
-        }
-
-        if (existing instanceof TFile) {
-            try {
-                await this.app.fileManager.trashFile(existing);
-            } catch (e) {
-                const message = e instanceof Error ? e.message : String(e);
-                new Notice(`Editor Pro：删除旧看板失败：${message}`);
-                return;
-            }
-        }
-
-        try {
-            const folderPath = path.split('/').slice(0, -1).join('/');
-            if (folderPath) await this.ensureFolderExists(folderPath);
-        } catch (e) {
-            const message = e instanceof Error ? e.message : String(e);
-            new Notice(`Editor Pro：创建文件夹失败：${message}`);
-            return;
-        }
-
-        try {
-            await this.app.vault.create(path, JSON.stringify(DEFAULT_BOARD, null, 2) + "\n");
-        } catch (e) {
-            const message = e instanceof Error ? e.message : String(e);
-            new Notice(`Editor Pro：创建看板失败：${message}`);
-            return;
-        }
-
-        new Notice(`Editor Pro：已重置看板：${path}`);
-        await this.openBoard();
-    }
 
     private async ensureFolderExists(folderPath: string) {
         const parts = folderPath.split('/').filter(Boolean);

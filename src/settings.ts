@@ -2,7 +2,6 @@ import { App, PluginSettingTab, Setting } from "obsidian";
 import EditorProPlugin from "./main";
 
 export interface EditorProSettings {
-    enableBoard: boolean;
 
     enableSmartToggle: boolean;
     enableSlashCommand: boolean;
@@ -35,9 +34,10 @@ export interface EditorProSettings {
     enableFocusUi: boolean;
     enableFloatingOutline: boolean;
     enableZoom: boolean;
-    enableFlowBoard: boolean;
+
 
     enableFootnotes: boolean;
+
     enableInlineCalc: boolean;
     enableRandomGenerator: boolean;
 
@@ -47,8 +47,9 @@ export interface EditorProSettings {
     yamlCreatedKey: string;
     yamlUpdatedKey: string;
     yamlDateFormat: string;
-    kanbanFilePath: string;
 }
+
+
 
 export const DEFAULT_SETTINGS: EditorProSettings = {
     // 核心编辑功能（默认开启）
@@ -92,10 +93,8 @@ export const DEFAULT_SETTINGS: EditorProSettings = {
     enableRandomGenerator: false,
     enableSearchInSelection: false,
 
-    // 看板功能（默认关闭）
-    enableBoard: false,
-    enableFlowBoard: false,
     enableInfographicRenderer: false,
+
 
     // 文件列表增强（默认关闭）
     enableInlineDecorator: false,
@@ -105,8 +104,8 @@ export const DEFAULT_SETTINGS: EditorProSettings = {
     yamlCreatedKey: 'created',
     yamlUpdatedKey: 'updated',
     yamlDateFormat: 'YYYY-MM-DD HH:mm',
-    kanbanFilePath: 'Kanban.board'
 }
+
 
 interface SettingItem {
     name: string;
@@ -190,7 +189,7 @@ const SECTIONS: SettingSection[] = [
             { name: '开启界面清理（Focus UI / Zen）', desc: '提供一个命令，用 CSS 隐藏侧边栏/状态栏等界面元素。', key: 'enableFocusUi', type: 'toggle' },
             { name: '开启浮动大纲（Floating outline）', desc: '提供一个命令，弹出极简目录（Esc 关闭）。', key: 'enableFloatingOutline', type: 'toggle' },
             { name: '开启局部聚焦（Heading/List zoom）', desc: '提供命令：聚焦当前标题段落 / 聚焦当前列表块（在弹窗里编辑并应用回原文）。', key: 'enableZoom', type: 'toggle' },
-            { name: '开启文档流看板（Flow board）', desc: '提供命令：用"标题=列、列表块=卡片"的方式重组文章结构。⚠️ 拖拽会直接修改原始文档内容，请谨慎使用。', key: 'enableFlowBoard', type: 'toggle' },
+
         ],
     },
     {
@@ -214,15 +213,14 @@ const SECTIONS: SettingSection[] = [
         ],
     },
     {
-        title: '看板与可视化',
+        title: '可视化',
         icon: '📊',
         settings: [
-            { name: '开启项目看板（.board）', desc: '提供侧边栏看板入口与 `.board` 视图。部分开关需要重载插件生效。', key: 'enableBoard', type: 'toggle' },
-            { name: '看板文件路径', desc: '库内相对路径（例如: Kanban.board 或 Projects/Kanban.board）。点击侧边栏图标将创建/打开此文件。', key: 'kanbanFilePath', type: 'text', placeholder: 'Kanban.board' },
             { name: '开启 Infographic 渲染器', desc: '在预览/阅读模式渲染 ` ```infographic` 代码块。关闭后表示"禁用渲染器"，需要重载插件生效。', key: 'enableInfographicRenderer', type: 'toggle' },
         ],
     },
 ];
+
 
 export class EditorProSettingTab extends PluginSettingTab {
     plugin: EditorProPlugin;

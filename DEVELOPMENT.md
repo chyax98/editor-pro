@@ -331,9 +331,6 @@ npm run test       # 运行测试（需配置 Jest）
 - [Easy Typing](https://github.com/Yaozhuwa/easy-typing-obsidian) - 输入增强
 - [Fuzzy Chinese Pinyin](https://github.com/lazyloong/obsidian-fuzzy-chinese) - 拼音搜索
 
-### 设计文档
-项目 `docs/` 目录下有详细的调研和设计文档：
-- `requirements.md` - 需求清单
-- `dev-pitfalls.md` - 开发避坑
-- `git-repos.md` - 参考仓库列表
-- `research-painpoints.md` - 用户痛点调研
+### 文档
+- `CHANGELOG.md` - 版本变更记录
+- `README.md` - 项目介绍与功能清单
