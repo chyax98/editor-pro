@@ -9,6 +9,16 @@ jest.mock('obsidian', () => ({
     moment: jest.fn(),
 }));
 
+// Mock NLDateParser
+jest.mock('../src/features/nldates/parser', () => ({
+    NLDateParser: {
+        parse: (input: string) => {
+            if (input === 'tomorrow') return { formatted: '2023-01-02' };
+            return null;
+        }
+    }
+}));
+
 // Mock moment implementation for testing
 const mockMomentFn = (dateStr?: string) => {
     return {
@@ -46,6 +56,12 @@ describe('Template Engine', () => {
         const tpl = 'Time: {{time:HH:mm}}';
         const { text } = engine.process(tpl, ctx);
         expect(text).toBe('Time: 12:00');
+    });
+
+    test('replaces natural language date', () => {
+        const tpl = 'Deadline: {{date:tomorrow}}';
+        const { text } = engine.process(tpl, ctx);
+        expect(text).toBe('Deadline: 2023-01-02');
     });
 
     test('executes simple JS', () => {

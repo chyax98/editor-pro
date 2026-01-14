@@ -1,4 +1,4 @@
-import { Editor, MarkdownView, Menu, normalizePath, Notice, Plugin, TFile, TFolder } from 'obsidian';
+import { Editor, MarkdownView, Menu, normalizePath, Notice, Plugin, TFile, TFolder, WorkspaceLeaf } from 'obsidian';
 import { smartToggle } from './features/formatting/smart-toggle';
 import { toggleTask } from './features/formatting/task-toggle';
 import { wrapWithCallout, wrapWithCodeBlock } from './features/callout/wrap-callout';
@@ -12,6 +12,8 @@ import { checkSmartInput } from './features/smart-input/input-handler';
 import { changeCalloutType, toggleCalloutPrefix } from './features/callout/callout-integrator';
 import { setHeading } from './features/formatting/heading-utils';
 import { TemplateModal } from './features/templates/template-modal';
+import { TagRenameModal } from './features/tags/tag-modal';
+import { CalendarView, CALENDAR_VIEW_TYPE } from './views/calendar-view';
 
 import { createOverdueHighlighter } from './features/visuals/overdue-highlighter';
 
@@ -149,12 +151,32 @@ export default class EditorProPlugin extends Plugin {
             this.registerEditorSuggest(new SlashCommandMenu(this.app));
         }
 
+        // 3.01 注册日历视图
+        this.registerView(
+            CALENDAR_VIEW_TYPE,
+            (leaf) => new CalendarView(leaf)
+        );
+
+        // 3.02 Ribbon Icon
+        this.addRibbonIcon('calendar-days', '打开日历 (Editor Pro)', () => {
+            this.activateView();
+        });
+
         // 3.1 模板命令
         this.addCommand({
             id: 'insert-template',
             name: '插入模板 (Insert Template)',
             callback: () => {
                 new TemplateModal(this.app, this).open();
+            },
+        });
+
+        // 3.2 标签管理
+        this.addCommand({
+            id: 'rename-tag',
+            name: '重命名标签 (Rename Tag)',
+            callback: () => {
+                new TagRenameModal(this.app).open();
             },
         });
 
@@ -734,5 +756,27 @@ export default class EditorProPlugin extends Plugin {
             new Notice(`Editor Pro: ${errorMessage}`);
             console.error(`[Editor Pro] ${errorMessage}`, error);
         }
+    }
+
+    async activateView() {
+        const { workspace } = this.app;
+
+        let leaf: WorkspaceLeaf | null = null;
+        const leaves = workspace.getLeavesOfType(CALENDAR_VIEW_TYPE);
+
+        if (leaves.length > 0) {
+            // A leaf with our view already exists, use that
+            leaf = leaves[0]!;
+        } else {
+            // Our view could not be found in the workspace, create a new leaf
+            // Prefer right sidebar
+            const rightLeaf = workspace.getRightLeaf(false);
+            if (rightLeaf) {
+                leaf = rightLeaf;
+                await leaf.setViewState({ type: CALENDAR_VIEW_TYPE, active: true });
+            }
+        }
+
+        if (leaf) workspace.revealLeaf(leaf);
     }
 }

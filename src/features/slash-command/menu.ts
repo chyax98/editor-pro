@@ -8,6 +8,7 @@ import { setHeading } from "../formatting/heading-utils";
 import { generateFencedCodeBlock, generateTable, generateDate, generateMath, generateDaily, generateWeekly, generateHTML } from "../../utils/markdown-generators";
 import { BUILTIN_TEMPLATES } from "../templates/snippets";
 import { TemplateEngine } from "../templates/template-engine";
+import { NLDateParser } from "../nldates/parser";
 
 // Inline helper for due date (previously from kanban module)
 function setDueDate(line: string, date: string): string {
@@ -65,7 +66,20 @@ export class SlashCommandMenu extends EditorSuggest<SlashCommand> {
     }
 
     getSuggestions(context: EditorSuggestContext): SlashCommand[] {
-        return COMMANDS.filter(cmd => matchCommand(context.query, cmd));
+        const query = context.query;
+        const matches = COMMANDS.filter(cmd => matchCommand(query, cmd));
+
+        // Dynamic NLDate
+        const nlRes = NLDateParser.parse(query);
+        if (nlRes) {
+            matches.unshift({
+                id: `dynamic-nldate:${nlRes.formatted}`,
+                name: `插入日期: ${nlRes.formatted} (${nlRes.text})`,
+                aliases: []
+            });
+        }
+
+        return matches;
     }
 
     renderSuggestion(value: SlashCommand, el: HTMLElement): void {
@@ -85,6 +99,12 @@ export class SlashCommandMenu extends EditorSuggest<SlashCommand> {
     }
 
     private executeCommand(id: string, editor: Editor) {
+        if (id.startsWith('dynamic-nldate:')) {
+            const dateStr = id.split(':')[1] || '';
+            editor.replaceSelection(dateStr);
+            return;
+        }
+
         const cursor = editor.getCursor();
         switch (id) {
             case 'callout':

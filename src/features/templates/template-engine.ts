@@ -1,4 +1,5 @@
 import { App, Editor, TFile, moment } from "obsidian";
+import { NLDateParser } from "../nldates/parser";
 
 export interface TemplateContext {
 	app: App;
@@ -55,6 +56,13 @@ export class TemplateEngine {
 			if (raw.startsWith('date:') || raw.startsWith('time:') || raw.startsWith('now:')) {
 				const parts = raw.split(':');
 				const format = parts.slice(1).join(':');
+
+				// Try Natural Language Date
+				const nl = NLDateParser.parse(format);
+				if (nl) {
+					return nl.formatted;
+				}
+
 				return moment().format(format);
 			}
 
