@@ -10,6 +10,7 @@ import { handleTableNavigation } from './features/table/table-navigation';
 import { handleBlockNavigation } from './features/formatting/block-navigation';
 import { checkSmartInput } from './features/smart-input/input-handler';
 import { changeCalloutType, toggleCalloutPrefix } from './features/callout/callout-integrator';
+import { setHeading } from './features/formatting/heading-utils';
 
 import { createOverdueHighlighter } from './features/visuals/overdue-highlighter';
 
@@ -153,7 +154,7 @@ export default class EditorProPlugin extends Plugin {
                 this.addCommand({
                     id: `set-heading-${i}`,
                     name: `设为 ${i} 级标题`,
-                    editorCallback: (editor: Editor) => this.setHeading(editor, i),
+                    editorCallback: (editor: Editor) => setHeading(editor, i),
                 });
             }
         }
@@ -705,12 +706,7 @@ export default class EditorProPlugin extends Plugin {
         }
     }
 
-    private setHeading(editor: Editor, level: number) {
-        const cursor = editor.getCursor();
-        const line = editor.getLine(cursor.line);
-        const content = line.replace(/^#+\s?/, '');
-        editor.setLine(cursor.line, '#'.repeat(level) + ' ' + content);
-    }
+
 
     private safeExecute(action: () => void, errorMessage: string = '操作失败') {
         try {

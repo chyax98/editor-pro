@@ -30,6 +30,12 @@
     *   **Callout 增强**：
         - 新增命令 `Callout：切换 > 前缀` (Toggle Blockquote)：一键为选区或当前行添加/移除 `>` 前缀，极好地解决了 Callout 内部编辑的痛点。
         - 新增命令 `Callout：修改类型` (Change Type)：在 Callout 内直接切换类型（如将 Note 改为 Warning）。
+    *   **代码审查与清理**:
+        - 系统性审查了所有功能的实现规范。
+        - 提取了公共逻辑 `heading-utils.ts` 和 `callout-integrator.ts`。
+        - 移除了冗余的 Naive 拼音匹配实现，改用配置明确的 Aliases。
+        - 移除了已弃用的配置项（如 Table Ops）。
+
 
 
 

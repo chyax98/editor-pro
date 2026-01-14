@@ -6,7 +6,16 @@ import { CalloutTypePicker } from "./callout-picker";
  * - 如果选区所有行都以 `> ` 开头，则移除
  * - 否则，给所有行添加 `> `
  */
-export function toggleCalloutPrefix(editor: Editor) {
+// Alias for toggleBlockquote (legacy)
+export const toggleCalloutPrefix = toggleBlockquote;
+
+/**
+ * 切换引用块前缀 (Toggle >)
+ * - 如果选区所有行都以 `> ` 开头，则移除
+ * - 否则，给所有行添加 `> `
+ */
+export function toggleBlockquote(editor: Editor) {
+
     const selection = editor.getSelection();
 
     if (selection) {

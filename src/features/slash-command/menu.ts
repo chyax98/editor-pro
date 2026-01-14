@@ -2,6 +2,8 @@ import { App, Editor, EditorPosition, EditorSuggest, EditorSuggestContext, Edito
 import { SlashCommand, shouldTriggerSlashCommand, matchCommand } from "./utils";
 import { wrapWithCallout, wrapWithCodeBlock } from "../callout/wrap-callout";
 import { CalloutTypePicker } from "../callout/callout-picker";
+import { toggleBlockquote } from "../callout/callout-integrator";
+import { setHeading } from "../formatting/heading-utils";
 
 import { generateFencedCodeBlock, generateTable, generateDate, generateMath, generateDaily, generateWeekly, generateHTML } from "../../utils/markdown-generators";
 import { BUILTIN_TEMPLATES } from "../templates/snippets";
@@ -132,10 +134,7 @@ export class SlashCommandMenu extends EditorSuggest<SlashCommand> {
                 editor.setCursor({ line: cursor.line + 1, ch: 0 });
                 break;
             case 'quote': {
-                const line = editor.getLine(cursor.line);
-                editor.setLine(cursor.line, '> ' + line);
-                // Move cursor to end of line
-                editor.setCursor({ line: cursor.line, ch: editor.getLine(cursor.line).length });
+                toggleBlockquote(editor);
                 break;
             }
             case 'table':
@@ -168,26 +167,14 @@ export class SlashCommandMenu extends EditorSuggest<SlashCommand> {
                 editor.setCursor({ line: cursor.line + 1, ch: 0 });
                 break;
             case 'h1':
-                this.setHeading(editor, 1);
+                setHeading(editor, 1);
                 break;
             case 'h2':
-                this.setHeading(editor, 2);
+                setHeading(editor, 2);
                 break;
             case 'h3':
-                this.setHeading(editor, 3);
+                setHeading(editor, 3);
                 break;
         }
-    }
-
-    private setHeading(editor: Editor, level: number) {
-        const cursor = editor.getCursor();
-        const line = editor.getLine(cursor.line);
-        if (line.trim() === '') {
-            editor.setLine(cursor.line, '#'.repeat(level) + ' ');
-        } else {
-            editor.setLine(cursor.line, '#'.repeat(level) + ' ' + line);
-        }
-        const newLineLen = editor.getLine(cursor.line).length;
-        editor.setCursor({ line: cursor.line, ch: newLineLen });
     }
 }
