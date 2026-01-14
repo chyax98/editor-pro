@@ -47,6 +47,9 @@ export interface EditorProSettings {
     yamlCreatedKey: string;
     yamlUpdatedKey: string;
     yamlDateFormat: string;
+
+    // 模板设置
+    templateFolderPath: string;
 }
 
 
@@ -104,6 +107,9 @@ export const DEFAULT_SETTINGS: EditorProSettings = {
     yamlCreatedKey: 'created',
     yamlUpdatedKey: 'updated',
     yamlDateFormat: 'YYYY-MM-DD HH:mm',
+
+    // 模板配置
+    templateFolderPath: 'Templates',
 }
 
 
@@ -210,6 +216,7 @@ const SECTIONS: SettingSection[] = [
             { name: '开启文件树高亮（File tree highlight）', desc: '提供命令：为文件/文件夹加高亮标记（用于项目文件夹）。', key: 'enableFileTreeHighlight', type: 'toggle' },
             { name: '开启 YAML 自动更新', desc: '自动维护笔记的 "创建时间" 和 "修改时间" 元数据（Frontmatter）。⚠️ 会自动修改文件内容，与 SaveCleaner 同时使用可能产生冲突。', key: 'enableYaml', type: 'toggle' },
             { name: 'YAML 日期格式', desc: '时间戳的显示格式 (例如: YYYY-MM-DD HH:mm)。', key: 'yamlDateFormat', type: 'text', placeholder: 'YYYY-MM-DD HH:mm' },
+            { name: '模板文件夹路径', desc: '存放用户自定义模板的文件夹路径（例如 "Templates"）。', key: 'templateFolderPath', type: 'text', placeholder: 'Templates' },
         ],
     },
     {

@@ -7,7 +7,7 @@ import { setHeading } from "../formatting/heading-utils";
 
 import { generateFencedCodeBlock, generateTable, generateDate, generateMath, generateDaily, generateWeekly, generateHTML } from "../../utils/markdown-generators";
 import { BUILTIN_TEMPLATES } from "../templates/snippets";
-import { defaultTemplateContext, insertExpandedTemplate } from "../templates/template-engine";
+import { TemplateEngine } from "../templates/template-engine";
 
 // Inline helper for due date (previously from kanban module)
 function setDueDate(line: string, date: string): string {
@@ -105,17 +105,9 @@ export class SlashCommandMenu extends EditorSuggest<SlashCommand> {
                 {
                     const tpl = BUILTIN_TEMPLATES.find((t) => t.id === id);
                     if (tpl) {
-                        const activeFile = this.app.workspace.getActiveFile();
-                        const fileName = activeFile?.basename ?? 'untitled';
-                        const context = defaultTemplateContext(fileName);
-                        if (context) {
-                            insertExpandedTemplate(editor, tpl.template, context);
-                        } else {
-                            // Fallback: insert template as-is
-                            editor.replaceSelection(tpl.template);
-                        }
-                        break;
+                        new TemplateEngine(this.app).insert(editor, tpl.template);
                     }
+                    break;
                 }
                 break;
             case 'html':

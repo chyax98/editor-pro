@@ -373,6 +373,44 @@ src/
 - Mock：`__mocks__/obsidian.ts`
 - 重点测试 smartToggle 的边界情况（跨行选中、嵌套标记等）
 
+## 功能收敛计划
+
+以下功能计划逐步整合到 Editor Pro，以替代现有插件：
+
+### 待实现功能
+
+| 功能 | 替代插件 | 优先级 | 复杂度 |
+|------|---------|-------|--------|
+| **模板引擎** | templater-obsidian | P1 | 中 |
+| 支持变量插值 `{{date}}`、脚本执行、模板文件夹管理 | | | |
+| **日历视图** | calendar | P2 | 高 |
+| 周视图/月视图、每日笔记关联、日程展示 | | | |
+| **自然语言日期** | nldates-obsidian | P1 | 低 |
+| 解析 "今天下周三"、"3天后" 等输入 | | | |
+| **标签管理** | tag-wrangler | P2 | 中 |
+| 标签重命名/合并、批量操作、标签面板 | | | |
+| **样式管理** | obsidian-style-settings | P2 | 高 |
+| CSS 变量可视化编辑、主题切换、颜色预设 | | | |
+
+### 已替代功能（已完成）
+
+| 功能 | 原插件 | 实现位置 |
+|------|--------|---------|
+| Outliner | obsidian-outliner | `src/features/editor/` |
+| URL into selection | url-into-selection | `src/features/paste/` |
+| Auto link title | obsidian-auto-link-title | `src/features/paste/` |
+| Smart typing | easy-typing-obsidian | `src/features/editor/` |
+| Callout manager | callout-manager | `src/features/callout/` |
+| Zoom | obsidian-zoom | `src/features/visuals/` |
+| Linter (基础) | obsidian-linter | `src/features/formatting/` |
+
+### 实现策略
+
+1. **模板引擎**：参考 Templater 核心功能，简化为常用场景（日期时间、文件名、属性变量）
+2. **自然语言日期**：集成到斜杠命令中，输入 `/今天` 自动展开
+3. **标签管理**：先实现批量重命名，再扩展到标签面板
+4. **日历视图**：作为视图扩展（View），而非独立插件
+
 ## 详细文档
 
 更多细节见 `docs/` 目录（软链接到笔记库的设计文档）和 `DEVELOPMENT.md`。

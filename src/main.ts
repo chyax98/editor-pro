@@ -11,6 +11,7 @@ import { handleBlockNavigation } from './features/formatting/block-navigation';
 import { checkSmartInput } from './features/smart-input/input-handler';
 import { changeCalloutType, toggleCalloutPrefix } from './features/callout/callout-integrator';
 import { setHeading } from './features/formatting/heading-utils';
+import { TemplateModal } from './features/templates/template-modal';
 
 import { createOverdueHighlighter } from './features/visuals/overdue-highlighter';
 
@@ -147,6 +148,15 @@ export default class EditorProPlugin extends Plugin {
         if (this.settings.enableSlashCommand) {
             this.registerEditorSuggest(new SlashCommandMenu(this.app));
         }
+
+        // 3.1 模板命令
+        this.addCommand({
+            id: 'insert-template',
+            name: '插入模板 (Insert Template)',
+            callback: () => {
+                new TemplateModal(this.app, this).open();
+            },
+        });
 
         // 4. 标题快捷键
         if (this.settings.enableHeadingHotkeys) {
