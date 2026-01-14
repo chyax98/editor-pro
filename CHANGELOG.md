@@ -25,6 +25,12 @@
 4.  **文档清理**:
     *   删除了 `docs/` 和 `repo-docs/` 目录（过时的开发计划/调研/状态文档）
     *   核心文档收敛至：`README.md`（功能介绍）、`CHANGELOG.md`（变更记录）、`DEVELOPMENT.md`（开发指南）
+5.  **重构与增强**:
+    *   **移除表格操作**：移除了 Advanced Tables Lite 功能，建议用户直接使用功能更强大的 Advanced Tables 插件。
+    *   **Callout 增强**：
+        - 新增命令 `Callout：切换 > 前缀` (Toggle Blockquote)：一键为选区或当前行添加/移除 `>` 前缀，极好地解决了 Callout 内部编辑的痛点。
+        - 新增命令 `Callout：修改类型` (Change Type)：在 Callout 内直接切换类型（如将 Note 改为 Warning）。
+
 
 
 

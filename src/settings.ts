@@ -16,7 +16,7 @@ export interface EditorProSettings {
     enableSmartInput: boolean;
     enableEditorNavigation: boolean;
     enableOutliner: boolean;
-    enableTableOps: boolean;
+
     enableOverdueHighlighter: boolean;
     enableInfographicRenderer: boolean;
     enableSmartImagePaste: boolean;
@@ -58,7 +58,7 @@ export const DEFAULT_SETTINGS: EditorProSettings = {
     enableSmartTyping: true,
     enableEditorNavigation: true,
     enableOutliner: true,
-    enableTableOps: true,
+
     enableTaskHotkeys: true,
     enableHeadingHotkeys: true,
     enableContextMenu: true,
@@ -129,9 +129,9 @@ const SECTIONS: SettingSection[] = [
         settings: [
             { name: '开启键盘行操作（Keyshots）', desc: '提供上移/下移/复制/删除/选中当前行等命令（需在 **Settings → Hotkeys** 绑定）。', key: 'enableKeyshots', type: 'toggle' },
             { name: '开启输入增强（自动配对/智能退格/中英空格）', desc: '自动配对括号与引号；在 `(|)` 中退格删除一对；中英混排自动加空格。', key: 'enableSmartTyping', type: 'toggle' },
-            { name: '开启编辑器导航增强（表格 Tab + Shift+Enter 跳出）', desc: '表格单元格 Tab/Shift+Tab 跳转；引用/Callout 内 Shift+Enter 快速跳出。', key: 'enableEditorNavigation', type: 'toggle' },
+            { name: '开启编辑器导航增强（表格 Tab + Shift+Enter 跳出）', desc: '表格单元格 Tab/Shift+Tab 跳转；引用/Callout 内 Shift+Enter 快速跳出。ℹ️ 表格操作建议使用 Advanced Tables 插件。', key: 'enableEditorNavigation', type: 'toggle' },
             { name: '开启大纲编辑（Outliner）', desc: '在列表项上使用 Tab/Shift+Tab 缩进/反缩进；提供折叠命令。', key: 'enableOutliner', type: 'toggle' },
-            { name: '开启表格操作（Advanced Tables Lite）', desc: '提供表格列插入/删除、对齐、格式化等命令与右键入口（不自动改写）。', key: 'enableTableOps', type: 'toggle' },
+
         ],
     },
     {

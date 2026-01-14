@@ -9,6 +9,8 @@ import { YamlManager } from './features/yaml/auto-update';
 import { handleTableNavigation } from './features/table/table-navigation';
 import { handleBlockNavigation } from './features/formatting/block-navigation';
 import { checkSmartInput } from './features/smart-input/input-handler';
+import { changeCalloutType, toggleCalloutPrefix } from './features/callout/callout-integrator';
+
 import { createOverdueHighlighter } from './features/visuals/overdue-highlighter';
 
 import { registerInfographicRenderer } from './features/infographic/renderer';
@@ -18,7 +20,7 @@ import { handleAutoPair, handleSmartBackspace, handleSmartSpacing } from './feat
 import { smartPasteUrlIntoSelection } from './features/editing/smart-paste-url';
 import { createTypewriterScrollExtension } from './features/editing/typewriter-mode';
 import { handleOutlinerIndent, toggleFold } from './features/editing/outliner';
-import { applyTableOp } from './features/table/table-ops';
+
 import { handleSmartImagePaste } from './features/editing/smart-image-paste';
 import { extractTitleFromClipboardHtml, fetchPageTitle, isHttpUrl } from './features/editing/smart-link-title';
 import { CursorMemoryManager, CursorMemoryState } from './features/navigation/cursor-memory';
@@ -128,6 +130,17 @@ export default class EditorProPlugin extends Plugin {
             id: 'wrap-codeblock', name: '转为代码块',
             editorCallback: (editor: Editor) => wrapWithCodeBlock(editor),
         });
+        this.addCommand({
+            id: 'toggle-callout-prefix',
+            name: 'Callout：切换 > 前缀 (Toggle Blockquote)',
+            editorCallback: (editor: Editor) => toggleCalloutPrefix(editor),
+        });
+        this.addCommand({
+            id: 'change-callout-type',
+            name: 'Callout：修改类型 (Change Type)',
+            editorCallback: (editor: Editor) => changeCalloutType(editor, this.app),
+        });
+
 
         // 3. 斜杠命令
         if (this.settings.enableSlashCommand) {
@@ -285,58 +298,7 @@ export default class EditorProPlugin extends Plugin {
             });
         }
 
-        // 5.2 表格操作（Advanced Tables Lite）
-        if (this.settings.enableTableOps) {
-            this.addCommand({
-                id: 'table-insert-column-left',
-                name: '表格：在当前列左侧插入列',
-                editorCallback: (editor: Editor) => {
-                    applyTableOp(editor, { type: 'insert-col', side: 'left' });
-                },
-            });
-            this.addCommand({
-                id: 'table-insert-column-right',
-                name: '表格：在当前列右侧插入列',
-                editorCallback: (editor: Editor) => {
-                    applyTableOp(editor, { type: 'insert-col', side: 'right' });
-                },
-            });
-            this.addCommand({
-                id: 'table-delete-column',
-                name: '表格：删除当前列',
-                editorCallback: (editor: Editor) => {
-                    applyTableOp(editor, { type: 'delete-col' });
-                },
-            });
-            this.addCommand({
-                id: 'table-align-left',
-                name: '表格：当前列左对齐',
-                editorCallback: (editor: Editor) => {
-                    applyTableOp(editor, { type: 'align-col', align: 'left' });
-                },
-            });
-            this.addCommand({
-                id: 'table-align-center',
-                name: '表格：当前列居中',
-                editorCallback: (editor: Editor) => {
-                    applyTableOp(editor, { type: 'align-col', align: 'center' });
-                },
-            });
-            this.addCommand({
-                id: 'table-align-right',
-                name: '表格：当前列右对齐',
-                editorCallback: (editor: Editor) => {
-                    applyTableOp(editor, { type: 'align-col', align: 'right' });
-                },
-            });
-            this.addCommand({
-                id: 'table-format',
-                name: '表格：格式化当前表格',
-                editorCallback: (editor: Editor) => {
-                    applyTableOp(editor, { type: 'format' });
-                },
-            });
-        }
+
 
         // 6. 右键菜单集成
         if (this.settings.enableContextMenu) {
@@ -396,44 +358,7 @@ export default class EditorProPlugin extends Plugin {
                                 });
                         });
 
-                        if (this.settings.enableTableOps) {
-                            menu.addSeparator();
-                            menu.addItem((item) => {
-                                item.setTitle("表格：插入列（左）")
-                                    .setIcon("table")
-                                    .onClick(() => applyTableOp(editor, { type: 'insert-col', side: 'left' }));
-                            });
-                            menu.addItem((item) => {
-                                item.setTitle("表格：插入列（右）")
-                                    .setIcon("table")
-                                    .onClick(() => applyTableOp(editor, { type: 'insert-col', side: 'right' }));
-                            });
-                            menu.addItem((item) => {
-                                item.setTitle("表格：删除列")
-                                    .setIcon("table")
-                                    .onClick(() => applyTableOp(editor, { type: 'delete-col' }));
-                            });
-                            menu.addItem((item) => {
-                                item.setTitle("表格：列左对齐")
-                                    .setIcon("table")
-                                    .onClick(() => applyTableOp(editor, { type: 'align-col', align: 'left' }));
-                            });
-                            menu.addItem((item) => {
-                                item.setTitle("表格：列居中")
-                                    .setIcon("table")
-                                    .onClick(() => applyTableOp(editor, { type: 'align-col', align: 'center' }));
-                            });
-                            menu.addItem((item) => {
-                                item.setTitle("表格：列右对齐")
-                                    .setIcon("table")
-                                    .onClick(() => applyTableOp(editor, { type: 'align-col', align: 'right' }));
-                            });
-                            menu.addItem((item) => {
-                                item.setTitle("表格：格式化")
-                                    .setIcon("table")
-                                    .onClick(() => applyTableOp(editor, { type: 'format' }));
-                            });
-                        }
+
                     }
                 })
             );
