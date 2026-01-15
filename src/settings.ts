@@ -19,7 +19,11 @@ export interface EditorProSettings {
 
     enableOverdueHighlighter: boolean;
     enableInfographicRenderer: boolean;
+    enableVegaLite: boolean;
+    enableGraphviz: boolean;
+    enableECharts: boolean;
     enableSmartImagePaste: boolean;
+    enableAutoDownloadImages: boolean; // Auto download remote images
     enableSmartLinkTitle: boolean;
     enableSmartLinkTitleNetwork: boolean;
     enableCursorMemory: boolean;
@@ -78,6 +82,7 @@ export const DEFAULT_SETTINGS: EditorProSettings = {
     enableSmartLinkTitle: false,
     enableSmartLinkTitleNetwork: false,
     enableSmartImagePaste: false,
+    enableAutoDownloadImages: false,
     enableTypewriterScroll: false,
     enableCursorMemory: false,
     enableMagicInput: false,
@@ -97,6 +102,9 @@ export const DEFAULT_SETTINGS: EditorProSettings = {
     enableSearchInSelection: false,
 
     enableInfographicRenderer: false,
+    enableVegaLite: false,
+    enableGraphviz: false,
+    enableECharts: false,
 
 
     // 文件列表增强（默认关闭）
@@ -135,7 +143,7 @@ const SECTIONS: SettingSection[] = [
         settings: [
             { name: '开启键盘行操作（Keyshots）', desc: '提供上移/下移/复制/删除/选中当前行等命令（需在 **Settings → Hotkeys** 绑定）。', key: 'enableKeyshots', type: 'toggle' },
             { name: '开启输入增强（自动配对/智能退格/中英空格）', desc: '自动配对括号与引号；在 `(|)` 中退格删除一对；中英混排自动加空格。', key: 'enableSmartTyping', type: 'toggle' },
-            { name: '开启编辑器导航增强（表格 Tab + Shift+Enter 跳出）', desc: '表格单元格 Tab/Shift+Tab 跳转；引用/Callout 内 Shift+Enter 快速跳出。ℹ️ 表格操作建议使用 Advanced Tables 插件。', key: 'enableEditorNavigation', type: 'toggle' },
+            { name: '开启编辑器导航增强（Shift+Enter 跳出）', desc: '引用/Callout 内 Shift+Enter 快速跳出。', key: 'enableEditorNavigation', type: 'toggle' },
             { name: '开启大纲编辑（Outliner）', desc: '在列表项上使用 Tab/Shift+Tab 缩进/反缩进；提供折叠命令。', key: 'enableOutliner', type: 'toggle' },
 
         ],
@@ -167,6 +175,7 @@ const SECTIONS: SettingSection[] = [
             { name: '开启链接智能粘贴（自动标题）', desc: '粘贴 URL 时尽量获取标题并插入 Markdown 链接；优先使用剪贴板 HTML，不联网。', key: 'enableSmartLinkTitle', type: 'toggle' },
             { name: '允许联网抓取网页标题', desc: '当剪贴板没有标题时，尝试联网请求网页并读取 `<title>`；失败会降级为纯 URL。⚠️ 需要网络访问，已阻止内网地址保护隐私。', key: 'enableSmartLinkTitleNetwork', type: 'toggle' },
             { name: '开启图片智能粘贴（重命名归档）', desc: '粘贴图片时按"笔记名+时间戳"重命名，并按 Obsidian 的附件规则写入文件，再插入 `![[...]]`。', key: 'enableSmartImagePaste', type: 'toggle' },
+            { name: '开启自动下载远程图片', desc: '粘贴包含远程图片链接的文本时，自动将其下载到本地并替换链接。', key: 'enableAutoDownloadImages', type: 'toggle' },
         ],
     },
     {
@@ -223,7 +232,10 @@ const SECTIONS: SettingSection[] = [
         title: '可视化',
         icon: '📊',
         settings: [
-            { name: '开启 Infographic 渲染器', desc: '在预览/阅读模式渲染 ` ```infographic` 代码块。关闭后表示"禁用渲染器"，需要重载插件生效。', key: 'enableInfographicRenderer', type: 'toggle' },
+            { name: '开启 Infographic 渲染器', desc: '在预览/阅读模式渲染 ` ```infographic` 代码块。', key: 'enableInfographicRenderer', type: 'toggle' },
+            { name: '开启 Vega-Lite 统计图表', desc: '在预览/阅读模式渲染 ` ```vega-lite` 代码块（基于 vega-embed）。', key: 'enableVegaLite', type: 'toggle' },
+            { name: '开启 Graphviz 关系图', desc: '在预览/阅读模式渲染 ` ```graphviz` 代码块（基于 @hpcc-js/wasm）。', key: 'enableGraphviz', type: 'toggle' },
+            { name: '开启 ECharts 交互图表', desc: '在预览/阅读模式渲染 ` ```echarts` 代码块。', key: 'enableECharts', type: 'toggle' },
         ],
     },
 ];

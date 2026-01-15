@@ -34,8 +34,13 @@
 		"@antv/infographic": "^0.2.7",
 		"@codemirror/state": "6.5.0",
 		"@codemirror/view": "6.38.6",
+		"@hpcc-js/wasm": "^2.32.2",
+		"echarts": "^6.0.0",
 		"obsidian": "latest",
 		"react": "^19.2.3",
-		"react-dom": "^19.2.3"
+		"react-dom": "^19.2.3",
+		"vega": "^6.2.0",
+		"vega-embed": "^7.1.0",
+		"vega-lite": "^6.4.2"
 	}
 }

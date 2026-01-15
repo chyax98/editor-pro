@@ -6,7 +6,6 @@ import { CalloutTypePicker } from './features/callout/callout-picker';
 import { SlashCommandMenu } from './features/slash-command/menu';
 import { insertRow } from './utils/markdown-generators';
 import { YamlManager } from './features/yaml/auto-update';
-import { handleTableNavigation } from './features/table/table-navigation';
 import { handleBlockNavigation } from './features/formatting/block-navigation';
 import { checkSmartInput } from './features/smart-input/input-handler';
 import { changeCalloutType, toggleCalloutPrefix } from './features/callout/callout-integrator';
@@ -18,6 +17,7 @@ import { CalendarView, CALENDAR_VIEW_TYPE } from './views/calendar-view';
 import { createOverdueHighlighter } from './features/visuals/overdue-highlighter';
 
 import { registerInfographicRenderer } from './features/infographic/renderer';
+import { registerChartRenderers } from './features/charts/chart-renderer';
 import { DEFAULT_SETTINGS, EditorProSettings, EditorProSettingTab } from "./settings";
 import { deleteLine, duplicateLine, moveLineDown, moveLineUp, selectLine } from './features/editing/keyshots';
 import { handleAutoPair, handleSmartBackspace, handleSmartSpacing } from './features/editing/smart-typography';
@@ -42,6 +42,7 @@ import { inlineCalcReplaceSelection } from './features/editing/inline-calc';
 import { insertDiceRollPrompt, insertRandomIntPrompt, insertUuid } from './features/editing/random-generator';
 import { InlineDecorator } from './features/ui/inline-decorator';
 import { FileTreeHighlightManager, HighlightColor } from './features/ui/file-tree-highlight';
+import { RemoteImageTaskScheduler } from './features/editing/remote-image-scheduler';
 
 function isRecord(value: unknown): value is Record<string, unknown> {
     return typeof value === 'object' && value !== null;
@@ -66,9 +67,10 @@ export default class EditorProPlugin extends Plugin {
     private cursorMemoryInitial: Record<string, CursorMemoryState> | undefined;
     private focusUi: FocusUiManager | null = null;
     private floatingOutline: FloatingOutline | null = null;
-    private inlineDecorator: InlineDecorator | null = null;
-    private fileTreeHighlightManager: FileTreeHighlightManager | null = null;
-    private fileTreeHighlights: Record<string, HighlightColor> = {};
+    inlineDecorator: InlineDecorator | null = null;
+    fileTreeHighlightManager: FileTreeHighlightManager | null = null;
+    fileTreeHighlights: Record<string, HighlightColor> = {};
+    remoteImageScheduler: RemoteImageTaskScheduler;
 
     async onload() {
         await this.loadSettings();
@@ -98,6 +100,18 @@ export default class EditorProPlugin extends Plugin {
                 editorCallback: (editor: Editor) => selectLine(editor)
             });
         }
+
+        // 0.5 远程图片下载
+        this.remoteImageScheduler = new RemoteImageTaskScheduler(this.app);
+        this.addCommand({
+            id: 'download-remote-images',
+            name: '下载当前笔记中的远程图片 (Download remote images)',
+            editorCallback: (editor: Editor, ctx) => {
+                if (ctx.file) {
+                    void this.remoteImageScheduler.scanAndSchedule(editor, ctx.file);
+                }
+            },
+        });
 
         // 1. 智能格式切换
         if (this.settings.enableSmartToggle) {
@@ -451,7 +465,6 @@ export default class EditorProPlugin extends Plugin {
                 }
 
                 if (this.settings.enableEditorNavigation) {
-                    handleTableNavigation(evt, view.editor);
                     handleBlockNavigation(evt, view.editor);
                 }
             }
@@ -547,6 +560,9 @@ export default class EditorProPlugin extends Plugin {
         if (this.settings.enableInfographicRenderer) {
             registerInfographicRenderer(this);
         }
+
+        // 11.1 可视化图表渲染器 (Vega-Lite, Graphviz, ECharts)
+        registerChartRenderers(this);
 
         // 12. 最近文件 HUD
         if (this.settings.enableQuickHud) {
