@@ -18,11 +18,10 @@ export class TagRenameModal extends FuzzySuggestModal<string> {
         return item;
     }
 
-    onChooseItem(item: string, evt: MouseEvent | KeyboardEvent): void {
-        // Tag Selected. Open Input Modal for new name.
-        new InputModal(this.app, item, async (newName) => {
-            if (newName && newName !== item) {
-                await this.tagManager.renameTag(item, newName);
+    onChooseItem(tag: string, evt: MouseEvent | KeyboardEvent) {
+        new InputModal(this.app, tag, async (newTag) => {
+            if (newTag && newTag !== tag) {
+                await this.tagManager.renameTag(tag, newTag);
             }
         }).open();
     }

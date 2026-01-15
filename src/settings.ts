@@ -124,6 +124,7 @@ export const DEFAULT_SETTINGS: EditorProSettings = {
 interface SettingItem {
     name: string;
     desc: string;
+    longDesc?: string; // 详细说明（可折叠）
     key: keyof EditorProSettings;
     type: 'toggle' | 'text';
     placeholder?: string;
@@ -154,7 +155,13 @@ const SECTIONS: SettingSection[] = [
         settings: [
             { name: '开启智能格式切换', desc: '智能处理加粗、斜体、行内代码（按下快捷键时，若光标在标记内则自动取消，避免符号叠加）。', key: 'enableSmartToggle', type: 'toggle' },
             { name: '开启文本转换器（Text transformer）', desc: '提供大小写/排序/去空行等转换命令，并可在右键菜单中使用。', key: 'enableTextTransformer', type: 'toggle' },
-            { name: '开启保存时清理（Save cleaner）', desc: '保存时自动移除行尾空格，并确保文件以换行符结尾（尽量低侵入）。⚠️ 注意：与 YAML 自动更新同时使用可能产生冲突。', key: 'enableSaveCleaner', type: 'toggle' },
+            { 
+                name: '开启保存时清理（Save cleaner）', 
+                desc: '保存时自动移除行尾空格，并确保文件以换行符结尾（尽量低侵入）。⚠️ 注意：与 YAML 自动更新同时使用可能产生冲突。', 
+                longDesc: '此功能会在文件保存（Ctrl+S）时触发。\n它会扫描每一行，移除末尾多余的空白字符，并确保文件最后一行是空行（POSIX 标准）。\n\n冲突警告：\n如果同时开启了 "YAML 自动更新" 或其他会在保存时修改文件的插件（如 Linter），可能会导致竞争冲突（文件被多次写入）。建议排查是否与其他插件功能重叠。',
+                key: 'enableSaveCleaner', 
+                type: 'toggle' 
+            },
         ],
     },
     {
@@ -173,9 +180,21 @@ const SECTIONS: SettingSection[] = [
         settings: [
             { name: '开启智能粘贴链接', desc: '选中文字后粘贴 URL，将自动变为 Markdown 链接（例如：选中 "Obsidian" 后粘贴 https://... -> [Obsidian](https://...)）。', key: 'enableSmartPasteUrl', type: 'toggle' },
             { name: '开启链接智能粘贴（自动标题）', desc: '粘贴 URL 时尽量获取标题并插入 Markdown 链接；优先使用剪贴板 HTML，不联网。', key: 'enableSmartLinkTitle', type: 'toggle' },
-            { name: '允许联网抓取网页标题', desc: '当剪贴板没有标题时，尝试联网请求网页并读取 `<title>`；失败会降级为纯 URL。⚠️ 需要网络访问，已阻止内网地址保护隐私。', key: 'enableSmartLinkTitleNetwork', type: 'toggle' },
+            { 
+                name: '允许联网抓取网页标题', 
+                desc: '当剪贴板没有标题时，尝试联网请求网页并读取 `<title>`；失败会降级为纯 URL。⚠️ 需要网络访问，已阻止内网地址保护隐私。', 
+                longDesc: '工作原理：\n插件会发送 HTTP GET 请求到目标 URL，解析返回的 HTML 寻找 <title> 标签。\n\n隐私与安全：\n1. 请求直接从您的本地机器发出，不经过任何中间服务器。\n2. 已内置黑名单，禁止请求局域网 IP（如 192.168.x.x, 127.0.0.1）以防止 SSRF 攻击。\n3. 部分网站（如 Twitter/X）可能需要 cookies 或有反爬虫机制，可能无法获取标题。',
+                key: 'enableSmartLinkTitleNetwork', 
+                type: 'toggle' 
+            },
             { name: '开启图片智能粘贴（重命名归档）', desc: '粘贴图片时按"笔记名+时间戳"重命名，并按 Obsidian 的附件规则写入文件，再插入 `![[...]]`。', key: 'enableSmartImagePaste', type: 'toggle' },
-            { name: '开启自动下载远程图片', desc: '粘贴包含远程图片链接的文本时，自动将其下载到本地并替换链接。', key: 'enableAutoDownloadImages', type: 'toggle' },
+            { 
+                name: '开启自动下载远程图片', 
+                desc: '粘贴包含远程图片链接的文本时，自动将其下载到本地并替换链接。', 
+                longDesc: '基于 RemoteImageTaskScheduler 的高级下载器：\n1. 队列机制：图片会加入后台队列，不会卡顿编辑器。\n2. 并发控制：同时最多下载 3 张，避免网络拥堵。\n3. 智能重试：失败后会自动重试（最多 3 次）。\n4. 智能替换：下载完成后，如果文件仍打开则无感替换（保留光标/撤销历史）；若已关闭则后台修改。\n\n使用方式：\n直接粘贴包含 `![image](http...)` 的 Markdown 文本，或使用命令 "下载当前笔记中的远程图片"。',
+                key: 'enableAutoDownloadImages', 
+                type: 'toggle' 
+            },
         ],
     },
     {
@@ -223,7 +242,13 @@ const SECTIONS: SettingSection[] = [
         settings: [
             { name: '开启 Frontmatter 图标/头图（Inline decorator）', desc: '从 Frontmatter 读取 `icon`/`banner`，在文件列表展示图标，并在笔记顶部展示头图（轻量实现）。', key: 'enableInlineDecorator', type: 'toggle' },
             { name: '开启文件树高亮（File tree highlight）', desc: '提供命令：为文件/文件夹加高亮标记（用于项目文件夹）。', key: 'enableFileTreeHighlight', type: 'toggle' },
-            { name: '开启 YAML 自动更新', desc: '自动维护笔记的 "创建时间" 和 "修改时间" 元数据（Frontmatter）。⚠️ 会自动修改文件内容，与 SaveCleaner 同时使用可能产生冲突。', key: 'enableYaml', type: 'toggle' },
+            { 
+                name: '开启 YAML 自动更新', 
+                desc: '自动维护笔记的 "创建时间" 和 "修改时间" 元数据（Frontmatter）。⚠️ 会自动修改文件内容，与 SaveCleaner 同时使用可能产生冲突。', 
+                longDesc: '此功能会监控文件修改事件。\n\n- 新建文件时：自动添加 `created` 字段。\n- 修改文件时：自动更新 `updated` 字段。\n\n注意：这会直接修改文件开头的 YAML Frontmatter 区域。如果您的工作流依赖外部工具同步文件，请确保此行为不会造成干扰。',
+                key: 'enableYaml', 
+                type: 'toggle' 
+            },
             { name: 'YAML 日期格式', desc: '时间戳的显示格式 (例如: YYYY-MM-DD HH:mm)。', key: 'yamlDateFormat', type: 'text', placeholder: 'YYYY-MM-DD HH:mm' },
             { name: '模板文件夹路径', desc: '存放用户自定义模板的文件夹路径（例如 "Templates"）。', key: 'templateFolderPath', type: 'text', placeholder: 'Templates' },
         ],
@@ -233,9 +258,27 @@ const SECTIONS: SettingSection[] = [
         icon: '📊',
         settings: [
             { name: '开启 Infographic 渲染器', desc: '在预览/阅读模式渲染 ` ```infographic` 代码块。', key: 'enableInfographicRenderer', type: 'toggle' },
-            { name: '开启 Vega-Lite 统计图表', desc: '在预览/阅读模式渲染 ` ```vega-lite` 代码块（基于 vega-embed）。', key: 'enableVegaLite', type: 'toggle' },
-            { name: '开启 Graphviz 关系图', desc: '在预览/阅读模式渲染 ` ```graphviz` 代码块（基于 @hpcc-js/wasm）。', key: 'enableGraphviz', type: 'toggle' },
-            { name: '开启 ECharts 交互图表', desc: '在预览/阅读模式渲染 ` ```echarts` 代码块。', key: 'enableECharts', type: 'toggle' },
+            { 
+                name: '开启 Vega-Lite 统计图表', 
+                desc: '在预览/阅读模式渲染 ` ```vega-lite` 代码块（基于 vega-embed）。', 
+                longDesc: 'Vega-Lite 是一个高层次的语法，用于快速构建交互式统计图表。\n\n用途：折线图、柱状图、散点图、热力图等数据分析场景。\n文档：请参考插件根目录下的 `DOCS_CHARTS.md` 查看示例代码。\n\n注意：开启后可能需要重启 Obsidian 生效。',
+                key: 'enableVegaLite', 
+                type: 'toggle' 
+            },
+            { 
+                name: '开启 Graphviz 关系图', 
+                desc: '在预览/阅读模式渲染 ` ```graphviz` 代码块（基于 @hpcc-js/wasm）。', 
+                longDesc: 'Graphviz 使用 DOT 语言绘制结构化的图形。\n\n用途：流程图、状态机、依赖关系图、类图等。\n引擎：使用 WebAssembly 版 Graphviz，性能优异且无需本地安装。\n文档：请参考 `DOCS_CHARTS.md`。',
+                key: 'enableGraphviz', 
+                type: 'toggle' 
+            },
+            { 
+                name: '开启 ECharts 交互图表', 
+                desc: '在预览/阅读模式渲染 ` ```echarts` 代码块。', 
+                longDesc: 'Apache ECharts 是一个基于 JavaScript 的开源可视化图表库。\n\n用途：复杂的交互式图表、桑基图、漏斗图、大屏展示。\n文档：请参考 `DOCS_CHARTS.md`。\n支持：支持 JSON 格式配置，也支持简单的 JS 函数配置（不推荐用于不可信来源）。',
+                key: 'enableECharts', 
+                type: 'toggle' 
+            },
         ],
     },
 ];
@@ -486,10 +529,41 @@ export class EditorProSettingTab extends PluginSettingTab {
             settingEl.setAttribute('title', `${setting.name}: ${setting.tooltip}`);
         }
 
+        const descFragment = document.createDocumentFragment();
+        descFragment.append(setting.desc);
+        
+        if (setting.longDesc) {
+            const details = document.createElement('details');
+            // eslint-disable-next-line obsidianmd/no-static-styles-assignment
+            details.style.marginTop = '8px';
+            // eslint-disable-next-line obsidianmd/no-static-styles-assignment
+            details.style.color = 'var(--text-muted)';
+            // eslint-disable-next-line obsidianmd/no-static-styles-assignment
+            details.style.fontSize = '0.9em';
+            
+            const summary = document.createElement('summary');
+            // eslint-disable-next-line obsidianmd/no-static-styles-assignment
+            summary.style.cursor = 'pointer';
+            summary.textContent = '详细说明';
+            
+            const content = document.createElement('div');
+            // eslint-disable-next-line obsidianmd/no-static-styles-assignment
+            content.style.paddingLeft = '1em';
+            // eslint-disable-next-line obsidianmd/no-static-styles-assignment
+            content.style.marginTop = '4px';
+            // eslint-disable-next-line obsidianmd/no-static-styles-assignment
+            content.style.whiteSpace = 'pre-wrap'; // Preserve newlines
+            content.textContent = setting.longDesc;
+            
+            details.appendChild(summary);
+            details.appendChild(content);
+            descFragment.appendChild(details);
+        }
+
         if (setting.type === 'toggle') {
             new Setting(settingEl)
                 .setName(setting.name)
-                .setDesc(setting.desc)
+                .setDesc(descFragment)
                 .addToggle(toggle => toggle
                     .setValue(this.plugin.settings[setting.key] as boolean)
                     .onChange(async (value) => {
@@ -509,7 +583,7 @@ export class EditorProSettingTab extends PluginSettingTab {
         } else if (setting.type === 'text') {
             new Setting(settingEl)
                 .setName(setting.name)
-                .setDesc(setting.desc)
+                .setDesc(descFragment)
                 .addText(text => text
                     .setPlaceholder(setting.placeholder || '')
                     .setValue(this.plugin.settings[setting.key] as string)

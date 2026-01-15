@@ -156,7 +156,7 @@ export class TagManager {
         // Obsidian queues file writes?
         // Better to wait for modify to finish (we awaited).
 
-        await this.app.fileManager.processFrontMatter(file, (fm) => {
+        await this.app.fileManager.processFrontMatter(file, (fm: Record<string, unknown>) => {
             if (fm.tags) {
                 // Determine raw name without hash
                 const oldRaw = oldTag.substring(1); // "old"
@@ -174,11 +174,9 @@ export class TagManager {
                     fm.tags = processArray(fm.tags);
                 } else if (typeof fm.tags === 'string') {
                     // "tag1, tag2"
-                    // @ts-ignore
-                    const arr = fm.tags.split(',').map((s: string) => s.trim());
+                    const arr = (fm.tags as string).split(',').map((s: string) => s.trim());
                     const newArr = processArray(arr);
-                    fm.tags = newArr; // API might convert it to list or comma string? 
-                    // Usually API converts string list to array when modified.
+                    fm.tags = newArr; 
                 }
             }
         });

@@ -1,4 +1,3 @@
-import { Plugin } from "obsidian";
 import type EditorProPlugin from "../../main"; // Import type to avoid cycle
 import { VegaRenderChild } from "./vega-renderer";
 import { GraphvizRenderChild } from "./graphviz-renderer";

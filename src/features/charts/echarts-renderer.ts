@@ -17,7 +17,7 @@ export class EChartsRenderChild extends MarkdownRenderChild {
                 try {
                     // Try JSON first
                     option = JSON.parse(this.source);
-                } catch (e) {
+                } catch {
                     // Fallback to Function evaluation for advanced options (functions)
                     // This is potentially unsafe but common for chart plugins to support formatters
                     // eslint-disable-next-line @typescript-eslint/no-implied-eval

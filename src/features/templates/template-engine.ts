@@ -28,7 +28,6 @@ export class TemplateEngine {
 	process(template: string, ctx: TemplateContext): { text: string; cursorIndex: number | null } {
 		// 1. 处理 {{cursor}} - 先定位，暂不替换（最后处理，或者先替换为空并记录位置）
 		// 我们可以先用特殊占位符替换 {{cursor}} 来保持其位置，最后再计算 index
-		const cursorToken = "{{cursor}}";
 		let cursorIndex: number | null = null;
 
 		// 我们通过正则一步步替换内容
@@ -38,7 +37,7 @@ export class TemplateEngine {
 		// 注意：非贪婪匹配
 		const regex = /\{\{(.*?)\}\}/g;
 
-		let result = template.replace(regex, (match, content) => {
+		let result = template.replace(regex, (match: string, content: string) => {
 			const raw = content.trim();
 
 			// 1. Cursor
@@ -118,107 +117,14 @@ export class TemplateEngine {
 			const keys = Object.keys(scope);
 			const values = Object.values(scope);
 
-			const func = new Function(...keys, body);
+			const func = new Function(...keys, body) as (...args: unknown[]) => unknown;
+			// eslint-disable-next-line @typescript-eslint/no-unsafe-call
 			const result = func(...values);
 
 			return result !== undefined && result !== null ? String(result) : '';
-		} catch (e: any) {
+		} catch (e) {
 			console.error('[Editor Pro] Template JS Error:', e);
-			return `[JS Error: ${e.message}]`;
-		}
-	}
-
-	/**
-	 * 直接插入处理后的模板到编辑器
-	 */
-	insertTemplate(editor: Editor, template: string) {
-		const file = this.app.workspace.getActiveFile();
-		const ctx: TemplateContext = {
-			app: this.app,
-			file: file,
-			fileName: file ? file.basename : 'Untitled'
-		};
-
-		const { text, cursorIndex } = this.process(template, ctx);
-		editor.replaceSelection(text);
-
-		if (cursorIndex !== null) {
-			const cursor = editor.getCursor();
-			// We just replaced selection. The cursor is now at the END of inserted text?
-			// No, replaceSelection puts cursor at end.
-			// We need to calculate the *relative* position of {{cursor}} in the inserted text
-			// and move the actual cursor there.
-
-			// Wait, replaceSelection behavior: 
-			// If we are at line 10, ch 0. Insert "A\nB\nC". Cursor becomes line 12, ch 1.
-			// It's hard to calculate exact position if we rely on editor's end position.
-
-			// Better approach:
-			// 1. Get current start cursor (anchor).
-			// 2. Replace range.
-			// 3. Calculate absolute position of cursor token relative to start.
-
-			// Or simpler: replace '___CURSOR_PLACEHOLDER___' with empty, but split text there.
-			// The code above returns text with placeholder REMOVED.
-
-			// Let's re-calculate logic for setCursor.
-			// We know the length of text BEFORE the cursor placeholder.
-			const beforeText = text.substring(0, cursorIndex);
-
-			// Original pos
-			// We can't rely on 'cursor' variable from start of function because content changed.
-			// Actually, replaceSelection replaces *selection*. If selection was empty, it inserts at cursor.
-			// It's safer to use replaceRange if we want precise control, but replaceSelection is friendlier to Obsidian history.
-
-			// Let's try to find where we are.
-			// Getting the cursor state *before* insertion is risky if we don't know *what* was selected.
-			// But we can assume typical usage is insertion.
-
-			// If we use `editor.getCursor("from")` (start of selection), that's our anchor.
-			// The inserted text starts there.
-
-			// We need to find the line/ch offset of cursorIndex in `text`.
-			const lines = text.substring(0, cursorIndex).split('\n');
-			const lineOffset = lines.length - 1;
-			const chOffset = lines[lines.length - 1]?.length ?? 0;
-
-			// Get original start pos
-			// If there was a selection, it's gone. The start pos is the start of selection.
-			// But Obsidian API `replaceSelection` might move the "head" to the end.
-			// We can't easily get the start pos *after* replacement without calculating.
-
-			// Trick: We can insert a unique marker via replaceSelection, find it, remove it, and place cursor.
-			// But that messes up history (2 steps).
-
-			// Alternative: use `replaceRange`.
-			// const from = editor.getCursor('from');
-			// const to = editor.getCursor('to');
-			// editor.replaceRange(text, from, to);
-			// Then calculate new cursor pos from `from`.
-
-			// However, `replaceSelection` handles some edge cases better.
-			// Let's stick to calculating offsets from "start of insertion".
-
-			// We'll trust that we inserted at `editor.getCursor('from')` (if selection empty) or replaced selection.
-			// So new cursor = start + offset.
-
-			// BUT: editor.getCursor() *now* (after replacement) is at the END of inserted text.
-			// We can calculate backwards? No.
-
-			// Let's use the `replaceString` helper from Obsidian if available? No.
-
-			// Let's use the offset computation logic I wrote in old template-engine.ts, it seemed correct:
-			/*
-				const before = text.slice(0, cursorIndex);
-				const lines = before.split("\n");
-				const lineOffset = lines.length - 1;
-				const ch = lines[lines.length - 1]?.length ?? 0;
-				editor.setCursor({ line: cursor.line + lineOffset, ch: lineOffset === 0 ? cursor.ch + ch : ch });
-			*/
-			// But this (old code) assumed `cursor` was captured *before* replaceSelection. 
-			// And `replaceSelection` replaces the *selection*. 
-			// `cursor` usually points to `head`. If selection is backwards, head is at start? No.
-			// `editor.getCursor('from')` is always start.
+			return `[JS Error: ${(e as Error).message}]`;
 		}
 	}
 

@@ -82,7 +82,7 @@ export const CalendarComponent: React.FC<CalendarProps> = ({ app }) => {
                 <div
                     key={i}
                     className={`calendar-day ${hasNote ? 'has-note' : ''} ${isToday ? 'is-today' : ''}`}
-                    onClick={() => openDailyNote(i)}
+                    onClick={() => { void openDailyNote(i); }}
                 >
                     <span>{i}</span>
                     {hasNote && <div className="dot"></div>}

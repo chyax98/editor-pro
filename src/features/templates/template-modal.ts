@@ -1,6 +1,6 @@
 import { App, FuzzySuggestModal, TFile, Notice } from "obsidian";
 import EditorProPlugin from "../../main";
-import { TemplateLoader, TemplateFile } from "./loader";
+import { TemplateLoader } from "./loader";
 import { TemplateEngine } from "./template-engine";
 import { BUILTIN_TEMPLATES } from "./snippets";
 
@@ -60,6 +60,7 @@ export class TemplateModal extends FuzzySuggestModal<TemplateItem> {
         return item.name;
     }
 
+    // eslint-disable-next-line @typescript-eslint/no-misused-promises
     async onChooseItem(item: TemplateItem, evt: MouseEvent | KeyboardEvent): Promise<void> {
         let content = "";
 
@@ -71,9 +72,6 @@ export class TemplateModal extends FuzzySuggestModal<TemplateItem> {
 
         if (!content) return;
 
-        const activeView = this.app.workspace.getActiveViewOfType(Object as any); // Type cast generic workaround
-        // Actually we need MarkdownView
-        // But easier is just checking editor
         const editor = this.app.workspace.activeEditor?.editor;
 
         if (editor) {

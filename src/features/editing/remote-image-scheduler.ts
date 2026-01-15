@@ -224,7 +224,7 @@ export class RemoteImageTaskScheduler {
             } catch (error) {
                  // Folder might have been created concurrently
                  if (!(await this.app.vault.adapter.exists(path))) {
-                     throw error as Error; // Rethrow if it still doesn't exist
+                     throw error as Error;
                  }
             }
         }

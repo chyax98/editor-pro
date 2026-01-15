@@ -10,7 +10,7 @@ export class VegaRenderChild extends MarkdownRenderChild {
         void (async () => {
             try {
                 const spec = JSON.parse(this.source);
-                // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-argument
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-assignment
                 await embed(this.containerEl, spec, { actions: false });
             } catch (e) {
                 const errorDiv = this.containerEl.createDiv({ cls: "editor-pro-chart-error" });
