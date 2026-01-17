@@ -14,7 +14,13 @@ export class CursorMemoryManager {
 	private onSave: (state: Record<string, CursorMemoryState>) => Promise<void>;
 	private pendingTimeouts: Set<ReturnType<typeof setTimeout>> = new Set();
 	// 缓存上次保存的状态，避免频繁写入相同内容
-	private lastSavedState: Record<string, { cursor: { line: number; ch: number }; scroll: { top: number; left: number } }> = {};
+	private lastSavedState: Record<
+		string,
+		{
+			cursor: { line: number; ch: number };
+			scroll: { top: number; left: number };
+		}
+	> = {};
 
 	constructor(options: {
 		app: App;
@@ -26,9 +32,13 @@ export class CursorMemoryManager {
 		this.enabled = options.enabled;
 		this.stateByPath = options.initialState ?? {};
 		this.onSave = options.onSave;
-		this.saveDebounced = debounce(() => {
-			void this.onSave(this.stateByPath);
-		}, 1000, true);
+		this.saveDebounced = debounce(
+			() => {
+				void this.onSave(this.stateByPath);
+			},
+			1000,
+			true,
+		);
 	}
 
 	exportState(): Record<string, CursorMemoryState> {
@@ -45,11 +55,13 @@ export class CursorMemoryManager {
 
 		// 脏检查：比较当前状态和上次保存的状态，避免频繁写入
 		const lastState = this.lastSavedState[file.path];
-		if (lastState &&
+		if (
+			lastState &&
 			lastState.cursor.line === cursor.line &&
 			lastState.cursor.ch === cursor.ch &&
 			lastState.scroll.top === scroll.top &&
-			lastState.scroll.left === scroll.left) {
+			lastState.scroll.left === scroll.left
+		) {
 			return; // 状态未变化，跳过保存
 		}
 
@@ -62,7 +74,7 @@ export class CursorMemoryManager {
 		// 缓存当前状态用于脏检查
 		this.lastSavedState[file.path] = {
 			cursor: { line: cursor.line, ch: cursor.ch },
-			scroll: { top: scroll.top, left: scroll.left }
+			scroll: { top: scroll.top, left: scroll.left },
 		};
 
 		this.saveDebounced?.();

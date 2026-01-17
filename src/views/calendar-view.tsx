@@ -6,37 +6,37 @@ import { CalendarComponent } from "./calendar-component";
 export const CALENDAR_VIEW_TYPE = "editor-pro-calendar";
 
 export class CalendarView extends ItemView {
-    root: ReactDOM.Root | null = null;
+	root: ReactDOM.Root | null = null;
 
-    constructor(leaf: WorkspaceLeaf) {
-        super(leaf);
-    }
+	constructor(leaf: WorkspaceLeaf) {
+		super(leaf);
+	}
 
-    getViewType() {
-        return CALENDAR_VIEW_TYPE;
-    }
+	getViewType() {
+		return CALENDAR_VIEW_TYPE;
+	}
 
-    getDisplayText() {
-        return "日历 (Calendar)";
-    }
+	getDisplayText() {
+		return "日历 (Calendar)";
+	}
 
-    getIcon() {
-        return "calendar-days";
-    }
+	getIcon() {
+		return "calendar-days";
+	}
 
-    async onOpen() {
-        const container = this.contentEl;
-        container.empty();
+	async onOpen() {
+		const container = this.contentEl;
+		container.empty();
 
-        this.root = ReactDOM.createRoot(container);
-        this.root.render(
-            <React.StrictMode>
-                <CalendarComponent app={this.app} />
-            </React.StrictMode>
-        );
-    }
+		this.root = ReactDOM.createRoot(container);
+		this.root.render(
+			<React.StrictMode>
+				<CalendarComponent app={this.app} />
+			</React.StrictMode>,
+		);
+	}
 
-    async onClose() {
-        this.root?.unmount();
-    }
+	async onClose() {
+		this.root?.unmount();
+	}
 }

@@ -1,6 +1,10 @@
 import { App, MarkdownView, Plugin, TFile } from "obsidian";
 
-type HeadingCache = { heading: string; level: number; position: { start: { line: number } } };
+type HeadingCache = {
+	heading: string;
+	level: number;
+	position: { start: { line: number } };
+};
 
 function getHeadings(app: App, file: TFile): HeadingCache[] {
 	const cache = app.metadataCache.getFileCache(file);
@@ -21,8 +25,18 @@ export class FloatingOutline {
 
 	register(plugin: Plugin) {
 		plugin.register(() => this.hide());
-		plugin.registerEvent(this.app.workspace.on("active-leaf-change", () => this.visible && this.render()));
-		plugin.registerEvent(this.app.metadataCache.on("changed", () => this.visible && this.render()));
+		plugin.registerEvent(
+			this.app.workspace.on(
+				"active-leaf-change",
+				() => this.visible && this.render(),
+			),
+		);
+		plugin.registerEvent(
+			this.app.metadataCache.on(
+				"changed",
+				() => this.visible && this.render(),
+			),
+		);
 		plugin.registerDomEvent(document, "keydown", (evt) => {
 			if (!this.visible) return;
 			if (evt.key !== "Escape") return;
@@ -44,7 +58,9 @@ export class FloatingOutline {
 		if (!this.enabled()) return;
 		if (this.visible) return;
 		this.visible = true;
-		this.root = document.body.createDiv({ cls: "editor-pro-floating-outline" });
+		this.root = document.body.createDiv({
+			cls: "editor-pro-floating-outline",
+		});
 		this.render();
 	}
 
@@ -57,7 +73,7 @@ export class FloatingOutline {
 
 	// 清理方法（public，供 main.ts 调用）
 	cleanup() {
-		this.eventHandlers.forEach(cleanup => cleanup());
+		this.eventHandlers.forEach((cleanup) => cleanup());
 		this.eventHandlers = [];
 	}
 
@@ -79,18 +95,36 @@ export class FloatingOutline {
 			return;
 		}
 
-		const header = this.root.createDiv({ cls: "editor-pro-floating-outline-header" });
+		const header = this.root.createDiv({
+			cls: "editor-pro-floating-outline-header",
+		});
 		header.createDiv({ text: "目录" });
-		const closeBtn = header.createEl("button", { text: "×", cls: "editor-pro-floating-outline-close", attr: { "aria-label": "关闭" } });
+		const closeBtn = header.createEl("button", {
+			text: "×",
+			cls: "editor-pro-floating-outline-close",
+			attr: { "aria-label": "关闭" },
+		});
 
 		// 保存清理函数
 		const closeHandler = () => this.hide();
 		closeBtn.onclick = closeHandler;
-		this.eventHandlers.push(() => { closeBtn.onclick = null; });
+		this.eventHandlers.push(() => {
+			closeBtn.onclick = null;
+		});
 
-		const list = this.root.createDiv({ cls: "editor-pro-floating-outline-list", attr: { "role": "list", "aria-label": "文档目录" } });
+		const list = this.root.createDiv({
+			cls: "editor-pro-floating-outline-list",
+			attr: { role: "list", "aria-label": "文档目录" },
+		});
 		for (const h of headings) {
-			const item = list.createDiv({ cls: "editor-pro-floating-outline-item", attr: { "role": "listitem", "tabindex": "0", "aria-label": h.heading } });
+			const item = list.createDiv({
+				cls: "editor-pro-floating-outline-item",
+				attr: {
+					role: "listitem",
+					tabindex: "0",
+					"aria-label": h.heading,
+				},
+			});
 			item.style.paddingLeft = `${(h.level - 1) * 12}px`;
 			item.setText(h.heading);
 
@@ -101,7 +135,9 @@ export class FloatingOutline {
 				this.hide();
 			};
 			item.onclick = clickHandler;
-			this.eventHandlers.push(() => { item.onclick = null; });
+			this.eventHandlers.push(() => {
+				item.onclick = null;
+			});
 
 			// Keyboard navigation support
 			const keyHandler = (evt: KeyboardEvent) => {
@@ -113,7 +149,9 @@ export class FloatingOutline {
 				}
 			};
 			item.addEventListener("keydown", keyHandler);
-			this.eventHandlers.push(() => { item.removeEventListener("keydown", keyHandler); });
+			this.eventHandlers.push(() => {
+				item.removeEventListener("keydown", keyHandler);
+			});
 		}
 	}
 }

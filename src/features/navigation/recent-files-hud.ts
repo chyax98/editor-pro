@@ -22,12 +22,23 @@ export class RecentFilesHud extends SuggestModal<TFile> {
 	getSuggestions(query: string): TFile[] {
 		const q = query.trim().toLowerCase();
 		if (!q) return this.files;
-		return this.files.filter((f) => f.path.toLowerCase().includes(q) || f.basename.toLowerCase().includes(q));
+		return this.files.filter(
+			(f) =>
+				f.path.toLowerCase().includes(q) ||
+				f.basename.toLowerCase().includes(q),
+		);
 	}
 
 	renderSuggestion(value: TFile, el: HTMLElement): void {
-		el.createEl("div", { text: value.basename, attr: { "aria-label": `文件名：${value.basename}` } });
-		el.createEl("div", { text: value.path, cls: "editor-pro-hud-path", attr: { "aria-label": `路径：${value.path}` } });
+		el.createEl("div", {
+			text: value.basename,
+			attr: { "aria-label": `文件名：${value.basename}` },
+		});
+		el.createEl("div", {
+			text: value.path,
+			cls: "editor-pro-hud-path",
+			attr: { "aria-label": `路径：${value.path}` },
+		});
 	}
 
 	onChooseSuggestion(item: TFile): void {
@@ -35,4 +46,3 @@ export class RecentFilesHud extends SuggestModal<TFile> {
 		void leaf.openFile(item, { active: true });
 	}
 }
-

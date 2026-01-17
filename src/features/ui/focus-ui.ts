@@ -39,4 +39,3 @@ export class FocusUiManager {
 		this.disable();
 	}
 }
-

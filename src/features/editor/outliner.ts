@@ -2,11 +2,11 @@ import { Editor } from "obsidian";
 
 /**
  * 检测光标是否在代码块内
- * 
+ *
  * 实现说明：从文件开头扫描，统计 ```/~~~ 配对状态
  * 性能说明：对于 1000 行文档约 1ms，对常规文件无影响
- * 
- * 注意：之前使用"向上扫描 200 行"的方案存在误判问题 —— 
+ *
+ * 注意：之前使用"向上扫描 200 行"的方案存在误判问题 ——
  * 如果代码块开始于 200 行之前，会错误地认为不在代码块内。
  */
 function isInFencedCodeBlock(editor: Editor, line: number): boolean {
@@ -39,7 +39,10 @@ function isListItemLine(text: string): { indent: number } | null {
 	return null;
 }
 
-function getListItemBlock(editor: Editor, startLine: number): { start: number; end: number; indent: number } | null {
+function getListItemBlock(
+	editor: Editor,
+	startLine: number,
+): { start: number; end: number; indent: number } | null {
 	const lineText = editor.getLine(startLine);
 	const list = isListItemLine(lineText);
 	if (!list) return null;
@@ -62,9 +65,18 @@ function getListItemBlock(editor: Editor, startLine: number): { start: number; e
 	return { start: startLine, end, indent };
 }
 
-function replaceLineRange(editor: Editor, start: number, end: number, nextLines: string[]) {
+function replaceLineRange(
+	editor: Editor,
+	start: number,
+	end: number,
+	nextLines: string[],
+) {
 	const endLineText = editor.getLine(end);
-	editor.replaceRange(nextLines.join("\n"), { line: start, ch: 0 }, { line: end, ch: endLineText.length });
+	editor.replaceRange(
+		nextLines.join("\n"),
+		{ line: start, ch: 0 },
+		{ line: end, ch: endLineText.length },
+	);
 }
 
 function getLines(editor: Editor, start: number, end: number): string[] {
@@ -93,7 +105,11 @@ function findSiblingBlock(
 		}
 
 		const list = isListItemLine(t);
-		if (list && list.indent === block.indent && !isInFencedCodeBlock(editor, i)) {
+		if (
+			list &&
+			list.indent === block.indent &&
+			!isInFencedCodeBlock(editor, i)
+		) {
 			return getListItemBlock(editor, i);
 		}
 
@@ -122,17 +138,27 @@ export function moveListItemBlock(editor: Editor, direction: -1 | 1): boolean {
 
 	const aLines = getLines(editor, a.start, a.end);
 	const bLines = getLines(editor, b.start, b.end);
-	const next = direction === -1 ? [...bLines, ...gap, ...aLines] : [...bLines, ...gap, ...aLines];
+	const next =
+		direction === -1
+			? [...bLines, ...gap, ...aLines]
+			: [...bLines, ...gap, ...aLines];
 
 	replaceLineRange(editor, a.start, b.end, next);
 
-	const shift = (b.end - b.start + 1) + gap.length;
-	const nextLine = direction === -1 ? cursor.line - shift : cursor.line + shift;
-	editor.setCursor({ line: Math.max(0, Math.min(editor.lineCount() - 1, nextLine)), ch: cursor.ch });
+	const shift = b.end - b.start + 1 + gap.length;
+	const nextLine =
+		direction === -1 ? cursor.line - shift : cursor.line + shift;
+	editor.setCursor({
+		line: Math.max(0, Math.min(editor.lineCount() - 1, nextLine)),
+		ch: cursor.ch,
+	});
 	return true;
 }
 
-export function handleOutlinerIndent(editor: Editor, evt: KeyboardEvent): boolean {
+export function handleOutlinerIndent(
+	editor: Editor,
+	evt: KeyboardEvent,
+): boolean {
 	if (evt.key !== "Tab") return false;
 	if (evt.ctrlKey || evt.metaKey || evt.altKey) return false;
 
@@ -143,7 +169,8 @@ export function handleOutlinerIndent(editor: Editor, evt: KeyboardEvent): boolea
 	evt.preventDefault();
 
 	const lines: string[] = [];
-	for (let i = block.start; i <= block.end; i++) lines.push(editor.getLine(i));
+	for (let i = block.start; i <= block.end; i++)
+		lines.push(editor.getLine(i));
 
 	const delta = evt.shiftKey ? -2 : 2;
 	const nextLines = lines.map((line) => {

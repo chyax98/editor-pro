@@ -16,7 +16,8 @@ function uuidV4(): string {
 	if (!c) {
 		// Fallback: weaker randomness but keeps feature usable.
 		let out = "";
-		for (let i = 0; i < 32; i++) out += Math.floor(Math.random() * 16).toString(16);
+		for (let i = 0; i < 32; i++)
+			out += Math.floor(Math.random() * 16).toString(16);
 		return `${out.slice(0, 8)}-${out.slice(8, 12)}-4${out.slice(13, 16)}-a${out.slice(17, 20)}-${out.slice(20)}`;
 	}
 
@@ -24,7 +25,9 @@ function uuidV4(): string {
 	// Per RFC 4122 v4
 	bytes[6] = ((bytes[6] ?? 0) & 0x0f) | 0x40;
 	bytes[8] = ((bytes[8] ?? 0) & 0x3f) | 0x80;
-	const hex = Array.from(bytes, (b) => b.toString(16).padStart(2, "0")).join("");
+	const hex = Array.from(bytes, (b) => b.toString(16).padStart(2, "0")).join(
+		"",
+	);
 	return `${hex.slice(0, 8)}-${hex.slice(8, 12)}-${hex.slice(12, 16)}-${hex.slice(16, 20)}-${hex.slice(20)}`;
 }
 
@@ -86,13 +89,20 @@ export function insertDiceRollPrompt(app: App, editor: Editor) {
 			}
 			const rolls = rollDice(parsed.count, parsed.sides);
 			const sum = rolls.reduce((a, b) => a + b, 0);
-			const text = parsed.count === 1 ? String(rolls[0]) : `${rolls.join(" + ")} = ${sum}`;
+			const text =
+				parsed.count === 1
+					? String(rolls[0])
+					: `${rolls.join(" + ")} = ${sum}`;
 			editor.replaceSelection(text);
 		},
 	}).open();
 }
 
-export function showRandomGeneratorMenu(app: App, editor: Editor, evt: MouseEvent) {
+export function showRandomGeneratorMenu(
+	app: App,
+	editor: Editor,
+	evt: MouseEvent,
+) {
 	const menu = new Menu();
 	menu.addItem((item) => {
 		item.setTitle("插入 UUID");

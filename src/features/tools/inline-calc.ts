@@ -11,7 +11,8 @@ function tokenize(input: string): Token[] | null {
 	const tokens: Token[] = [];
 	let i = 0;
 
-	const pushOp = (op: "+" | "-" | "*" | "/" | "^") => tokens.push({ type: "op", value: op });
+	const pushOp = (op: "+" | "-" | "*" | "/" | "^") =>
+		tokens.push({ type: "op", value: op });
 
 	while (i < s.length) {
 		const ch = s[i];
@@ -89,11 +90,11 @@ function toRpn(tokens: Token[]): Token[] | null {
 			out.push(t);
 			continue;
 		}
-			if (t.type === "op") {
-				while (stack.length) {
-					const top = stack[stack.length - 1];
-					if (!top) break;
-					if (top.type !== "op") break;
+		if (t.type === "op") {
+			while (stack.length) {
+				const top = stack[stack.length - 1];
+				if (!top) break;
+				if (top.type !== "op") break;
 
 				const p1 = precedence(t);
 				const p2 = precedence(top);
@@ -162,7 +163,7 @@ function evalRpn(tokens: Token[]): number | null {
 			}
 		}
 	}
-	return stack.length === 1 ? stack[0] ?? null : null;
+	return stack.length === 1 ? (stack[0] ?? null) : null;
 }
 
 export function evaluateArithmeticExpression(expr: string): number | null {
@@ -183,7 +184,9 @@ export function inlineCalcReplaceSelection(editor: Editor): void {
 	const expr = editor.getSelection();
 	const value = evaluateArithmeticExpression(expr);
 	if (value === null) {
-		new Notice("Editor Pro：无法计算该表达式（仅支持 + - * / ^ 和括号，不能除以零）");
+		new Notice(
+			"Editor Pro：无法计算该表达式（仅支持 + - * / ^ 和括号，不能除以零）",
+		);
 		return;
 	}
 	// Handle Infinity and NaN cases (though checked in evaluateArithmeticExpression)

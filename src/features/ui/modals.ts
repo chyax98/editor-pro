@@ -33,7 +33,7 @@ export class TextPromptModal extends Modal {
 		});
 
 		// 自动聚焦到输入框（无障碍支持）
-		const textInput = inputEl.controlEl.querySelector('input');
+		const textInput = inputEl.controlEl.querySelector("input");
 		if (textInput instanceof HTMLElement) {
 			textInput.focus();
 			// 选中全部文本，方便用户直接替换
@@ -42,15 +42,19 @@ export class TextPromptModal extends Modal {
 
 		new Setting(this.contentEl)
 			.addButton((btn) => {
-				btn.setButtonText(this.submitText).setCta().onClick(() => {
-					const trimmed = this.value.trim();
-					if (!trimmed) return;
-					this.onSubmit(trimmed);
-					this.close();
-				});
+				btn.setButtonText(this.submitText)
+					.setCta()
+					.onClick(() => {
+						const trimmed = this.value.trim();
+						if (!trimmed) return;
+						this.onSubmit(trimmed);
+						this.close();
+					});
 			})
 			.addExtraButton((btn) => {
-				btn.setIcon("x").setTooltip("Cancel").onClick(() => this.close());
+				btn.setIcon("x")
+					.setTooltip("Cancel")
+					.onClick(() => this.close());
 			});
 	}
 
@@ -88,10 +92,12 @@ export class ConfirmModal extends Modal {
 
 		new Setting(this.contentEl)
 			.addButton((btn) => {
-				btn.setButtonText(this.confirmText).setWarning().onClick(() => {
-					this.onConfirm();
-					this.close();
-				});
+				btn.setButtonText(this.confirmText)
+					.setWarning()
+					.onClick(() => {
+						this.onConfirm();
+						this.close();
+					});
 			})
 			.addButton((btn) => {
 				btn.setButtonText(this.cancelText).onClick(() => this.close());
@@ -104,4 +110,3 @@ export class ConfirmModal extends Modal {
 		this.contentEl.empty();
 	}
 }
-

@@ -1,6 +1,16 @@
-import { App, MarkdownView, Plugin, TFile, debounce, normalizePath } from "obsidian";
+import {
+	App,
+	MarkdownView,
+	Plugin,
+	TFile,
+	debounce,
+	normalizePath,
+} from "obsidian";
 
-type Frontmatter = Record<string, unknown> & { icon?: unknown; banner?: unknown };
+type Frontmatter = Record<string, unknown> & {
+	icon?: unknown;
+	banner?: unknown;
+};
 
 function getFrontmatter(app: App, file: TFile): Frontmatter | null {
 	const cache = app.metadataCache.getFileCache(file);
@@ -14,7 +24,10 @@ function readString(value: unknown): string | null {
 }
 
 // 文件图标缓存，避免重复查询 metadataCache
-const fileIconCache = new WeakMap<TFile, { icon: string | null; timestamp: number }>();
+const fileIconCache = new WeakMap<
+	TFile,
+	{ icon: string | null; timestamp: number }
+>();
 const CACHE_DURATION = 5000; // 5秒缓存
 
 export class InlineDecorator {
@@ -33,9 +46,17 @@ export class InlineDecorator {
 
 	register(plugin: Plugin) {
 		plugin.register(() => this.cleanup());
-		plugin.registerEvent(this.app.workspace.on("layout-change", () => this.updateDebounced()));
-		plugin.registerEvent(this.app.workspace.on("file-open", () => this.updateDebounced()));
-		plugin.registerEvent(this.app.metadataCache.on("changed", () => this.updateDebounced()));
+		plugin.registerEvent(
+			this.app.workspace.on("layout-change", () =>
+				this.updateDebounced(),
+			),
+		);
+		plugin.registerEvent(
+			this.app.workspace.on("file-open", () => this.updateDebounced()),
+		);
+		plugin.registerEvent(
+			this.app.metadataCache.on("changed", () => this.updateDebounced()),
+		);
 
 		this.updateDebounced();
 	}
@@ -107,35 +128,41 @@ export class InlineDecorator {
 		if (/^(https?:\/\/|app:\/\/)/i.test(url)) {
 			// 更严格的 URL 转义：转义所有可能的 CSS 注入字符
 			const safeUrl = url
-				.replace(/"/g, '%22')
-				.replace(/'/g, '%27')
-				.replace(/\\/g, '%5C')
-				.replace(/\n/g, '')
-				.replace(/\r/g, '')
-				.replace(/\(/g, '%28')
-				.replace(/\)/g, '%29')
-				.replace(/;/g, '%3B');
+				.replace(/"/g, "%22")
+				.replace(/'/g, "%27")
+				.replace(/\\/g, "%5C")
+				.replace(/\n/g, "")
+				.replace(/\r/g, "")
+				.replace(/\(/g, "%28")
+				.replace(/\)/g, "%29")
+				.replace(/;/g, "%3B");
 
 			if (this.bannerEl) {
 				// 直接使用 style 属性，避免 setCssProps 可能的注入
 				this.bannerEl.style.backgroundImage = `url("${safeUrl}")`;
 			}
 		} else {
-			if (this.bannerEl) this.bannerEl.setCssProps({ "background-image": "" });
+			if (this.bannerEl)
+				this.bannerEl.setCssProps({ "background-image": "" });
 		}
 	}
 
 	private updateFileListIcons() {
 		if (!this.enabled()) return;
 
-		const containers = Array.from(document.querySelectorAll<HTMLElement>(".nav-files-container"));
-		const currentBatch: Array<{ el: HTMLElement; icon: string | null }> = [];
+		const containers = Array.from(
+			document.querySelectorAll<HTMLElement>(".nav-files-container"),
+		);
+		const currentBatch: Array<{ el: HTMLElement; icon: string | null }> =
+			[];
 
 		for (const container of containers) {
 			// 只处理可见的容器
 			if (!this.isContainerVisible(container)) continue;
 
-			const titles = Array.from(container.querySelectorAll<HTMLElement>(".nav-file-title"));
+			const titles = Array.from(
+				container.querySelectorAll<HTMLElement>(".nav-file-title"),
+			);
 			for (const title of titles) {
 				const path = title.getAttribute("data-path");
 				if (!path) continue;
@@ -162,11 +189,15 @@ export class InlineDecorator {
 		// 批量 DOM 更新
 		requestAnimationFrame(() => {
 			for (const { el, icon } of currentBatch) {
-				let iconEl = el.querySelector<HTMLElement>(".editor-pro-file-icon");
+				let iconEl = el.querySelector<HTMLElement>(
+					".editor-pro-file-icon",
+				);
 				if (icon) {
 					if (!iconEl) {
 						iconEl = el.createSpan({ cls: "editor-pro-file-icon" });
-						const content = el.querySelector(".nav-file-title-content");
+						const content = el.querySelector(
+							".nav-file-title-content",
+						);
 						if (content) content.before(iconEl);
 					}
 					iconEl.setText(icon);

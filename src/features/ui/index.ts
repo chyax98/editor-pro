@@ -1,6 +1,6 @@
 /**
  * UI 模块 - 界面增强
- * 
+ *
  * 包含：
  * - focus-ui: 专注模式
  * - floating-outline: 浮动大纲
@@ -12,19 +12,22 @@
  */
 
 // 专注模式
-export { FocusUiManager } from './focus-ui';
+export { FocusUiManager } from "./focus-ui";
 
 // 浮动大纲
-export { FloatingOutline } from './floating-outline';
+export { FloatingOutline } from "./floating-outline";
 
 // 状态栏统计
-export { StatusBarStats } from './status-bar-stats';
+export { StatusBarStats } from "./status-bar-stats";
 
 // 文件树高亮
-export { FileTreeHighlightManager, type HighlightColor } from './file-tree-highlight';
+export {
+	FileTreeHighlightManager,
+	type HighlightColor,
+} from "./file-tree-highlight";
 
 // 局部聚焦
-export { zoomCurrentHeading, zoomCurrentListBlock } from './zoom-modal';
+export { zoomCurrentHeading, zoomCurrentListBlock } from "./zoom-modal";
 
 // 搜索弹窗
-export { SearchInSelectionModal } from './search-selection-modal';
+export { SearchInSelectionModal } from "./search-selection-modal";

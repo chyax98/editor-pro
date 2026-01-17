@@ -3,11 +3,20 @@ import { App, MarkdownView, Plugin, debounce } from "obsidian";
 // 添加增量统计，避免重复计算
 class WordCounter {
 	private lastContent: string = "";
-	private lastCount: { words: number; chars: number } = { words: 0, chars: 0 };
+	private lastCount: { words: number; chars: number } = {
+		words: 0,
+		chars: 0,
+	};
 	private lastSelection: string = "";
-	private lastSelectionCount: { words: number; chars: number } = { words: 0, chars: 0 };
+	private lastSelectionCount: { words: number; chars: number } = {
+		words: 0,
+		chars: 0,
+	};
 
-	countWords(text: string, isSelection = false): { words: number; chars: number } {
+	countWords(
+		text: string,
+		isSelection = false,
+	): { words: number; chars: number } {
 		// 如果内容没变，返回缓存结果
 		if (!isSelection && text === this.lastContent) {
 			return this.lastCount;
@@ -18,7 +27,9 @@ class WordCounter {
 
 		const normalized = text.replace(/\r\n/g, "\n");
 		const cjk = (normalized.match(/[\u4e00-\u9fff]/g) ?? []).length;
-		const latinWords = (normalized.match(/[A-Za-z0-9]+(?:'[A-Za-z0-9]+)?/g) ?? []).length;
+		const latinWords = (
+			normalized.match(/[A-Za-z0-9]+(?:'[A-Za-z0-9]+)?/g) ?? []
+		).length;
 		const chars = normalized.replace(/\s/g, "").length;
 		const result = { words: cjk + latinWords, chars };
 
@@ -64,17 +75,23 @@ export class StatusBarStats {
 			this.el = null;
 		});
 
-		plugin.registerEvent(this.app.workspace.on("active-leaf-change", () => this.updateDebounced()));
-		plugin.registerEvent(this.app.workspace.on("editor-change", (editor) => {
-			// 优化：只在内容真正变化时更新，避免频繁调用 editor.getValue()
-			const currentLineCount = editor.lineCount();
-			if (currentLineCount !== this.lastLineCount) {
-				this.lastLineCount = currentLineCount;
-				this.wordCounter.invalidate();
-				this.lastEditorValue = ""; // Force recalculation
-				this.updateDebounced();
-			}
-		}));
+		plugin.registerEvent(
+			this.app.workspace.on("active-leaf-change", () =>
+				this.updateDebounced(),
+			),
+		);
+		plugin.registerEvent(
+			this.app.workspace.on("editor-change", (editor) => {
+				// 优化：只在内容真正变化时更新，避免频繁调用 editor.getValue()
+				const currentLineCount = editor.lineCount();
+				if (currentLineCount !== this.lastLineCount) {
+					this.lastLineCount = currentLineCount;
+					this.wordCounter.invalidate();
+					this.lastEditorValue = ""; // Force recalculation
+					this.updateDebounced();
+				}
+			}),
+		);
 		// 移除 selectionchange 监听，减少频繁更新
 
 		this.updateDebounced();
@@ -96,7 +113,10 @@ export class StatusBarStats {
 
 		const selected = editor.getSelection();
 		if (selected) {
-			const { words, chars } = this.wordCounter.countWords(selected, true);
+			const { words, chars } = this.wordCounter.countWords(
+				selected,
+				true,
+			);
 			this.el.setText(`选中 ${chars} 字符 / ${words} 词`);
 			return;
 		}

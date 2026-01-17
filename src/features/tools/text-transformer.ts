@@ -10,7 +10,9 @@ export type TextTransform =
 	| { type: "sort-lines"; descending?: boolean }
 	| { type: "join-lines"; separator?: string };
 
-function getRange(editor: Editor): { from: EditorPosition; to: EditorPosition; text: string } | null {
+function getRange(
+	editor: Editor,
+): { from: EditorPosition; to: EditorPosition; text: string } | null {
 	if (editor.somethingSelected()) {
 		const from = editor.getCursor("from");
 		const to = editor.getCursor("to");
@@ -28,13 +30,19 @@ function getRange(editor: Editor): { from: EditorPosition; to: EditorPosition; t
 }
 
 function toTitleCase(text: string): string {
-	return text.replace(/\b([A-Za-z])([A-Za-z]*)\b/g, (_m, a: string, rest: string) => a.toUpperCase() + rest.toLowerCase());
+	return text.replace(
+		/\b([A-Za-z])([A-Za-z]*)\b/g,
+		(_m, a: string, rest: string) => a.toUpperCase() + rest.toLowerCase(),
+	);
 }
 
 function toSentenceCase(text: string): string {
 	let out = text.trimStart().toLowerCase();
 	out = out.replace(/(^\s*[a-z])/, (m) => m.toUpperCase());
-	out = out.replace(/([.!?]\s+)([a-z])/g, (_m, p1: string, p2: string) => p1 + p2.toUpperCase());
+	out = out.replace(
+		/([.!?]\s+)([a-z])/g,
+		(_m, p1: string, p2: string) => p1 + p2.toUpperCase(),
+	);
 	return out;
 }
 
@@ -76,7 +84,10 @@ function applyTransform(text: string, t: TextTransform): string {
 	}
 }
 
-export function transformEditorText(editor: Editor, transform: TextTransform): boolean {
+export function transformEditorText(
+	editor: Editor,
+	transform: TextTransform,
+): boolean {
 	const range = getRange(editor);
 	if (!range) return false;
 
@@ -86,4 +97,3 @@ export function transformEditorText(editor: Editor, transform: TextTransform): b
 	editor.replaceRange(next, range.from, range.to);
 	return true;
 }
-

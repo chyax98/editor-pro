@@ -27,7 +27,12 @@ function guessExtension(file: File): string {
 	return "png";
 }
 
-async function handleSmartImagePasteImpl(app: App, editor: Editor, fileInfo: { file: TFile | null } | null, evt: ClipboardEvent): Promise<boolean> {
+async function handleSmartImagePasteImpl(
+	app: App,
+	editor: Editor,
+	fileInfo: { file: TFile | null } | null,
+	evt: ClipboardEvent,
+): Promise<boolean> {
 	const dt = evt.clipboardData;
 	if (!dt) return false;
 
@@ -53,10 +58,16 @@ async function handleSmartImagePasteImpl(app: App, editor: Editor, fileInfo: { f
 
 	let targetPath: string;
 	try {
-		targetPath = await app.fileManager.getAvailablePathForAttachment(filename, activeFile?.path);
+		targetPath = await app.fileManager.getAvailablePathForAttachment(
+			filename,
+			activeFile?.path,
+		);
 	} catch (error) {
-		console.error('[Editor Pro] Failed to get available path for attachment:', error);
-		throw new Error('无法获取附件保存路径');
+		console.error(
+			"[Editor Pro] Failed to get available path for attachment:",
+			error,
+		);
+		throw new Error("无法获取附件保存路径");
 	}
 
 	const data = await image.arrayBuffer();
@@ -64,21 +75,26 @@ async function handleSmartImagePasteImpl(app: App, editor: Editor, fileInfo: { f
 	try {
 		created = await app.vault.createBinary(targetPath, data);
 	} catch (error) {
-		console.error('[Editor Pro] Failed to create image file:', error);
-		throw new Error('创建图片文件失败');
+		console.error("[Editor Pro] Failed to create image file:", error);
+		throw new Error("创建图片文件失败");
 	}
 
 	editor.replaceSelection(`![[${created.path}]]`);
 	return true;
 }
 
-export async function handleSmartImagePaste(app: App, editor: Editor, fileInfo: { file: TFile | null } | null, evt: ClipboardEvent): Promise<boolean> {
+export async function handleSmartImagePaste(
+	app: App,
+	editor: Editor,
+	fileInfo: { file: TFile | null } | null,
+	evt: ClipboardEvent,
+): Promise<boolean> {
 	try {
 		return await handleSmartImagePasteImpl(app, editor, fileInfo, evt);
 	} catch (error) {
 		const message = error instanceof Error ? error.message : String(error);
 		new Notice(`Editor Pro：图片粘贴失败 - ${message}`);
-		console.error('[Editor Pro] Image paste error:', error);
+		console.error("[Editor Pro] Image paste error:", error);
 		return false;
 	}
 }

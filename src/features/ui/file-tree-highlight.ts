@@ -1,6 +1,12 @@
 import { App, Plugin, debounce } from "obsidian";
 
-export type HighlightColor = "red" | "orange" | "yellow" | "green" | "blue" | "purple";
+export type HighlightColor =
+	| "red"
+	| "orange"
+	| "yellow"
+	| "green"
+	| "blue"
+	| "purple";
 
 export class FileTreeHighlightManager {
 	private app: App;
@@ -10,7 +16,11 @@ export class FileTreeHighlightManager {
 	private observerCallback: (() => void) | null = null;
 	private updateDebounced: () => void;
 
-	constructor(options: { app: App; enabled: () => boolean; getHighlights: () => Record<string, HighlightColor> }) {
+	constructor(options: {
+		app: App;
+		enabled: () => boolean;
+		getHighlights: () => Record<string, HighlightColor>;
+	}) {
 		this.app = options.app;
 		this.enabled = options.enabled;
 		this.getHighlights = options.getHighlights;
@@ -19,9 +29,17 @@ export class FileTreeHighlightManager {
 
 	register(plugin: Plugin) {
 		plugin.register(() => this.disconnect());
-		plugin.registerEvent(this.app.workspace.on("layout-change", () => this.updateDebounced()));
-		plugin.registerEvent(this.app.vault.on("rename", () => this.updateDebounced()));
-		plugin.registerEvent(this.app.vault.on("delete", () => this.updateDebounced()));
+		plugin.registerEvent(
+			this.app.workspace.on("layout-change", () =>
+				this.updateDebounced(),
+			),
+		);
+		plugin.registerEvent(
+			this.app.vault.on("rename", () => this.updateDebounced()),
+		);
+		plugin.registerEvent(
+			this.app.vault.on("delete", () => this.updateDebounced()),
+		);
 
 		this.connect();
 		this.updateDebounced();
@@ -34,14 +52,22 @@ export class FileTreeHighlightManager {
 		this.observer = new MutationObserver(this.observerCallback);
 
 		// 优化：缩小观察范围到 .nav-files-container 而非整个 document.body
-		const containers = Array.from(document.querySelectorAll<HTMLElement>(".nav-files-container"));
+		const containers = Array.from(
+			document.querySelectorAll<HTMLElement>(".nav-files-container"),
+		);
 		for (const container of containers) {
-			this.observer.observe(container, { childList: true, subtree: true });
+			this.observer.observe(container, {
+				childList: true,
+				subtree: true,
+			});
 		}
 
 		// 如果没有找到容器，则回退到观察 document.body（但只监听新增的容器）
 		if (containers.length === 0) {
-			this.observer.observe(document.body, { childList: true, subtree: false });
+			this.observer.observe(document.body, {
+				childList: true,
+				subtree: false,
+			});
 		}
 	}
 
@@ -62,9 +88,13 @@ export class FileTreeHighlightManager {
 		if (!this.enabled()) return;
 
 		const highlights = this.getHighlights();
-		const containers = Array.from(document.querySelectorAll<HTMLElement>(".nav-files-container"));
+		const containers = Array.from(
+			document.querySelectorAll<HTMLElement>(".nav-files-container"),
+		);
 		for (const container of containers) {
-			const nodes = Array.from(container.querySelectorAll<HTMLElement>("[data-path]"));
+			const nodes = Array.from(
+				container.querySelectorAll<HTMLElement>("[data-path]"),
+			);
 			for (const node of nodes) {
 				const path = node.getAttribute("data-path");
 				if (!path) continue;
@@ -82,9 +112,11 @@ export class FileTreeHighlightManager {
 
 				const color = highlights[path];
 				if (!color) continue;
-				node.classList.add("editor-pro-filetree-highlight", `editor-pro-filetree-${color}`);
+				node.classList.add(
+					"editor-pro-filetree-highlight",
+					`editor-pro-filetree-${color}`,
+				);
 			}
 		}
 	}
 }
-

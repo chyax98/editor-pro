@@ -15,63 +15,63 @@ export const toggleCalloutPrefix = toggleBlockquote;
  * - 否则，给所有行添加 `> `
  */
 export function toggleBlockquote(editor: Editor) {
+	const selection = editor.getSelection();
 
-    const selection = editor.getSelection();
+	if (selection) {
+		// 处理选区
+		const selectedRange = editor.listSelections()[0];
+		if (!selectedRange) return;
 
-    if (selection) {
-        // 处理选区
-        const selectedRange = editor.listSelections()[0];
-        if (!selectedRange) return;
+		let fromLine = selectedRange.anchor.line;
+		let toLine = selectedRange.head.line;
 
-        let fromLine = selectedRange.anchor.line;
-        let toLine = selectedRange.head.line;
+		// 确保 from <= to
+		if (fromLine > toLine) {
+			[fromLine, toLine] = [toLine, fromLine];
+		}
 
-        // 确保 from <= to
-        if (fromLine > toLine) {
-            [fromLine, toLine] = [toLine, fromLine];
-        }
+		const lines = [];
+		for (let i = fromLine; i <= toLine; i++) {
+			lines.push(editor.getLine(i));
+		}
 
-        const lines = [];
-        for (let i = fromLine; i <= toLine; i++) {
-            lines.push(editor.getLine(i));
-        }
+		const allHavePrefix = lines.every((line) =>
+			line.trim().startsWith(">"),
+		);
 
-        const allHavePrefix = lines.every(line => line.trim().startsWith('>'));
+		const newLines = lines.map((line) => {
+			if (allHavePrefix) {
+				// 移除 >
+				return line.replace(/^\s*>\s?/, "");
+			} else {
+				// 添加 >
+				return `> ${line}`;
+			}
+		});
 
-        const newLines = lines.map(line => {
-            if (allHavePrefix) {
-                // 移除 >
-                return line.replace(/^\s*>\s?/, '');
-            } else {
-                // 添加 >
-                return `> ${line}`;
-            }
-        });
+		// 替换范围（整行替换）
+		const from = { line: fromLine, ch: 0 };
+		const to = { line: toLine, ch: editor.getLine(toLine).length };
+		editor.replaceRange(newLines.join("\n"), from, to);
 
-        // 替换范围（整行替换）
-        const from = { line: fromLine, ch: 0 };
-        const to = { line: toLine, ch: editor.getLine(toLine).length };
-        editor.replaceRange(newLines.join('\n'), from, to);
+		// 重新选中（方便连续操作）
+		// 计算新的结束位置长度
+		// const newLength = newLines.join('\n').length;
+		// editor.setSelection(from, { line: toLine, ch: newLines[newLines.length-1].length });
+	} else {
+		// 处理当前行
+		const cursor = editor.getCursor();
+		const line = editor.getLine(cursor.line);
 
-        // 重新选中（方便连续操作）
-        // 计算新的结束位置长度
-        // const newLength = newLines.join('\n').length;
-        // editor.setSelection(from, { line: toLine, ch: newLines[newLines.length-1].length });
-
-    } else {
-        // 处理当前行
-        const cursor = editor.getCursor();
-        const line = editor.getLine(cursor.line);
-
-        if (line.trim().startsWith('>')) {
-            // 移除 >
-            const newLine = line.replace(/^\s*>\s?/, '');
-            editor.setLine(cursor.line, newLine);
-        } else {
-            // 添加 >
-            editor.setLine(cursor.line, `> ${line}`);
-        }
-    }
+		if (line.trim().startsWith(">")) {
+			// 移除 >
+			const newLine = line.replace(/^\s*>\s?/, "");
+			editor.setLine(cursor.line, newLine);
+		} else {
+			// 添加 >
+			editor.setLine(cursor.line, `> ${line}`);
+		}
+	}
 }
 
 /**
@@ -81,42 +81,42 @@ export function toggleBlockquote(editor: Editor) {
  * - 替换类型
  */
 export function changeCalloutType(editor: Editor, app: App) {
-    const cursor = editor.getCursor();
-    const currentLineNum = cursor.line;
+	const cursor = editor.getCursor();
+	const currentLineNum = cursor.line;
 
-    // 1. 向上查找 Callout Header
-    let headerLineNum = -1;
-    let headerContent = '';
+	// 1. 向上查找 Callout Header
+	let headerLineNum = -1;
+	let headerContent = "";
 
-    // 向上查找 Callout 头部行
-    // 注意：Callout 块是连续的，遇到非 > 开头的行必然停止，不存在性能问题
-    for (let i = currentLineNum; i >= 0; i--) {
-        const line = editor.getLine(i);
-        if (line.match(/^\s*>\s*\[!(\w+)\]/)) {
-            headerLineNum = i;
-            headerContent = line;
-            break;
-        }
-        // 如果遇到非引用行，说明不在 Callout 块内，停止查找
-        if (!line.trim().startsWith('>')) {
-            break;
-        }
-    }
+	// 向上查找 Callout 头部行
+	// 注意：Callout 块是连续的，遇到非 > 开头的行必然停止，不存在性能问题
+	for (let i = currentLineNum; i >= 0; i--) {
+		const line = editor.getLine(i);
+		if (line.match(/^\s*>\s*\[!(\w+)\]/)) {
+			headerLineNum = i;
+			headerContent = line;
+			break;
+		}
+		// 如果遇到非引用行，说明不在 Callout 块内，停止查找
+		if (!line.trim().startsWith(">")) {
+			break;
+		}
+	}
 
-    if (headerLineNum === -1) {
-        // 没找到，提示用户可能不在 Callout 内
-        // console.log("Not inside a callout");
-        return;
-    }
+	if (headerLineNum === -1) {
+		// 没找到，提示用户可能不在 Callout 内
+		// console.log("Not inside a callout");
+		return;
+	}
 
-    // 2. 弹出选择器
-    new CalloutTypePicker(app, (newType) => {
-        // 3. 替换类型
-        // Regex: > [!oldType](+/-?) title
-        const newHeader = headerContent.replace(
-            /(^\s*>\s*\[!)(\w+)(\])/,
-            `$1${newType}$3`
-        );
-        editor.setLine(headerLineNum, newHeader);
-    }).open();
+	// 2. 弹出选择器
+	new CalloutTypePicker(app, (newType) => {
+		// 3. 替换类型
+		// Regex: > [!oldType](+/-?) title
+		const newHeader = headerContent.replace(
+			/(^\s*>\s*\[!)(\w+)(\])/,
+			`$1${newType}$3`,
+		);
+		editor.setLine(headerLineNum, newHeader);
+	}).open();
 }

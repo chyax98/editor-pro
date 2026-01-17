@@ -17,7 +17,10 @@ function escapeMarkdownLinkLabel(label: string): string {
  *   replace selection with `[selection](url)`.
  * - Otherwise do nothing (let Obsidian handle paste).
  */
-export function smartPasteUrlIntoSelection(editor: Editor, clipboardText: string): boolean {
+export function smartPasteUrlIntoSelection(
+	editor: Editor,
+	clipboardText: string,
+): boolean {
 	const url = clipboardText.trim();
 	if (!isLikelyUrl(url)) return false;
 
@@ -29,4 +32,3 @@ export function smartPasteUrlIntoSelection(editor: Editor, clipboardText: string
 	editor.replaceSelection(`[${label}](${url})`);
 	return true;
 }
-

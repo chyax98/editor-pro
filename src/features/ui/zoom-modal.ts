@@ -1,6 +1,9 @@
 import { App, Editor, Modal, Notice, Setting } from "obsidian";
 
-function findHeadingSection(editor: Editor, fromLine: number): { start: number; end: number; title: string } | null {
+function findHeadingSection(
+	editor: Editor,
+	fromLine: number,
+): { start: number; end: number; title: string } | null {
 	let start = -1;
 	let level = 0;
 	for (let i = fromLine; i >= 0; i--) {
@@ -47,7 +50,10 @@ function isListItemLine(text: string): { indent: number } | null {
 	return null;
 }
 
-function findListBlock(editor: Editor, line: number): { start: number; end: number } | null {
+function findListBlock(
+	editor: Editor,
+	line: number,
+): { start: number; end: number } | null {
 	const currentLine = editor.getLine(line);
 	if (!currentLine) return null;
 	const info = isListItemLine(currentLine);
@@ -99,14 +105,28 @@ class ZoomEditModal extends Modal {
 	private textareaEl: HTMLTextAreaElement | null = null;
 	private savedFocus: { line: number; ch: number } | null = null;
 
-	constructor(app: App, editor: Editor, startLine: number, endLine: number, title: string) {
+	constructor(
+		app: App,
+		editor: Editor,
+		startLine: number,
+		endLine: number,
+		title: string,
+	) {
 		super(app);
 		this.editor = editor;
 
 		// Validate line bounds
 		const lineCount = editor.lineCount();
-		if (startLine < 0 || startLine >= lineCount || endLine < 0 || endLine >= lineCount || startLine > endLine) {
-			throw new Error(`Invalid line range: startLine=${startLine}, endLine=${endLine}, lineCount=${lineCount}`);
+		if (
+			startLine < 0 ||
+			startLine >= lineCount ||
+			endLine < 0 ||
+			endLine >= lineCount ||
+			startLine > endLine
+		) {
+			throw new Error(
+				`Invalid line range: startLine=${startLine}, endLine=${endLine}, lineCount=${lineCount}`,
+			);
 		}
 
 		this.startLine = startLine;
@@ -116,7 +136,7 @@ class ZoomEditModal extends Modal {
 		const lines: string[] = [];
 		for (let i = startLine; i <= endLine; i++) {
 			const line = editor.getLine(i);
-			lines.push(line ?? ''); // Defensive: handle potential null
+			lines.push(line ?? ""); // Defensive: handle potential null
 		}
 		this.initial = lines.join("\n");
 		this.value = this.initial;
@@ -137,30 +157,38 @@ class ZoomEditModal extends Modal {
 
 		new Setting(this.contentEl)
 			.addButton((btn) => {
-				btn.setButtonText("应用").setCta().onClick(() => {
-					if (this.value === this.initial) {
-						this.close();
-						return;
-					}
+				btn.setButtonText("应用")
+					.setCta()
+					.onClick(() => {
+						if (this.value === this.initial) {
+							this.close();
+							return;
+						}
 
-					// Re-fetch the end line to get current document state
-					const currentEndLine = this.editor.getLine(this.endLine);
-					if (!currentEndLine) {
-						new Notice("Editor Pro：无法获取文档内容，可能文档已被修改");
-						this.close();
-						return;
-					}
+						// Re-fetch the end line to get current document state
+						const currentEndLine = this.editor.getLine(
+							this.endLine,
+						);
+						if (!currentEndLine) {
+							new Notice(
+								"Editor Pro：无法获取文档内容，可能文档已被修改",
+							);
+							this.close();
+							return;
+						}
 
-					this.editor.replaceRange(
-						this.value,
-						{ line: this.startLine, ch: 0 },
-						{ line: this.endLine, ch: currentEndLine.length }
-					);
-					this.close();
-				});
+						this.editor.replaceRange(
+							this.value,
+							{ line: this.startLine, ch: 0 },
+							{ line: this.endLine, ch: currentEndLine.length },
+						);
+						this.close();
+					});
 			})
 			.addExtraButton((btn) => {
-				btn.setIcon("x").setTooltip("Cancel").onClick(() => this.close());
+				btn.setIcon("x")
+					.setTooltip("Cancel")
+					.onClick(() => this.close());
 			});
 
 		// Focus trap: focus to textarea after modal is fully opened
@@ -189,7 +217,13 @@ export function zoomCurrentHeading(app: App, editor: Editor) {
 		new Notice("Editor Pro：未找到标题（请把光标放在某个标题段落内）");
 		return;
 	}
-	new ZoomEditModal(app, editor, section.start, section.end, `聚焦：${section.title}`).open();
+	new ZoomEditModal(
+		app,
+		editor,
+		section.start,
+		section.end,
+		`聚焦：${section.title}`,
+	).open();
 }
 
 export function zoomCurrentListBlock(app: App, editor: Editor) {
@@ -199,5 +233,11 @@ export function zoomCurrentListBlock(app: App, editor: Editor) {
 		new Notice("Editor Pro：未找到列表块（请把光标放在列表项上）");
 		return;
 	}
-	new ZoomEditModal(app, editor, block.start, block.end, "聚焦：列表块").open();
+	new ZoomEditModal(
+		app,
+		editor,
+		block.start,
+		block.end,
+		"聚焦：列表块",
+	).open();
 }

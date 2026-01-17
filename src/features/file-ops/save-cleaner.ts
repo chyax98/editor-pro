@@ -23,7 +23,11 @@ export class SaveCleaner {
 	constructor(options: SaveCleanerOptions) {
 		this.app = options.app;
 		this.enabled = options.enabled;
-		this.runDebounced = debounce((file: TFile) => void this.run(file), 400, true);
+		this.runDebounced = debounce(
+			(file: TFile) => void this.run(file),
+			400,
+			true,
+		);
 	}
 
 	register(plugin: Plugin) {
@@ -70,4 +74,3 @@ export class SaveCleaner {
 		this.timeoutIds.clear();
 	}
 }
-

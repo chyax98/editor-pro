@@ -2,46 +2,58 @@ import { Infographic } from "@antv/infographic";
 import { MarkdownRenderChild, Plugin } from "obsidian";
 
 export function registerInfographicRenderer(plugin: Plugin) {
-	plugin.registerMarkdownCodeBlockProcessor("infographic", (source, el, ctx) => {
-		const container = el.createDiv({ cls: "editor-pro-infographic" });
+	plugin.registerMarkdownCodeBlockProcessor(
+		"infographic",
+		(source, el, ctx) => {
+			const container = el.createDiv({ cls: "editor-pro-infographic" });
 
-		let infographic: Infographic | null = null;
+			let infographic: Infographic | null = null;
 
-		const child = new (class extends MarkdownRenderChild {
-			onload() {
-				const input = source.trim();
-				if (!input) {
-					container.createEl("div", {
-						text: "Editor Pro：Infographic 代码块为空",
-						cls: "editor-pro-infographic-empty",
-					});
-					return;
+			const child = new (class extends MarkdownRenderChild {
+				onload() {
+					const input = source.trim();
+					if (!input) {
+						container.createEl("div", {
+							text: "Editor Pro：Infographic 代码块为空",
+							cls: "editor-pro-infographic-empty",
+						});
+						return;
+					}
+
+					try {
+						infographic = new Infographic({
+							container,
+							width: "100%",
+						});
+						infographic.render(input);
+					} catch (error) {
+						const message =
+							error instanceof Error
+								? error.message
+								: String(error);
+						container.empty();
+						const errorEl = container.createDiv({
+							cls: "editor-pro-infographic-error",
+						});
+						errorEl.createEl("div", {
+							text: `Editor Pro：Infographic 渲染失败：${message}`,
+						});
+
+						const details = errorEl.createEl("details", {
+							cls: "editor-pro-infographic-error-details",
+						});
+						details.createEl("summary", { text: "显示源代码" });
+						details.createEl("pre", { text: input });
+					}
 				}
 
-				try {
-					infographic = new Infographic({
-						container,
-						width: "100%",
-					});
-					infographic.render(input);
-				} catch (error) {
-					const message = error instanceof Error ? error.message : String(error);
-					container.empty();
-					const errorEl = container.createDiv({ cls: "editor-pro-infographic-error" });
-					errorEl.createEl("div", { text: `Editor Pro：Infographic 渲染失败：${message}` });
-
-					const details = errorEl.createEl("details", { cls: "editor-pro-infographic-error-details" });
-					details.createEl("summary", { text: "显示源代码" });
-					details.createEl("pre", { text: input });
+				onunload() {
+					infographic?.destroy();
+					infographic = null;
 				}
-			}
+			})(container);
 
-			onunload() {
-				infographic?.destroy();
-				infographic = null;
-			}
-		})(container);
-
-		ctx.addChild(child);
-	});
+			ctx.addChild(child);
+		},
+	);
 }

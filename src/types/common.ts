@@ -10,20 +10,22 @@ export type PartialBy<T, K extends keyof T> = Omit<T, K> & Partial<Pick<T, K>>;
 /**
  * 使对象的某些属性变为必需
  */
-export type RequiredBy<T, K extends keyof T> = Omit<T, K> & Required<Pick<T, K>>;
+export type RequiredBy<T, K extends keyof T> = Omit<T, K> &
+	Required<Pick<T, K>>;
 
 /**
  * 深度只读
  */
 export type DeepReadonly<T> = {
-    readonly [P in keyof T]: T[P] extends object ? DeepReadonly<T[P]> : T[P];
+	readonly [P in keyof T]: T[P] extends object ? DeepReadonly<T[P]> : T[P];
 };
 
 /**
  * 异步函数返回类型
  */
-export type AsyncReturnType<T extends (...args: unknown[]) => Promise<unknown>> =
-    T extends (...args: unknown[]) => Promise<infer R> ? R : never;
+export type AsyncReturnType<
+	T extends (...args: unknown[]) => Promise<unknown>,
+> = T extends (...args: unknown[]) => Promise<infer R> ? R : never;
 
 /**
  * 可空类型

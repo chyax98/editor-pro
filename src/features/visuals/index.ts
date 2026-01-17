@@ -1,6 +1,6 @@
 /**
  * Visuals 模块 - 可视化渲染
- * 
+ *
  * 包含：
  * - charts: 图表渲染（ECharts, Graphviz, Vega-Lite）
  * - infographic: 信息图渲染
@@ -9,10 +9,10 @@
  */
 
 // 图表渲染
-export { registerChartRenderers } from '../charts/chart-renderer';
+export { registerChartRenderers } from "../charts/chart-renderer";
 
 // 信息图
-export { registerInfographicRenderer } from './infographic-renderer';
+export { registerInfographicRenderer } from "./infographic-renderer";
 
 // 过期高亮
-export { createOverdueHighlighter } from './overdue-highlighter';
+export { createOverdueHighlighter } from "./overdue-highlighter";
