@@ -117,14 +117,24 @@ export class TemplateEngine {
 			const keys = Object.keys(scope);
 			const values = Object.values(scope);
 
+			// eslint-disable-next-line @typescript-eslint/no-implied-eval
 			const func = new Function(...keys, body) as (...args: unknown[]) => unknown;
-			// eslint-disable-next-line @typescript-eslint/no-unsafe-call
 			const result = func(...values);
 
-			return result !== undefined && result !== null ? String(result) : '';
+			// Handle various return types safely
+			if (result === undefined || result === null) {
+				return '';
+			}
+			if (typeof result === 'object') {
+				return JSON.stringify(result);
+			}
+			// Primitive types (string, number, boolean, bigint, symbol) are safe to stringify
+			// eslint-disable-next-line @typescript-eslint/no-base-to-string
+			return String(result);
 		} catch (e) {
 			console.error('[Editor Pro] Template JS Error:', e);
-			return `[JS Error: ${(e as Error).message}]`;
+			const errorMessage = e instanceof Error ? e.message : String(e);
+			return `[JS Error: ${errorMessage}]`;
 		}
 	}
 

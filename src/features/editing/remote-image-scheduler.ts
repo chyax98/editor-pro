@@ -97,7 +97,7 @@ export class RemoteImageTaskScheduler {
             if (!this.isShuttingDown && task.retries < MAX_RETRIES) {
                 task.retries++;
                 const delay = RETRY_DELAY_BASE * Math.pow(2, task.retries - 1); // 2s, 4s, 8s
-                console.log(`Retrying task ${task.id} in ${delay}ms...`);
+                console.debug(`Retrying task ${task.id} in ${delay}ms...`);
 
                 const timeoutId = setTimeout(() => {
                     this.pendingTimeouts.delete(timeoutId);
@@ -136,7 +136,8 @@ export class RemoteImageTaskScheduler {
         // 4. 更新缓存（限制大小）
         if (this.processedUrls.size >= MAX_CACHE_SIZE) {
             // 删除最早的条目
-            const firstKey = this.processedUrls.keys().next().value;
+            const nextKey = this.processedUrls.keys().next();
+            const firstKey = typeof nextKey.value === "string" ? nextKey.value : null;
             if (firstKey) this.processedUrls.delete(firstKey);
         }
         this.processedUrls.set(task.url, filename);
@@ -241,8 +242,9 @@ export class RemoteImageTaskScheduler {
     }
 
     private getAssetsFolder(): string {
-        // @ts-ignore
-        const folder = this.app.vault.getConfig('attachmentFolderPath');
+        const folder = (this.app.vault as unknown as {
+            getConfig: (key: string) => string | null | undefined;
+        }).getConfig('attachmentFolderPath');
         return folder && folder !== './' ? folder : 'Attachments';
     }
 
@@ -251,10 +253,10 @@ export class RemoteImageTaskScheduler {
         if (!(await this.app.vault.adapter.exists(path))) {
             try {
                 await this.app.vault.createFolder(path);
-            } catch (error) {
+            } catch (error: unknown) {
                 // Folder might have been created concurrently
                 if (!(await this.app.vault.adapter.exists(path))) {
-                    throw error as Error;
+                    throw error instanceof Error ? error : new Error(String(error));
                 }
             }
         }

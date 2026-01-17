@@ -1,7 +1,13 @@
 import { App, PluginSettingTab, Setting, Notice } from "obsidian";
 import EditorProPlugin from "./main";
 
+import { McpSettings, MCP_DEFAULT_SETTINGS } from "./features/mcp/mcp-types";
+import { McpFeature } from "./features/mcp/mcp-feature";
+import { McpSettingsRenderer } from "./features/mcp/mcp-settings-tab";
+
 export interface EditorProSettings {
+
+    mcp: McpSettings;
 
     enableSmartToggle: boolean;
     enableSlashCommand: boolean;
@@ -54,11 +60,39 @@ export interface EditorProSettings {
 
     // 模板设置
     templateFolderPath: string;
+
+    // Homepage 设置
+    enableHomepage: boolean;
+    homepageReplaceNewTab: boolean;
+    homepageShowOnStartup: boolean;
+    homepageDailyNotesFolder: string;
+    homepageTrackedFolders: string;      // 每行一个: path:name:icon:showInFlow:order
+    homepageShowGreeting: boolean;
+    homepageShowDailyNote: boolean;
+    homepageShowFolderStats: boolean;
+    homepageShowRecentFiles: boolean;
+    homepageShowPinnedNotes: boolean;
+    homepageShowReminders: boolean;
+    homepageRecentFilesCount: number;
+    homepagePinnedNotes: string[];
+    homepageWeeklyCleanDay: number;
+    homepageReminderFolders: string;     // 每行一个: path:name:maxDays:maxItems
+    homepageShowMonthlyOverview: boolean;
+    homepageMonthlyPattern: string;
+
+    // Vault Guardian 设置
+    enableVaultGuardian: boolean;
+    vaultGuardianAllowedRoots: string;   // 每行一个根目录
+    vaultGuardianFolderRules: string;    // 每行一个: path:allowSubfolders:maxDepth:pattern
+    vaultGuardianBlockCreation: boolean;
+    vaultGuardianShowNotification: boolean;
+    vaultGuardianCheckOnStartup: boolean;
 }
 
 
 
 export const DEFAULT_SETTINGS: EditorProSettings = {
+    mcp: MCP_DEFAULT_SETTINGS,
     // 核心编辑功能（默认开启）
     enableSmartToggle: true,
     enableKeyshots: true,
@@ -118,6 +152,33 @@ export const DEFAULT_SETTINGS: EditorProSettings = {
 
     // 模板配置
     templateFolderPath: 'Templates',
+
+    // Homepage 配置（默认关闭）
+    enableHomepage: false,
+    homepageReplaceNewTab: false,
+    homepageShowOnStartup: false,
+    homepageDailyNotesFolder: 'Daily',
+    homepageTrackedFolders: 'Inbox:Inbox:📥:true:1\nWorking:Working:🔧:true:2\nNotes:Notes:📚:true:3',
+    homepageShowGreeting: true,
+    homepageShowDailyNote: true,
+    homepageShowFolderStats: true,
+    homepageShowRecentFiles: true,
+    homepageShowPinnedNotes: true,
+    homepageShowReminders: true,
+    homepageRecentFilesCount: 5,
+    homepagePinnedNotes: [],
+    homepageWeeklyCleanDay: 0,
+    homepageReminderFolders: 'Inbox:Inbox:7:10',
+    homepageShowMonthlyOverview: false,
+    homepageMonthlyPattern: '',
+
+    // Vault Guardian 配置（默认关闭）
+    enableVaultGuardian: false,
+    vaultGuardianAllowedRoots: '',
+    vaultGuardianFolderRules: '',
+    vaultGuardianBlockCreation: false,
+    vaultGuardianShowNotification: true,
+    vaultGuardianCheckOnStartup: false,
 }
 
 /**
@@ -224,6 +285,14 @@ interface SettingSection {
     settings: SettingItem[];
 }
 
+interface SettingsTabDefinition {
+    id: string;
+    title: string;
+    icon: string;
+    sectionTitles?: Set<string>;
+    render?: (container: HTMLElement) => void;
+}
+
 const SECTIONS: SettingSection[] = [
     {
         title: '基础编辑',
@@ -233,7 +302,6 @@ const SECTIONS: SettingSection[] = [
             { name: '开启输入增强（自动配对/智能退格/中英空格）', desc: '输入 `(` 自动补全 `)`；选中文字后输入 `(` 自动包裹；在 `(|)` 中按退格同时删除两个符号；中英文之间自动加空格。', key: 'enableSmartTyping', type: 'toggle' },
             { name: '开启编辑器导航增强（Shift+Enter 跳出）', desc: '在引用块（> 开头）或 Callout 内按 Shift+Enter，快速跳出到下一行普通文本，无需手动删除 > 符号。', key: 'enableEditorNavigation', type: 'toggle' },
             { name: '开启大纲编辑（Outliner）', desc: '在列表项上按 Tab 缩进，Shift+Tab 反缩进（会连带移动子项）。还提供“折叠/展开”命令用于快速缩放列表块。', key: 'enableOutliner', type: 'toggle' },
-
         ],
     },
     {
@@ -310,7 +378,6 @@ const SECTIONS: SettingSection[] = [
             { name: '开启界面清理（Focus UI / Zen）', desc: '在命令面板中搜索 "切换专注模式" 可一键隐藏侧边栏、状态栏等界面元素，进入无干扰写作模式。再次执行命令恢复。', key: 'enableFocusUi', type: 'toggle' },
             { name: '开启浮动大纲（Floating outline）', desc: '在命令面板中搜索 "切换浮动大纲" 可在编辑器右侧弹出极简目录。点击标题跳转，按 Esc 或点击 × 关闭。', key: 'enableFloatingOutline', type: 'toggle' },
             { name: '开启局部聚焦（Heading/List zoom）', desc: '在命令面板搜索 "聚焦当前标题" 或 "聚焦当前列表"，在弹窗中专注编辑当前段落/列表，编辑完成后自动同步回原文。', key: 'enableZoom', type: 'toggle' },
-
         ],
     },
     {
@@ -375,10 +442,14 @@ export class EditorProSettingTab extends PluginSettingTab {
     plugin: EditorProPlugin;
     private searchInput?: HTMLInputElement;
     private settingElements: HTMLElement[] = [];
+    private mcpFeature: McpFeature | null;
+    private activeTabId = "editing";
+    private tabContent?: HTMLElement;
 
-    constructor(app: App, plugin: EditorProPlugin) {
+    constructor(app: App, plugin: EditorProPlugin, mcpFeature: McpFeature | null) {
         super(app, plugin);
         this.plugin = plugin;
+        this.mcpFeature = mcpFeature;
     }
 
     display(): void {
@@ -431,14 +502,13 @@ export class EditorProSettingTab extends PluginSettingTab {
             btn.createEl('span', { text: preset.name, cls: 'preset-name' });
             btn.createEl('span', { text: preset.description, cls: 'preset-desc' });
 
-            btn.addEventListener('click', async () => {
-                await this.applyPreset(preset);
+            btn.addEventListener('click', () => {
+                void this.applyPreset(preset);
             });
         }
 
-        // Add welcome styles
-        this.addWelcomeStyles(containerEl);
-        this.addPresetStyles(containerEl);
+        const tabs = this.buildTabs();
+        this.renderTabs(containerEl, tabs);
 
         // Search bar with accessibility support
         const searchContainer = containerEl.createDiv({ cls: 'editor-pro-settings-search' });
@@ -458,110 +528,10 @@ export class EditorProSettingTab extends PluginSettingTab {
             el.setAttribute('title', '输入以过滤设置选项');
         });
 
-        // Add search styles
-        this.addSearchStyles(containerEl);
-
-        // Render all settings
-        this.renderAllSettings(containerEl);
+        this.tabContent = containerEl.createDiv({ cls: 'editor-pro-tab-content' });
+        this.renderActiveTab();
     }
 
-    private addSearchStyles(container: HTMLElement): void {
-        const doc = container.ownerDocument;
-        if (!doc) return;
-
-        if (doc.getElementById('editor-pro-settings-styles')) {
-            return; // Already added
-        }
-
-        const style = container.createEl('style', { attr: { id: 'editor-pro-settings-styles' } });
-        style.innerHTML = `
-            .editor-pro-settings-search {
-                margin: 16px 0;
-                padding: 0;
-            }
-            .editor-pro-search-input {
-                width: 100%;
-                padding: 8px 12px;
-                font-size: 14px;
-                border: 1px solid var(--background-modifier-border);
-                border-radius: 4px;
-                background: var(--background-primary);
-                color: var(--text-normal);
-            }
-            .editor-pro-search-input:focus {
-                outline: none;
-                border-color: var(--interactive-accent);
-                box-shadow: 0 0 0 2px var(--interactive-accent-hover);
-            }
-            .editor-pro-setting-item {
-                transition: opacity 0.2s ease;
-            }
-            .editor-pro-setting-item.hidden {
-                display: none;
-            }
-            .editor-pro-section.hidden {
-                display: none;
-            }
-            .editor-pro-section-title {
-                cursor: pointer;
-                user-select: none;
-                display: flex;
-                align-items: center;
-                gap: 8px;
-            }
-            .editor-pro-section-title:hover {
-                opacity: 0.8;
-            }
-            .editor-pro-section-toggle {
-                font-size: 12px;
-                transition: transform 0.2s ease;
-            }
-            .editor-pro-section-toggle.collapsed {
-                transform: rotate(-90deg);
-            }
-        `;
-    }
-
-    private addWelcomeStyles(container: HTMLElement): void {
-        const doc = container.ownerDocument;
-        if (!doc) return;
-
-        if (doc.getElementById('editor-pro-welcome-styles')) {
-            return; // Already added
-        }
-
-        const style = container.createEl('style', { attr: { id: 'editor-pro-welcome-styles' } });
-        style.innerHTML = `
-            .editor-pro-header {
-                margin-bottom: 20px;
-            }
-            .editor-pro-header h1 {
-                margin-bottom: 12px;
-            }
-            .editor-pro-welcome {
-                background: var(--background-secondary);
-                border: 1px solid var(--background-modifier-border);
-                border-radius: 8px;
-                padding: 16px;
-                margin-bottom: 20px;
-            }
-            .editor-pro-welcome p {
-                margin: 8px 0;
-            }
-            .editor-pro-welcome ul {
-                margin: 8px 0;
-                padding-left: 20px;
-            }
-            .editor-pro-welcome li {
-                margin: 4px 0;
-            }
-            .editor-pro-help-link {
-                font-size: 0.9em;
-                color: var(--text-faint);
-                margin-top: 12px;
-            }
-        `;
-    }
 
     private renderAllSettings(container: HTMLElement): void {
         this.settingElements = [];
@@ -586,7 +556,7 @@ export class EditorProSettingTab extends PluginSettingTab {
                 'aria-controls': `${section.title}-settings`,
             }
         });
-        // Use safe DOM API instead of innerHTML to prevent XSS
+        // Use safe DOM API to prevent XSS
         const toggleSpan = headerEl.createEl('span', {
             cls: 'editor-pro-section-toggle',
             attr: { 'aria-hidden': 'true' }
@@ -611,7 +581,7 @@ export class EditorProSettingTab extends PluginSettingTab {
             headerEl.setAttribute('aria-expanded', String(!isCollapsed));
 
             if (settingsContainer) {
-                settingsContainer.style.display = isCollapsed ? 'none' : 'block';
+                settingsContainer.classList.toggle('editor-pro-section-collapsed', isCollapsed);
             }
         };
 
@@ -631,6 +601,116 @@ export class EditorProSettingTab extends PluginSettingTab {
         return sectionContainer;
     }
 
+    private buildTabs(): SettingsTabDefinition[] {
+        const mapping = (titles: string[]) => new Set(titles);
+        const tabs: SettingsTabDefinition[] = [
+            {
+                id: 'editing',
+                title: '编辑功能',
+                icon: '✍️',
+                sectionTitles: mapping([
+                    '基础编辑',
+                    '格式化与转换',
+                    '快捷键与命令',
+                    '智能粘贴',
+                    '辅助功能',
+                ]),
+            },
+            {
+                id: 'experience',
+                title: '写作体验',
+                icon: '🧘',
+                sectionTitles: mapping(['写作体验', '界面增强']),
+            },
+            {
+                id: 'content',
+                title: '文件管理',
+                icon: '📁',
+                sectionTitles: mapping(['小工具', '文件与库管理']),
+            },
+            {
+                id: 'visuals',
+                title: '可视化',
+                icon: '📊',
+                sectionTitles: mapping(['可视化']),
+            },
+            {
+                id: 'mcp',
+                title: 'MCP / Agent',
+                icon: '🤖',
+                render: (container) => {
+                    if (!this.mcpFeature) {
+                        container.createEl('p', {
+                            text: 'MCP 模块未加载。请重启插件。',
+                            cls: 'setting-item-description',
+                        });
+                        return;
+                    }
+                    new McpSettingsRenderer(this.mcpFeature).render(container);
+                },
+            },
+        ];
+
+        if (!this.mcpFeature) {
+            if (this.activeTabId === 'mcp') {
+                this.activeTabId = 'editing';
+            }
+            return tabs.filter((tab) => tab.id !== 'mcp');
+        }
+
+        return tabs;
+    }
+
+    private renderTabs(container: HTMLElement, tabs: SettingsTabDefinition[]) {
+        const tabContainer = container.createDiv({ cls: 'editor-pro-tabs' });
+        tabs.forEach((tab) => {
+            const button = tabContainer.createEl('button', {
+                cls: 'editor-pro-tab-button',
+                attr: { 'data-tab-id': tab.id },
+            });
+            button.createEl('span', { text: tab.icon, cls: 'editor-pro-tab-icon' });
+            button.createEl('span', { text: tab.title });
+            if (tab.id === this.activeTabId) {
+                button.addClass('active');
+            }
+            button.addEventListener('click', () => {
+                this.activeTabId = tab.id;
+                tabContainer.querySelectorAll('.editor-pro-tab-button').forEach((el) => {
+                    el.classList.toggle('active', el.getAttribute('data-tab-id') === tab.id);
+                });
+                this.renderActiveTab();
+            });
+        });
+    }
+
+    private renderActiveTab() {
+        if (!this.tabContent) return;
+        const tabs = this.buildTabs();
+        const active = tabs.find((tab) => tab.id === this.activeTabId) ?? tabs[0];
+        if (!active) return;
+
+        this.tabContent.empty();
+
+        if (active.render) {
+            active.render(this.tabContent);
+            this.settingElements = [];
+            return;
+        }
+
+        const sections = SECTIONS.filter((section) =>
+            active.sectionTitles?.has(section.title)
+        );
+        this.settingElements = [];
+        sections.forEach((section) => {
+            const sectionEl = this.renderSection(this.tabContent!, section);
+            this.settingElements.push(sectionEl);
+        });
+
+        if ((this.searchInput?.value ?? "").trim()) {
+            this.filterSettings();
+        }
+    }
+
     private renderSetting(container: HTMLElement, setting: SettingItem): void {
         const settingEl = container.createDiv({ cls: 'editor-pro-setting-item' });
         settingEl.dataset.name = setting.name.toLowerCase();
@@ -646,25 +726,14 @@ export class EditorProSettingTab extends PluginSettingTab {
 
         if (setting.longDesc) {
             const details = document.createElement('details');
-            // eslint-disable-next-line obsidianmd/no-static-styles-assignment
-            details.style.marginTop = '8px';
-            // eslint-disable-next-line obsidianmd/no-static-styles-assignment
-            details.style.color = 'var(--text-muted)';
-            // eslint-disable-next-line obsidianmd/no-static-styles-assignment
-            details.style.fontSize = '0.9em';
+            details.addClass('editor-pro-details');
 
             const summary = document.createElement('summary');
-            // eslint-disable-next-line obsidianmd/no-static-styles-assignment
-            summary.style.cursor = 'pointer';
+            summary.addClass('editor-pro-details-summary');
             summary.textContent = '详细说明';
 
             const content = document.createElement('div');
-            // eslint-disable-next-line obsidianmd/no-static-styles-assignment
-            content.style.paddingLeft = '1em';
-            // eslint-disable-next-line obsidianmd/no-static-styles-assignment
-            content.style.marginTop = '4px';
-            // eslint-disable-next-line obsidianmd/no-static-styles-assignment
-            content.style.whiteSpace = 'pre-wrap'; // Preserve newlines
+            content.addClass('editor-pro-details-content');
             content.textContent = setting.longDesc;
 
             details.appendChild(summary);
@@ -708,7 +777,7 @@ export class EditorProSettingTab extends PluginSettingTab {
 
     private filterSettings(): void {
         const searchTerm = this.searchInput?.value.toLowerCase() || '';
-        const sections = Array.from(document.querySelectorAll('.editor-pro-section'));
+        const sections = Array.from(this.tabContent?.querySelectorAll('.editor-pro-section') ?? []);
 
         for (const section of sections) {
             const sectionEl = section as HTMLElement;
@@ -739,7 +808,7 @@ export class EditorProSettingTab extends PluginSettingTab {
             if (searchTerm !== '' && hasVisibleSettings) {
                 toggle?.classList.remove('collapsed');
                 if (settingsContainer) {
-                    settingsContainer.style.display = 'block';
+                    settingsContainer.classList.remove('editor-pro-section-collapsed');
                 }
                 // Update ARIA state for accessibility
                 if (headerEl) {
@@ -755,13 +824,7 @@ export class EditorProSettingTab extends PluginSettingTab {
         // and notify the user.
 
         const settings = preset.settings;
-        for (const key in settings) {
-            // @ts-ignore
-            if (Object.prototype.hasOwnProperty.call(settings, key)) {
-                // @ts-ignore
-                this.plugin.settings[key] = settings[key];
-            }
-        }
+        this.plugin.settings = Object.assign({}, this.plugin.settings, settings);
 
         await this.plugin.saveSettings();
 
@@ -770,59 +833,6 @@ export class EditorProSettingTab extends PluginSettingTab {
 
         // Notify
         new Notice(`已应用预设：${preset.name}`);
-    }
-
-
-
-    private addPresetStyles(containerEl: HTMLElement) {
-        containerEl.createEl('style', {
-            text: `
-                .editor-pro-presets {
-                    margin-top: 16px;
-                    margin-bottom: 24px;
-                }
-                .editor-pro-preset-desc {
-                    color: var(--text-muted);
-                    font-size: 0.9em;
-                    margin-bottom: 12px;
-                }
-                .editor-pro-preset-buttons {
-                    display: grid;
-                    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-                    gap: 12px;
-                }
-                .editor-pro-preset-btn {
-                    display: flex;
-                    flex-direction: column;
-                    align-items: center;
-                    text-align: center;
-                    padding: 12px;
-                    height: 100%;
-                    cursor: pointer;
-                    background-color: var(--interactive-normal);
-                    border: 1px solid var(--background-modifier-border);
-                    border-radius: 8px;
-                    transition: all 0.2s ease;
-                }
-                .editor-pro-preset-btn:hover {
-                    background-color: var(--interactive-hover);
-                    transform: translateY(-2px);
-                    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-                }
-                .preset-icon {
-                    font-size: 24px;
-                    margin-bottom: 8px;
-                }
-                .preset-name {
-                    font-weight: bold;
-                    margin-bottom: 4px;
-                }
-                .preset-desc {
-                    font-size: 0.8em;
-                    color: var(--text-muted);
-                }
-            `
-        });
     }
 
 

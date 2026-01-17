@@ -155,7 +155,7 @@ export function generateDate(format: 'YYYY-MM-DD' | 'HH:mm' | 'YYYY-MM-DD HH:mm'
     }
 
     // Handle unexpected format values gracefully
-    console.warn(`[Editor Pro] Unexpected date format: ${format}, falling back to ISO date`);
+    console.warn(`[Editor Pro] Unexpected date format: ${format as string}, falling back to ISO date`);
     return now.toDateString();
 }
 

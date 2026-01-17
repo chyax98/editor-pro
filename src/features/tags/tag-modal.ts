@@ -1,4 +1,4 @@
-import { App, FuzzySuggestModal, Modal, Setting, Notice } from "obsidian";
+import { App, FuzzySuggestModal, Modal, Setting } from "obsidian";
 import { TagManager } from "./tag-manager";
 
 export class TagRenameModal extends FuzzySuggestModal<string> {
@@ -19,9 +19,9 @@ export class TagRenameModal extends FuzzySuggestModal<string> {
     }
 
     onChooseItem(tag: string, evt: MouseEvent | KeyboardEvent) {
-        new InputModal(this.app, tag, async (newTag) => {
+        new InputModal(this.app, tag, (newTag) => {
             if (newTag && newTag !== tag) {
-                await this.tagManager.renameTag(tag, newTag);
+                void this.tagManager.renameTag(tag, newTag);
             }
         }).open();
     }

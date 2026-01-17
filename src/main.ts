@@ -1,4 +1,4 @@
-import { Editor, MarkdownView, Menu, normalizePath, Notice, Plugin, TFile, TFolder, WorkspaceLeaf } from 'obsidian';
+import { Editor, MarkdownView, Menu, Notice, Plugin, TFolder, WorkspaceLeaf } from 'obsidian';
 import { smartToggle } from './features/formatting/smart-toggle';
 import { toggleTask } from './features/formatting/task-toggle';
 import { wrapWithCallout, wrapWithCodeBlock } from './features/callout/wrap-callout';
@@ -43,6 +43,7 @@ import { insertDiceRollPrompt, insertRandomIntPrompt, insertUuid } from './featu
 import { InlineDecorator } from './features/ui/inline-decorator';
 import { FileTreeHighlightManager, HighlightColor } from './features/ui/file-tree-highlight';
 import { RemoteImageTaskScheduler } from './features/editing/remote-image-scheduler';
+import { McpFeature } from './features/mcp/mcp-feature';
 
 function isRecord(value: unknown): value is Record<string, unknown> {
     return typeof value === 'object' && value !== null;
@@ -70,6 +71,7 @@ export default class EditorProPlugin extends Plugin {
     private cursorMemoryInitial: Record<string, CursorMemoryState> | undefined;
     private focusUi: FocusUiManager | null = null;
     private floatingOutline: FloatingOutline | null = null;
+    private mcpFeature: McpFeature | null = null;
     inlineDecorator: InlineDecorator | null = null;
     fileTreeHighlightManager: FileTreeHighlightManager | null = null;
     fileTreeHighlights: Record<string, HighlightColor> = {};
@@ -103,6 +105,10 @@ export default class EditorProPlugin extends Plugin {
                 editorCallback: (editor: Editor) => selectLine(editor)
             });
         }
+
+        // 0.4 MCP Server
+        this.mcpFeature = new McpFeature(this);
+        void this.mcpFeature.load();
 
         // 0.5 远程图片下载
         this.remoteImageScheduler = new RemoteImageTaskScheduler(this.app);
@@ -176,7 +182,7 @@ export default class EditorProPlugin extends Plugin {
 
         // 3.02 Ribbon Icon
         this.addRibbonIcon('calendar-days', '打开日历 (Editor Pro)', () => {
-            this.activateView();
+            void this.activateView();
         });
 
         // 3.1 模板命令
@@ -632,7 +638,7 @@ export default class EditorProPlugin extends Plugin {
             this.fileTreeHighlightManager.register(this);
         }
 
-        this.addSettingTab(new EditorProSettingTab(this.app, this));
+        this.addSettingTab(new EditorProSettingTab(this.app, this, this.mcpFeature));
     }
 
     private async openFileTreeHighlightMenu() {
@@ -689,6 +695,7 @@ export default class EditorProPlugin extends Plugin {
         this.floatingOutline?.cleanup();
         this.inlineDecorator?.cleanup();
         this.fileTreeHighlightManager?.cleanup();
+        void this.mcpFeature?.unload();
 
         // Clear fence cache from outliner (clearFenceCache must be imported at module level)
         // The outliner module exports clearFenceCache which is a pure function
@@ -700,6 +707,7 @@ export default class EditorProPlugin extends Plugin {
         this.floatingOutline = null;
         this.inlineDecorator = null;
         this.fileTreeHighlightManager = null;
+        this.mcpFeature = null;
     }
 
     async loadSettings() {
@@ -805,10 +813,10 @@ export default class EditorProPlugin extends Plugin {
             const rightLeaf = workspace.getRightLeaf(false);
             if (rightLeaf) {
                 leaf = rightLeaf;
-                await leaf.setViewState({ type: CALENDAR_VIEW_TYPE, active: true });
+                void leaf.setViewState({ type: CALENDAR_VIEW_TYPE, active: true });
             }
         }
 
-        if (leaf) workspace.revealLeaf(leaf);
+        if (leaf) void workspace.revealLeaf(leaf);
     }
 }

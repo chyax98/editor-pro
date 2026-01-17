@@ -1,4 +1,4 @@
-import { Editor } from "obsidian";
+import { App, Editor } from "obsidian";
 import { CalloutTypePicker } from "./callout-picker";
 
 /**
@@ -80,7 +80,7 @@ export function toggleBlockquote(editor: Editor) {
  * - 弹出选择器
  * - 替换类型
  */
-export function changeCalloutType(editor: Editor, app: any) {
+export function changeCalloutType(editor: Editor, app: App) {
     const cursor = editor.getCursor();
     const currentLineNum = cursor.line;
 

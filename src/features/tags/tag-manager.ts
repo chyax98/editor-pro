@@ -10,8 +10,9 @@ export class TagManager {
         // Use obsidian internal API to get tag cache? 
         // app.metadataCache.getTags() returns Record<string, number>
         // Key includes hash like "#tag"
-        // @ts-ignore
-        const tagCache = this.app.metadataCache.getTags();
+        const tagCache = (this.app.metadataCache as unknown as {
+            getTags: () => Record<string, number>;
+        }).getTags();
         return Object.keys(tagCache);
     }
 
@@ -163,7 +164,7 @@ export class TagManager {
                 const newRaw = newTag.substring(1); // "new"
 
                 const processArray = (arr: string[]) => {
-                    return arr.map(t => {
+                    return arr.map((t) => {
                         if (t === oldRaw) return newRaw;
                         if (t.startsWith(oldRaw + '/')) return t.replace(oldRaw + '/', newRaw + '/');
                         return t;
@@ -171,12 +172,13 @@ export class TagManager {
                 };
 
                 if (Array.isArray(fm.tags)) {
-                    fm.tags = processArray(fm.tags);
+                    const tagArray = fm.tags as Array<unknown>;
+                    fm.tags = processArray(tagArray.map((tag) => String(tag)));
                 } else if (typeof fm.tags === 'string') {
                     // "tag1, tag2"
-                    const arr = (fm.tags as string).split(',').map((s: string) => s.trim());
+                    const arr = fm.tags.split(',').map((tag) => tag.trim());
                     const newArr = processArray(arr);
-                    fm.tags = newArr; 
+                    fm.tags = newArr;
                 }
             }
         });

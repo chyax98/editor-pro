@@ -58,7 +58,8 @@ export class SearchInSelectionModal extends Modal {
 					}
 
 					// Prevent ReDoS: limit nested quantifiers
-					const nestedQuantifierPattern = /(\{[0-9,]+\}){3,}|(\*|\+|\?|\{[0-9,]+\})\1{5,}/;
+					// Pattern matches repeated quantifiers that could cause catastrophic backtracking
+					const nestedQuantifierPattern = /(\{[0-9,]+\}){3,}|(\*|\+|\?|\{[0-9,]+\})\2{5,}/;
 					if (nestedQuantifierPattern.test(this.find)) {
 						new Notice("Editor Pro：查找模式过于复杂，可能影响性能");
 						return;
@@ -74,7 +75,7 @@ export class SearchInSelectionModal extends Modal {
 					// Validate escaped regex
 					try {
 						new RegExp(escaped, flags);
-					} catch (error) {
+					} catch {
 						new Notice("Editor Pro：查找内容包含不支持的字符");
 						return;
 					}
