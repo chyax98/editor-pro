@@ -155,12 +155,12 @@ const SECTIONS: SettingSection[] = [
         settings: [
             { name: '开启智能格式切换', desc: '智能处理加粗、斜体、行内代码（按下快捷键时，若光标在标记内则自动取消，避免符号叠加）。', key: 'enableSmartToggle', type: 'toggle' },
             { name: '开启文本转换器（Text transformer）', desc: '提供大小写/排序/去空行等转换命令，并可在右键菜单中使用。', key: 'enableTextTransformer', type: 'toggle' },
-            { 
-                name: '开启保存时清理（Save cleaner）', 
-                desc: '保存时自动移除行尾空格，并确保文件以换行符结尾（尽量低侵入）。⚠️ 注意：与 YAML 自动更新同时使用可能产生冲突。', 
+            {
+                name: '开启保存时清理（Save cleaner）',
+                desc: '保存时自动移除行尾空格，并确保文件以换行符结尾（尽量低侵入）。⚠️ 注意：与 YAML 自动更新同时使用可能产生冲突。',
                 longDesc: '此功能会在文件保存（Ctrl+S）时触发。\n它会扫描每一行，移除末尾多余的空白字符，并确保文件最后一行是空行（POSIX 标准）。\n\n冲突警告：\n如果同时开启了 "YAML 自动更新" 或其他会在保存时修改文件的插件（如 Linter），可能会导致竞争冲突（文件被多次写入）。建议排查是否与其他插件功能重叠。',
-                key: 'enableSaveCleaner', 
-                type: 'toggle' 
+                key: 'enableSaveCleaner',
+                type: 'toggle'
             },
         ],
     },
@@ -169,7 +169,7 @@ const SECTIONS: SettingSection[] = [
         icon: '⌨️',
         settings: [
             { name: '开启斜杠命令', desc: '支持通过 "/"、"、" 或反斜杠（\\）触发命令菜单；支持拼音首字母搜索（MVP）。', key: 'enableSlashCommand', type: 'toggle' },
-            { name: '开启智能输入展开 (@today / @time)', desc: '输入特殊片段后自动展开为日期/时间。', key: 'enableSmartInput', type: 'toggle' },
+            { name: '开启智能输入展开 (@today / @time)', desc: '输入 `@today` 展开为当前日期，`@time` 展开为当前时间，`@now` 展开为日期+时间。输入后自动替换，无需按键确认。', key: 'enableSmartInput', type: 'toggle' },
             { name: '开启任务快捷键', desc: '提供任务状态循环命令（普通文本 / 待办 / 完成），可在 Obsidian 的快捷键设置中自行绑定。', key: 'enableTaskHotkeys', type: 'toggle' },
             { name: '开启标题快捷转换', desc: '提供设置标题等级的命令（1~6 级），可在 Obsidian 的快捷键设置中自行绑定。', key: 'enableHeadingHotkeys', type: 'toggle' },
         ],
@@ -180,20 +180,20 @@ const SECTIONS: SettingSection[] = [
         settings: [
             { name: '开启智能粘贴链接', desc: '选中文字后粘贴 URL，将自动变为 Markdown 链接（例如：选中 "Obsidian" 后粘贴 https://... -> [Obsidian](https://...)）。', key: 'enableSmartPasteUrl', type: 'toggle' },
             { name: '开启链接智能粘贴（自动标题）', desc: '粘贴 URL 时尽量获取标题并插入 Markdown 链接；优先使用剪贴板 HTML，不联网。', key: 'enableSmartLinkTitle', type: 'toggle' },
-            { 
-                name: '允许联网抓取网页标题', 
-                desc: '当剪贴板没有标题时，尝试联网请求网页并读取 `<title>`；失败会降级为纯 URL。⚠️ 需要网络访问，已阻止内网地址保护隐私。', 
+            {
+                name: '允许联网抓取网页标题',
+                desc: '当剪贴板没有标题时，尝试联网请求网页并读取 `<title>`；失败会降级为纯 URL。⚠️ 需要网络访问，已阻止内网地址保护隐私。',
                 longDesc: '工作原理：\n插件会发送 HTTP GET 请求到目标 URL，解析返回的 HTML 寻找 <title> 标签。\n\n隐私与安全：\n1. 请求直接从您的本地机器发出，不经过任何中间服务器。\n2. 已内置黑名单，禁止请求局域网 IP（如 192.168.x.x, 127.0.0.1）以防止 SSRF 攻击。\n3. 部分网站（如 Twitter/X）可能需要 cookies 或有反爬虫机制，可能无法获取标题。',
-                key: 'enableSmartLinkTitleNetwork', 
-                type: 'toggle' 
+                key: 'enableSmartLinkTitleNetwork',
+                type: 'toggle'
             },
             { name: '开启图片智能粘贴（重命名归档）', desc: '粘贴图片时按"笔记名+时间戳"重命名，并按 Obsidian 的附件规则写入文件，再插入 `![[...]]`。', key: 'enableSmartImagePaste', type: 'toggle' },
-            { 
-                name: '开启自动下载远程图片', 
-                desc: '粘贴包含远程图片链接的文本时，自动将其下载到本地并替换链接。', 
+            {
+                name: '开启自动下载远程图片',
+                desc: '粘贴包含远程图片链接的文本时，自动将其下载到本地并替换链接。',
                 longDesc: '基于 RemoteImageTaskScheduler 的高级下载器：\n1. 队列机制：图片会加入后台队列，不会卡顿编辑器。\n2. 并发控制：同时最多下载 3 张，避免网络拥堵。\n3. 智能重试：失败后会自动重试（最多 3 次）。\n4. 智能替换：下载完成后，如果文件仍打开则无感替换（保留光标/撤销历史）；若已关闭则后台修改。\n\n使用方式：\n直接粘贴包含 `![image](http...)` 的 Markdown 文本，或使用命令 "下载当前笔记中的远程图片"。',
-                key: 'enableAutoDownloadImages', 
-                type: 'toggle' 
+                key: 'enableAutoDownloadImages',
+                type: 'toggle'
             },
         ],
     },
@@ -203,7 +203,7 @@ const SECTIONS: SettingSection[] = [
         settings: [
             { name: '开启右键菜单增强', desc: '在编辑器右键菜单中添加 "块包装" 和 "表格快速操作"。', key: 'enableContextMenu', type: 'toggle' },
             { name: '开启选区查找替换（Search in selection）', desc: '只在选中文本范围内做查找替换（命令与右键入口）。', key: 'enableSearchInSelection', type: 'toggle' },
-            { name: '开启魔法输入（符号替换）', desc: '符号自动替换，例如：`-->` → `→`、`...` → `…`（仅在光标处生效）。', key: 'enableMagicInput', type: 'toggle' },
+            { name: '开启魔法输入（符号替换）', desc: '输入时自动替换符号：`-->` → `→`，`<--` → `←`，`<->` → `↔`，`...` → `…`。还支持中英文日期：`@明天`、`@下周一` 等。', key: 'enableMagicInput', type: 'toggle' },
             { name: '开启到期高亮 (@due)', desc: '在编辑器中高亮 `@due(YYYY-MM-DD)`：过期标红、今天标黄。💡 依赖特定日期格式。', key: 'enableOverdueHighlighter', type: 'toggle' },
         ],
     },
@@ -211,18 +211,18 @@ const SECTIONS: SettingSection[] = [
         title: '写作体验',
         icon: '✍️',
         settings: [
-            { name: '开启打字机滚动（光标居中）', desc: '让光标行尽量保持在屏幕中间，适合长文写作。', key: 'enableTypewriterScroll', type: 'toggle' },
-            { name: '开启光标记忆（Cursor memory）', desc: '记忆并恢复每个文件的光标与滚动位置。', key: 'enableCursorMemory', type: 'toggle' },
+            { name: '开启打字机滚动（光标居中）', desc: '打字时自动滚动，让光标所在行始终保持在屏幕中央。适合长文写作，减少视线移动。开启后立即生效，无需额外操作。', key: 'enableTypewriterScroll', type: 'toggle' },
+            { name: '开启光标记忆（Cursor memory）', desc: '自动记住每个文件的光标位置和滚动位置。重新打开文件时，自动恢复到上次编辑的位置。数据保存在插件配置中。', key: 'enableCursorMemory', type: 'toggle' },
         ],
     },
     {
         title: '界面增强',
         icon: '🖼️',
         settings: [
-            { name: '开启状态栏统计（字数/阅读时间/选中数）', desc: '在状态栏显示统计信息（可关闭）。', key: 'enableStatusBarStats', type: 'toggle' },
-            { name: '开启界面清理（Focus UI / Zen）', desc: '提供一个命令，用 CSS 隐藏侧边栏/状态栏等界面元素。', key: 'enableFocusUi', type: 'toggle' },
-            { name: '开启浮动大纲（Floating outline）', desc: '提供一个命令，弹出极简目录（Esc 关闭）。', key: 'enableFloatingOutline', type: 'toggle' },
-            { name: '开启局部聚焦（Heading/List zoom）', desc: '提供命令：聚焦当前标题段落 / 聚焦当前列表块（在弹窗里编辑并应用回原文）。', key: 'enableZoom', type: 'toggle' },
+            { name: '开启状态栏统计（字数/阅读时间/选中数）', desc: '在底部状态栏实时显示：总字数（中英文分别计数）、预计阅读时间（按 220 词/分钟）。选中文字时显示选区字符数。', key: 'enableStatusBarStats', type: 'toggle' },
+            { name: '开启界面清理（Focus UI / Zen）', desc: '在命令面板中搜索 "切换专注模式" 可一键隐藏侧边栏、状态栏等界面元素，进入无干扰写作模式。再次执行命令恢复。', key: 'enableFocusUi', type: 'toggle' },
+            { name: '开启浮动大纲（Floating outline）', desc: '在命令面板中搜索 "切换浮动大纲" 可在编辑器右侧弹出极简目录。点击标题跳转，按 Esc 或点击 × 关闭。', key: 'enableFloatingOutline', type: 'toggle' },
+            { name: '开启局部聚焦（Heading/List zoom）', desc: '在命令面板搜索 "聚焦当前标题" 或 "聚焦当前列表"，在弹窗中专注编辑当前段落/列表，编辑完成后自动同步回原文。', key: 'enableZoom', type: 'toggle' },
 
         ],
     },
@@ -230,10 +230,10 @@ const SECTIONS: SettingSection[] = [
         title: '小工具',
         icon: '🧰',
         settings: [
-            { name: '开启脚注助手（Footnotes）', desc: '提供命令：插入 `[^n]` 并在文末追加 `[^n]: `。', key: 'enableFootnotes', type: 'toggle' },
-            { name: '开启行内计算（Inline calc）', desc: '提供命令：选中表达式后计算并替换（仅支持 + - * / ^ 和括号）。', key: 'enableInlineCalc', type: 'toggle' },
-            { name: '开启随机生成器（Random generator）', desc: '提供命令：插入 UUID / 随机整数 / 掷骰子。', key: 'enableRandomGenerator', type: 'toggle' },
-            { name: '开启最近文件 HUD', desc: '提供一个最近文件选择器（命令触发）。', key: 'enableQuickHud', type: 'toggle' },
+            { name: '开启脚注助手（Footnotes）', desc: '在命令面板搜索 "插入脚注"，在光标处插入 `[^n]` 引用标记，并在文档末尾自动添加 `[^n]: ` 定义区域，编号自动递增。', key: 'enableFootnotes', type: 'toggle' },
+            { name: '开启行内计算（Inline calc）', desc: '选中数学表达式（如 `1+2*3`），在命令面板搜索 "行内计算" 将其替换为计算结果。支持：+ - * / ^（次方）和括号。', key: 'enableInlineCalc', type: 'toggle' },
+            { name: '开启随机生成器（Random generator）', desc: '在命令面板中提供三个命令："插入 UUID"（标准 v4 格式）、"插入随机整数"（指定范围 如 1-100）、"掷骰子"（如 2d6 = 两个六面骰）。', key: 'enableRandomGenerator', type: 'toggle' },
+            { name: '开启最近文件 HUD', desc: '在命令面板搜索 "最近文件" 弹出快速选择器，显示最近打开的文件列表，支持键盘上下选择和 Enter 跳转。', key: 'enableQuickHud', type: 'toggle' },
         ],
     },
     {
@@ -242,12 +242,12 @@ const SECTIONS: SettingSection[] = [
         settings: [
             { name: '开启 Frontmatter 图标/头图（Inline decorator）', desc: '从 Frontmatter 读取 `icon`/`banner`，在文件列表展示图标，并在笔记顶部展示头图（轻量实现）。', key: 'enableInlineDecorator', type: 'toggle' },
             { name: '开启文件树高亮（File tree highlight）', desc: '提供命令：为文件/文件夹加高亮标记（用于项目文件夹）。', key: 'enableFileTreeHighlight', type: 'toggle' },
-            { 
-                name: '开启 YAML 自动更新', 
-                desc: '自动维护笔记的 "创建时间" 和 "修改时间" 元数据（Frontmatter）。⚠️ 会自动修改文件内容，与 SaveCleaner 同时使用可能产生冲突。', 
+            {
+                name: '开启 YAML 自动更新',
+                desc: '自动维护笔记的 "创建时间" 和 "修改时间" 元数据（Frontmatter）。⚠️ 会自动修改文件内容，与 SaveCleaner 同时使用可能产生冲突。',
                 longDesc: '此功能会监控文件修改事件。\n\n- 新建文件时：自动添加 `created` 字段。\n- 修改文件时：自动更新 `updated` 字段。\n\n注意：这会直接修改文件开头的 YAML Frontmatter 区域。如果您的工作流依赖外部工具同步文件，请确保此行为不会造成干扰。',
-                key: 'enableYaml', 
-                type: 'toggle' 
+                key: 'enableYaml',
+                type: 'toggle'
             },
             { name: 'YAML 日期格式', desc: '时间戳的显示格式 (例如: YYYY-MM-DD HH:mm)。', key: 'yamlDateFormat', type: 'text', placeholder: 'YYYY-MM-DD HH:mm' },
             { name: '模板文件夹路径', desc: '存放用户自定义模板的文件夹路径（例如 "Templates"）。', key: 'templateFolderPath', type: 'text', placeholder: 'Templates' },
@@ -258,26 +258,26 @@ const SECTIONS: SettingSection[] = [
         icon: '📊',
         settings: [
             { name: '开启 Infographic 渲染器', desc: '在预览/阅读模式渲染 ` ```infographic` 代码块。', key: 'enableInfographicRenderer', type: 'toggle' },
-            { 
-                name: '开启 Vega-Lite 统计图表', 
-                desc: '在预览/阅读模式渲染 ` ```vega-lite` 代码块（基于 vega-embed）。', 
+            {
+                name: '开启 Vega-Lite 统计图表',
+                desc: '在预览/阅读模式渲染 ` ```vega-lite` 代码块（基于 vega-embed）。',
                 longDesc: 'Vega-Lite 是一个高层次的语法，用于快速构建交互式统计图表。\n\n用途：折线图、柱状图、散点图、热力图等数据分析场景。\n文档：请参考插件根目录下的 `DOCS_CHARTS.md` 查看示例代码。\n\n注意：开启后可能需要重启 Obsidian 生效。',
-                key: 'enableVegaLite', 
-                type: 'toggle' 
+                key: 'enableVegaLite',
+                type: 'toggle'
             },
-            { 
-                name: '开启 Graphviz 关系图', 
-                desc: '在预览/阅读模式渲染 ` ```graphviz` 代码块（基于 @hpcc-js/wasm）。', 
+            {
+                name: '开启 Graphviz 关系图',
+                desc: '在预览/阅读模式渲染 ` ```graphviz` 代码块（基于 @hpcc-js/wasm）。',
                 longDesc: 'Graphviz 使用 DOT 语言绘制结构化的图形。\n\n用途：流程图、状态机、依赖关系图、类图等。\n引擎：使用 WebAssembly 版 Graphviz，性能优异且无需本地安装。\n文档：请参考 `DOCS_CHARTS.md`。',
-                key: 'enableGraphviz', 
-                type: 'toggle' 
+                key: 'enableGraphviz',
+                type: 'toggle'
             },
-            { 
-                name: '开启 ECharts 交互图表', 
-                desc: '在预览/阅读模式渲染 ` ```echarts` 代码块。', 
+            {
+                name: '开启 ECharts 交互图表',
+                desc: '在预览/阅读模式渲染 ` ```echarts` 代码块。',
                 longDesc: 'Apache ECharts 是一个基于 JavaScript 的开源可视化图表库。\n\n用途：复杂的交互式图表、桑基图、漏斗图、大屏展示。\n文档：请参考 `DOCS_CHARTS.md`。\n支持：支持 JSON 格式配置，也支持简单的 JS 函数配置（不推荐用于不可信来源）。',
-                key: 'enableECharts', 
-                type: 'toggle' 
+                key: 'enableECharts',
+                type: 'toggle'
             },
         ],
     },
@@ -531,7 +531,7 @@ export class EditorProSettingTab extends PluginSettingTab {
 
         const descFragment = document.createDocumentFragment();
         descFragment.append(setting.desc);
-        
+
         if (setting.longDesc) {
             const details = document.createElement('details');
             // eslint-disable-next-line obsidianmd/no-static-styles-assignment
@@ -540,12 +540,12 @@ export class EditorProSettingTab extends PluginSettingTab {
             details.style.color = 'var(--text-muted)';
             // eslint-disable-next-line obsidianmd/no-static-styles-assignment
             details.style.fontSize = '0.9em';
-            
+
             const summary = document.createElement('summary');
             // eslint-disable-next-line obsidianmd/no-static-styles-assignment
             summary.style.cursor = 'pointer';
             summary.textContent = '详细说明';
-            
+
             const content = document.createElement('div');
             // eslint-disable-next-line obsidianmd/no-static-styles-assignment
             content.style.paddingLeft = '1em';
@@ -554,7 +554,7 @@ export class EditorProSettingTab extends PluginSettingTab {
             // eslint-disable-next-line obsidianmd/no-static-styles-assignment
             content.style.whiteSpace = 'pre-wrap'; // Preserve newlines
             content.textContent = setting.longDesc;
-            
+
             details.appendChild(summary);
             details.appendChild(content);
             descFragment.appendChild(details);
