@@ -482,19 +482,39 @@ export class EditorProSettingTab extends PluginSettingTab {
                         }),
                 );
         } else if (setting.type === "text") {
-            new Setting(settingEl)
-                .setName(setting.name)
-                .setDesc(descFragment)
-                .addText((text) =>
-                    text
-                        .setPlaceholder(setting.placeholder || "")
-                        .setValue(this.plugin.settings[setting.key] as string)
-                        .onChange(async (value) => {
-                            (this.plugin.settings[setting.key] as string) =
-                                value;
-                            await this.plugin.saveSettings();
-                        }),
-                );
+            if (setting.multiline) {
+                // 多行输入使用 TextArea
+                new Setting(settingEl)
+                    .setName(setting.name)
+                    .setDesc(descFragment)
+                    .addTextArea((ta) => {
+                        ta.setPlaceholder(setting.placeholder || "")
+                            .setValue(this.plugin.settings[setting.key] as string)
+                            .onChange(async (value) => {
+                                (this.plugin.settings[setting.key] as string) = value;
+                                await this.plugin.saveSettings();
+                            });
+                        // 设置合适的尺寸
+                        ta.inputEl.rows = 4;
+                        ta.inputEl.style.width = "100%";
+                        ta.inputEl.style.minWidth = "200px";
+                    });
+            } else {
+                // 单行输入使用 Text
+                new Setting(settingEl)
+                    .setName(setting.name)
+                    .setDesc(descFragment)
+                    .addText((text) =>
+                        text
+                            .setPlaceholder(setting.placeholder || "")
+                            .setValue(this.plugin.settings[setting.key] as string)
+                            .onChange(async (value) => {
+                                (this.plugin.settings[setting.key] as string) =
+                                    value;
+                                await this.plugin.saveSettings();
+                            }),
+                    );
+            }
         }
     }
 

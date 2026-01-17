@@ -76,6 +76,20 @@ feature-name/
     *   `name`: 简明扼要。
     *   `desc`: 一句话说明作用。
     *   `longDesc`: 详细说明副作用、依赖关系或使用技巧（支持 `\n` 换行）。
+*   **多行输入规范 (`multiline`)**：
+    *   当配置项需要用户输入"**每行一个**"格式的数据时（如目录列表、规则配置），**必须**在 `SettingItem` 中设置 `multiline: true`。
+    *   设置 `multiline: true` 后，UI 会渲染为 `TextArea` 多行文本框，用户可正常使用 Enter 键换行。
+    *   **反例**：使用 `addText()` 渲染单行输入框会导致用户无法换行，体验极差。
+    *   **示例**：
+        ```typescript
+        {
+            name: "追踪目录配置",
+            desc: "每行一个目录，格式: path:name:icon",
+            key: "homepageTrackedFolders",
+            type: "text",
+            multiline: true, // ← 关键！
+        }
+        ```
 
 ### 3. 代码实现规范 (Implementation)
 *   **输入法兼容性 (IME)**：

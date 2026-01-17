@@ -191,6 +191,8 @@ export interface SettingItem {
     type: "toggle" | "text";
     placeholder?: string;
     tooltip?: string;
+    /** 是否为多行输入（用于"每行一个"类型的配置），会渲染为 TextArea */
+    multiline?: boolean;
 }
 
 export interface SettingSection {
@@ -593,6 +595,7 @@ export const SECTIONS: SettingSection[] = [
                 key: "homepageTrackedFolders",
                 type: "text",
                 placeholder: "Inbox:Inbox:📥:true:1",
+                multiline: true,
             },
             {
                 name: "最近文件数量",
@@ -641,6 +644,7 @@ export const SECTIONS: SettingSection[] = [
                 key: "vaultGuardianAllowedRoots",
                 type: "text",
                 placeholder: "Daily\nInbox\nWorking",
+                multiline: true,
             },
             {
                 name: "目录规则配置",
@@ -650,6 +654,7 @@ export const SECTIONS: SettingSection[] = [
                 key: "vaultGuardianFolderRules",
                 type: "text",
                 placeholder: "Inbox:false:1:",
+                multiline: true,
             },
         ],
     },

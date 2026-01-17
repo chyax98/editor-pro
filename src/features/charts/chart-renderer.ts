@@ -5,12 +5,12 @@ import { EChartsRenderChild } from "./echarts-renderer";
 
 export function registerChartRenderers(plugin: EditorProPlugin) {
 	if (plugin.settings.enableVegaLite) {
-		plugin.registerMarkdownCodeBlockProcessor(
-			"vega-lite",
-			(source, el, ctx) => {
-				ctx.addChild(new VegaRenderChild(el, source));
-			},
-		);
+		// 支持 vega-lite 和 vegalite 两种写法
+		const vegaProcessor = (source: string, el: HTMLElement, ctx: import("obsidian").MarkdownPostProcessorContext) => {
+			ctx.addChild(new VegaRenderChild(el, source));
+		};
+		plugin.registerMarkdownCodeBlockProcessor("vega-lite", vegaProcessor);
+		plugin.registerMarkdownCodeBlockProcessor("vegalite", vegaProcessor);
 	}
 
 	if (plugin.settings.enableGraphviz) {
