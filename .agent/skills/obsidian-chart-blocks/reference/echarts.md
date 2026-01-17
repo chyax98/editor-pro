@@ -1,4 +1,8 @@
-# ECharts 深度语法参考手册 (ECharts 是一个基于 JavaScript 的开源可视化图表库。在 Editor Pro 中，我们通过 JSON 配置来渲染图表。
+# ECharts 深度语法参考手册 (Expert Guide)
+
+> **版本**: echarts 6.0.0
+
+ECharts 是一个基于 JavaScript 的开源可视化图表库。在 Editor Pro 中，我们通过 JSON 配置来渲染图表。
 
 ## 🗺️ 官方配置索引 (Configuration Index)
 

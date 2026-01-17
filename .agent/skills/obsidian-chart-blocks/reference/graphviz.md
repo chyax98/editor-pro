@@ -1,5 +1,7 @@
 # Graphviz (DOT) 深度语法参考手册 (Expert Guide)
 
+> **版本**: @hpcc-js/wasm 2.32.2
+
 Graphviz 使用 DOT 语言描述图形结构，擅长自动计算复杂节点的最佳布局。对于架构图、数据库关系图和状态机，它是最佳选择。
 
 ## 🗺️ 引擎与布局索引 (Layout Engines)

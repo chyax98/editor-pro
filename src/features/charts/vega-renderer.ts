@@ -12,6 +12,12 @@ export class VegaRenderChild extends MarkdownRenderChild {
 	onload() {
 		void (async () => {
 			try {
+				// 设置容器尺寸
+				// eslint-disable-next-line obsidianmd/no-static-styles-assignment
+				this.containerEl.style.setProperty("min-height", "200px");
+				// eslint-disable-next-line obsidianmd/no-static-styles-assignment
+				this.containerEl.style.setProperty("width", "100%");
+
 				// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
 				const spec = JSON.parse(this.source);
 				const isDark = document.body.classList.contains("theme-dark");

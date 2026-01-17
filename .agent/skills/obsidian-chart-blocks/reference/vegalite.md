@@ -1,5 +1,7 @@
 # Vega-Lite 深度语法参考手册 (Expert Guide)
 
+> **版本**: vega-lite 6.4.2 / vega 6.2.0 / vega-embed 7.1.0
+
 Vega-Lite 是基于 JSON 的声明式可视化语法，特别适合**探索性数据分析 (EDA)** 和**统计图表**。
 
 ## 🗺️ 官方配置索引 (Configuration Index)
@@ -26,7 +28,7 @@ AI 在构建配置时，应参考此顶级属性清单。
 
 ```json
 {
-  "$schema": "https://vega.github.io/schema/vega-lite/v5.json",
+  "$schema": "https://vega.github.io/schema/vega-lite/v6.json",
   "data": {
     "values": [
       {"a": "A", "b": 28}, {"a": "B", "b": 55}, {"a": "C", "b": 43},

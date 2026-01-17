@@ -136,7 +136,7 @@ export const DEFAULT_SETTINGS: EditorProSettings = {
     enableRandomGenerator: false,
     enableSearchInSelection: false,
 
-    enableInfographicRenderer: false,
+    enableInfographicRenderer: true,
     enableVegaLite: false,
     enableGraphviz: false,
     enableECharts: false,

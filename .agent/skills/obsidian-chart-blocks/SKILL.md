@@ -34,7 +34,7 @@ description: |
 |-----|------|---------|
 | ` ```mermaid ` | Mermaid | 流程图、时序图、类图、思维导图、甘特图 |
 | ` ```echarts ` | ECharts | 柱状图、折线图、饼图、热力图、仪表盘 |
-| ` ```graphviz ` | Graphviz | 复杂网络拓扑、状态机、DOT 语言 |
+| ` ```graphviz ` 或 ` ```dot ` | Graphviz | 复杂网络拓扑、状态机、DOT 语言 |
 | ` ```vega-lite ` 或 ` ```vegalite ` | Vega-Lite | 统计分析、数据探索、声明式图表 |
 | ` ```infographic ` | Infographic | 信息卡片、Banner、时间线 |
 
@@ -44,15 +44,21 @@ description: |
 
 ### Step 1: 理解用户意图
 
-| 用户想要... | 选择引擎 |
-|------------|---------|
-| 展示**流程/逻辑/架构** | Mermaid 或 Graphviz |
-| 展示**数据趋势/对比** | ECharts（柱状图/折线图） |
-| 展示**占比/分布** | ECharts（饼图）或 Vega-Lite |
-| 展示**思维导图** | Mermaid (`mindmap`) |
-| 展示**时序/交互** | Mermaid (`sequenceDiagram`) |
-| 展示**统计分析** | Vega-Lite |
-| 展示**简洁信息卡片** | Infographic |
+> **💡 写作场景优先使用 Infographic！**
+> Infographic 是专为写作场景设计的信息图引擎，200+ 精美模板，零配置即可生成专业信息图。
+> 相比 ECharts/Mermaid，Infographic 更适合**笔记、文章、文档**场景。
+
+| 用户想要... | **首选引擎** | 备选 |
+|------------|-------------|------|
+| 展示**步骤/流程** | **🌟 Infographic** (`sequence-steps-simple`) | Mermaid |
+| 展示**时间线/历史** | **🌟 Infographic** (`sequence-timeline-simple`) | Mermaid |
+| 展示**功能清单/要点** | **🌟 Infographic** (`list-grid-compact-card`) | - |
+| 展示**组织结构/层级** | **🌟 Infographic** (`hierarchy-tree-tech-style-rounded-rect-node`) | Mermaid |
+| 展示**四象限/对比** | **🌟 Infographic** (`quadrant-quarter-simple-card`) | - |
+| 展示**简单数据对比** | **🌟 Infographic** (`chart-column-simple`) | ECharts |
+| 展示**复杂流程/架构** | Mermaid/Graphviz | - |
+| 展示**交互式图表/大数据** | ECharts | Vega-Lite |
+| 展示**统计分析** | Vega-Lite | ECharts |
 
 ### Step 2: 查阅语法参考 (CRITICAL!)
 
@@ -60,37 +66,94 @@ description: |
 
 | 引擎 | 参考文档路径 | 核心内容 |
 |-----|-------------|---------|
-| **Mermaid** | `.agent/skills/obsidian-chart-blocks/reference/mermaid.md` | flowchart, sequenceDiagram, classDiagram, mindmap, gantt, timeline, stateDiagram |
-| **ECharts** | `.agent/skills/obsidian-chart-blocks/reference/echarts.md` | bar, line, pie, scatter, heatmap, radar, dataset, tooltip, dataZoom |
-| **Graphviz** | `.agent/skills/obsidian-chart-blocks/reference/graphviz.md` | digraph, subgraph, cluster, layout engines (dot, neato, fdp) |
-| **Vega-Lite** | `.agent/skills/obsidian-chart-blocks/reference/vegalite.md` | $schema, data, mark, encoding, transform, layer, facet |
-| **Infographic** | `.agent/skills/obsidian-chart-blocks/reference/infographic.md` | banner, timeline, steps, column DSL |
+| **🌟 Infographic** | `.agent/skills/obsidian-chart-blocks/reference/infographic.md` | **200+ 模板**, lists, sequences, hierarchy, compare, chart |
+| **Mermaid** | `.agent/skills/obsidian-chart-blocks/reference/mermaid.md` | flowchart, sequenceDiagram, classDiagram, mindmap, gantt |
+| **ECharts** | `.agent/skills/obsidian-chart-blocks/reference/echarts.md` | bar, line, pie, scatter, heatmap, radar, dataset |
+| **Graphviz** | `.agent/skills/obsidian-chart-blocks/reference/graphviz.md` | digraph, subgraph, cluster, layout engines |
+| **Vega-Lite** | `.agent/skills/obsidian-chart-blocks/reference/vegalite.md` | $schema, data, mark, encoding, transform |
 
 ### Step 3: 构建代码
 
+- **Infographic**: 使用简洁的 DSL 语法，2 空格缩进
 - **ECharts / Vega-Lite**: 必须是**合法 JSON**（无尾随逗号，属性名双引号）
 - **Mermaid / Graphviz**: 使用各自的 DSL 语法
 - **背景透明**: ECharts 建议 `"backgroundColor": "transparent"` 适配明暗主题
 
-### Step 4: 输出完整代码块
+### Step 4: 写入笔记文件
 
-输出格式必须是**可直接复制使用的 Markdown 代码块**：
-
-````markdown
-```echarts
-{
-  "xAxis": { "type": "category", "data": ["A", "B", "C"] },
-  "yAxis": { "type": "value" },
-  "series": [{ "type": "bar", "data": [10, 20, 30] }]
-}
-```
-````
+使用 `write_to_file` 或 `replace_file_content` 工具直接将代码块写入用户的笔记文件。
 
 ---
 
 ## 📝 各引擎快速示例
 
-### 1. Mermaid 流程图
+### 🌟 1. Infographic 步骤流程（推荐！）
+
+````markdown
+```infographic
+infographic list-row-simple-horizontal-arrow
+data
+  items
+    - label 下载
+      desc 获取安装包
+    - label 安装
+      desc 运行安装程序
+    - label 配置
+      desc 完成初始设置
+```
+````
+
+### 🌟 2. Infographic 时间线
+
+````markdown
+```infographic
+infographic sequence-timeline-simple
+data
+  items
+    - label 2024-01
+      desc 项目启动
+    - label 2024-03
+      desc 原型完成
+    - label 2024-06
+      desc 正式发布
+```
+````
+
+### 🌟 3. Infographic 功能清单
+
+````markdown
+```infographic
+infographic list-grid-compact-card
+data
+  items
+    - label 智能输入
+      desc 自动补全
+    - label 图表渲染
+      desc 多种图表
+    - label 快捷键
+      desc 高效编辑
+```
+````
+
+### 🌟 4. Infographic 四象限
+
+````markdown
+```infographic
+infographic quadrant-quarter-simple-card
+data
+  items
+    - label 紧急且重要
+      desc 立即处理
+    - label 重要不紧急
+      desc 计划安排
+    - label 紧急不重要
+      desc 委托他人
+    - label 不紧急不重要
+      desc 考虑删除
+```
+````
+
+### 5. Mermaid 流程图
 
 ````markdown
 ```mermaid
@@ -102,7 +165,7 @@ flowchart TD
 ```
 ````
 
-### 2. Mermaid 思维导图
+### 6. Mermaid 思维导图
 
 ````markdown
 ```mermaid
@@ -120,7 +183,7 @@ mindmap
 ```
 ````
 
-### 3. ECharts 柱状图
+### 7. ECharts 柱状图
 
 ````markdown
 ```echarts
@@ -137,7 +200,7 @@ mindmap
 ```
 ````
 
-### 4. ECharts 饼图
+### 8. ECharts 饼图
 
 ````markdown
 ```echarts
@@ -157,12 +220,12 @@ mindmap
 ```
 ````
 
-### 5. Vega-Lite 柱状图
+### 9. Vega-Lite 柱状图
 
 ````markdown
 ```vegalite
 {
-  "$schema": "https://vega.github.io/schema/vega-lite/v5.json",
+  "$schema": "https://vega.github.io/schema/vega-lite/v6.json",
   "data": {
     "values": [
       {"category": "A", "value": 28},
@@ -179,7 +242,7 @@ mindmap
 ```
 ````
 
-### 6. Graphviz 架构图
+### 10. Graphviz 架构图
 
 ````markdown
 ```graphviz
@@ -205,15 +268,19 @@ digraph G {
 ```
 ````
 
-### 7. Infographic Banner
+### 🌟 11. Infographic 组织架构
 
 ````markdown
 ```infographic
-type: banner
-icon: 🚀
-title: 项目启动
-value: 85%
-color: #4caf50
+infographic hierarchy-tree-tech-style-rounded-rect-node
+data
+  title 研发中心
+  root
+    label CTO
+    children
+      - label 前端组
+      - label 后端组
+      - label 测试组
 ```
 ````
 

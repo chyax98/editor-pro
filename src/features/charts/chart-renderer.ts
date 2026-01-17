@@ -14,12 +14,12 @@ export function registerChartRenderers(plugin: EditorProPlugin) {
 	}
 
 	if (plugin.settings.enableGraphviz) {
-		plugin.registerMarkdownCodeBlockProcessor(
-			"graphviz",
-			(source, el, ctx) => {
-				ctx.addChild(new GraphvizRenderChild(el, source));
-			},
-		);
+		// 支持 graphviz 和 dot 两种写法
+		const graphvizProcessor = (source: string, el: HTMLElement, ctx: import("obsidian").MarkdownPostProcessorContext) => {
+			ctx.addChild(new GraphvizRenderChild(el, source));
+		};
+		plugin.registerMarkdownCodeBlockProcessor("graphviz", graphvizProcessor);
+		plugin.registerMarkdownCodeBlockProcessor("dot", graphvizProcessor);
 	}
 
 	if (plugin.settings.enableECharts) {

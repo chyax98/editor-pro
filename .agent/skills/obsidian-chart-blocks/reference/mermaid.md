@@ -1,5 +1,7 @@
 # Mermaid 深度语法参考手册 (Expert Guide)
 
+> **版本**: Obsidian 内置 Mermaid（版本随 Obsidian 更新）
+
 本手册涵盖 Mermaid 的全量语法与高级特性。AI 在生成图表时，应优先查阅此文档以获取最佳实践。
 
 ## 🗺️ 官方图表索引 (Chart Index)
