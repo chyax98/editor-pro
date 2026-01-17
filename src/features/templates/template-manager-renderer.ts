@@ -54,6 +54,14 @@ export class TemplateManagerRenderer {
                     .setButtonText("导入模板代码")
                     .setIcon("import")
                     .onClick(() => { void this.openImportModal(); })
+            )
+            .addButton((btn) =>
+                btn
+                    .setTooltip("刷新列表")
+                    .setIcon("refresh-cw")
+                    .onClick(() => {
+                        this.renderCallback();
+                    })
             );
 
         // Load Templates from FS

@@ -45,29 +45,70 @@ type TemplateType = "full" | "homepage" | "guardian" | "other";
 
 `data` 对象支持以下 Key。请根据用户需求选择开启或关闭。
 
-### A. 智能排版与格式 (Smart Typography)
+### A. 智能排版与编辑 (Smart Editing & Typography)
 | Key | Type | Default | Description |
 | :--- | :--- | :--- | :--- |
-| `enableSmartQuotes` | boolean | `true` |启用智能引号（将直引号转换为弯引号） |
-| `enableCompactQuotes`| boolean | `false`|紧凑引号模式（引号内侧不添加空格） |
-| `enableSmartDash` | boolean | `true` |智能破折号（将 -- 转换为 —） |
-| `enableEnDash` | boolean | `true` |智能连接号 |
-| `enableEllipsis` | boolean | `true` |智能省略号 (...) |
-| `enableAutoFormat` | boolean | `false`|输入时实时自动格式化（中英文空格等） |
-| `enableAutoSpace` | boolean | `false`|中英文之间自动插入空格 |
-| `enableAutoCapitalize`| boolean | `false`|英文句首自动大写 |
-| `enableFormatOnPaste`| boolean | `false`|粘贴文本时自动应用格式化规则 |
+| `enableSmartToggle` | boolean | `true` | 智能格式切换（加粗/斜体不叠加） |
+| `enableKeyshots` | boolean | `true` | 键盘行操作（上移/下移/复制/删除行） |
+| `enableSmartTyping` | boolean | `true` | 输入增强（自动配对括号、智能退格、中英自动空格） |
+| `enableEditorNavigation`| boolean | `true` | 引用块/Callout 跳出 (Shift+Enter) |
+| `enableOutliner` | boolean | `true` | 大纲操作（Tab缩进列表，折叠列表块） |
+| `enableTextTransformer` | boolean | `true` | 文本转换器命令（大小写、排序行等） |
+| `enableSaveCleaner` | boolean | `false`| 保存时自动清理行尾空格 |
+| `enableTypewriterScroll`| boolean | `false`| 打字机滚动（光标始终居中） |
+| `enableCursorMemory` | boolean | `false`| 记忆文件光标位置 |
 
-### B. 智能输入与增强 (Smart Input & Enhancements)
+### B. 智能输入与命令 (Smart Input & Commands)
 | Key | Type | Default | Description |
 | :--- | :--- | :--- | :--- |
-| `enableMagicInput` | boolean | `true` |启用魔法输入（通过特定字符触发动作） |
-| `magicInputTrigger` | string | `":"` |魔法输入触发键 |
-| `enableSmartToggle` | boolean | `true` |智能开关（快速切换 True/False, TODO/DONE 等） |
-| `smartToggleRules` | string | *(json)*|自定义切换规则 (JSON string) |
-| `enableBlockNavigation`| boolean | `true` |启用块级导航 |
+| `enableSlashCommand` | boolean | `true` | 启用斜杠命令 (`/` 或 `、`) |
+| `enableSmartInput` | boolean | `true` | 智能与日期展开 (`@today`, `@time`) |
+| `enableMagicInput` | boolean | `false`| 魔法输入符号替换 (`-->`转箭头等) |
+| `enableTaskHotkeys` | boolean | `true` | 任务状态循环快捷键 |
+| `enableHeadingHotkeys`| boolean | `true` | 标题等级快捷设置 (1-6) |
 
-### C. 核心组件 (Core Features)
+### C. 链接与图片 (Links & Images)
+| Key | Type | Default | Description |
+| :--- | :--- | :--- | :--- |
+| `enableSmartPasteUrl` | boolean | `true` | 选中文本粘贴 URL 自动转 Markdown 链接 |
+| `enableSmartLinkTitle`| boolean | `false`| 粘贴 URL 自动获取标题 (本地优先) |
+| `enableSmartLinkTitleNetwork`| boolean | `false`| 允许联网获取网页标题 (GET请求) |
+| `enableSmartImagePaste`| boolean | `false`| 图片粘贴自动重命名与归档 |
+| `enableAutoDownloadImages`| boolean | `false` | 自动下载粘贴内容中的远程图片 |
+
+### D. 界面增强与小工具 (UI & Tools)
+| Key | Type | Default | Description |
+| :--- | :--- | :--- | :--- |
+| `enableStatusBarStats`| boolean | `false`| 状态栏统计（字数、阅读时间） |
+| `enableFocusUi` | boolean | `false`| 专注模式（一键隐藏侧栏） |
+| `enableFloatingOutline`| boolean | `false`| 浮动大纲目录 |
+| `enableZoom` | boolean | `false`| 局部聚焦模式 |
+| `enableQuickHud` | boolean | `false`| 最近文件快速切换器 |
+| `enableContextMenu` | boolean | `true` | 右键菜单增强 (块包装/表格操作) |
+| `enableSearchInSelection`| boolean | `false`| 选区内查找替换 |
+| `enableOverdueHighlighter`| boolean | `false`| `@due` 日期过期高亮 |
+| `enableFootnotes` | boolean | `false`| 脚注助手 |
+| `enableInlineCalc` | boolean | `false`| 行内数学计算 |
+| `enableRandomGenerator`| boolean | `false`| 随机数与UUID生成 |
+
+### E. 可视化图表 (Visualization)
+| Key | Type | Default | Description |
+| :--- | :--- | :--- | :--- |
+| `enableInfographicRenderer`| boolean | `false`| 渲染 `infographic` 代码块 |
+| `enableVegaLite` | boolean | `false`| 渲染 `vega-lite` 统计图表 |
+| `enableGraphviz` | boolean | `false`| 渲染 `graphviz` 关系图 |
+| `enableECharts` | boolean | `false`| 渲染 `echarts` 交互图表 |
+
+### F. 文件与元数据 (File & Metadata)
+| Key | Type | Default | Description |
+| :--- | :--- | :--- | :--- |
+| `enableInlineDecorator`| boolean | `false`| Frontmatter 图标与头图显示 |
+| `enableFileTreeHighlight`| boolean | `false`| 文件树颜色高亮 |
+| `enableYaml` | boolean | `false`| YAML 时间戳自动更新 (created/updated) |
+| `yamlDateFormat` | string | `"YYYY-MM-DD HH:mm"` | YAML 时间格式 |
+| `templateFolderPath` | string | `"Templates"` | 用户自定义模板文件夹路径 |
+
+### G. 核心特大组件 (Core Features)
 
 #### Homepage (主页与统计)
 | Key | Type | Description |
@@ -75,18 +116,19 @@ type TemplateType = "full" | "homepage" | "guardian" | "other";
 | `enableHomepage` | boolean | 是否启用 Homepage 视图 |
 | `homepageTrackedFolders` | string | **核心配置**。定义要追踪的文件夹。格式: `Path:Alias:Icon:ShowStats:Order` (每行一个)。<br>示例: `Inbox:收件箱:📥:true:1` |
 | `homepageShowFolderStats`| boolean | 是否在卡片上显示文件计数 |
+| `homepageShowGreeting` | boolean | 显示问候语 |
+| `homepageShowDailyNote` | boolean | 显示今日日记入口 |
+| `homepageShowRecentFiles`| boolean | 显示最近文件 |
+| `homepageShowPinnedNotes`| boolean | 显示置顶笔记 |
+| `homepageShowReminders` | boolean | 显示清理提醒 |
 
 #### Vault Guardian (库卫士/文件结构保护)
 | Key | Type | Description |
 | :--- | :--- | :--- |
 | `enableVaultGuardian` | boolean | 是否启用文件结构保护 |
-| `vaultGuardianAllowedRoots`| string | 允许的根目录列表 (每行一个)。非此列表中的根目录将被视为违规。 |
-| `vaultGuardianFolderRules` | string | 文件夹规则。格式: `Folder:Strict:MaxDepth:FileTypes`。<br>示例: `Projects:true:2:md,canvas` |
-
-#### MCP (Model Context Protocol)
-| Key | Type | Description |
-| :--- | :--- | :--- |
-| `enableMcp` | boolean | 是否启用 MCP 客户端功能 |
+| `vaultGuardianAllowedRoots`| string | 允许的根目录列表 (每行一个)。 |
+| `vaultGuardianFolderRules` | string | 文件夹规则。格式: `Folder:Strict:MaxDepth:FileTypes`。 |
+| `vaultGuardianBlockCreation`| boolean | 是否直接阻止创建违规目录 |
 
 ---
 
