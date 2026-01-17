@@ -1,79 +1,62 @@
-# Editor Pro (Obsidian Community Plugin)
+# Editor Pro for Obsidian
 
-Editor Pro 是一个"编辑增强"插件：把常用的编辑器效率功能整合到一个插件里，尽量减少额外插件依赖与配置成本。
+> **The Ultimate Writing Enhancement Suite for Obsidian.**
+> 打造 Obsidian 上最流畅、最沉浸的写作体验。
 
-## 功能概览
+[![Release](https://img.shields.io/github/v/release/chyax98/editor-pro)](https://github.com/chyax98/editor-pro/releases)
+[![License](https://img.shields.io/github/license/chyax98/editor-pro)](LICENSE)
 
-### 编辑器增强
-- **智能格式切换**：加粗/斜体/删除线/高亮/行内代码（避免符号叠加）
-- **Keyshots**：行上移/下移/复制/删除/选中；列表项整块移动
-- **Outliner**：列表 Tab/Shift+Tab 缩进、折叠/展开
-- **Smart Typing**：自动配对、智能退格、中英空格
-- **Block Break**：引用/Callout 内 Shift+Enter 跳出
+Editor Pro 是一个功能强大的 Obsidian 插件，旨在通过**智能输入**、**可视化增强**和**工作流优化**，让写作回归本质。它不只是一个工具，更是一套精心设计的写作习惯。
 
-### 斜杠命令
-- 触发字符：`/`、`、`、`\\`
-- 支持拼音首字母搜索（如 `/dmk` → 代码块）
-- 内置命令：Callout/代码块/表格/日期/Mermaid/Infographic 等
+---
 
-### 表格增强
-- Tab/Shift+Tab 单元格导航
-- 列插入/删除/对齐/格式化
+## ✨ 核心特性 (Features)
 
-### 智能粘贴
-- URL into selection（选中文字粘贴 URL 变链接）
-- Auto link title（自动获取网页标题）
-- Smart image paste（图片重命名归档）
+### 🚀 即从即用 (Zero-Config)
+内置三种**配置预设 (Presets)**，一键切换工作流，告别繁琐设置：
+*   🎯 **极简模式 (Minimal)**：零侵入，仅提供基础快捷键增强。
+*   ✍️ **写作模式 (Writer)**：打字机滚动、专注模式、智能输入，沉浸式写作。
+*   ⚡ **全功能模式 (Power)**：图表渲染、脚本执行、全面自动化。
 
-### 自动化
-- YAML 自动维护 `created`/`updated`
-- 保存时清理（去行尾空格）
-- 光标/滚动位置记忆
+### ✍️ 智能写作 (Smart Writing)
+*   **Magic Input**: 输入 `->` 变 `→`，`@today` 变日期，自然流畅。
+*   **Slash Commands**: `/` 呼出全能菜单，插入表格、图表、Callout。
+*   **Smart Paste**: 粘贴链接自动获取网页标题。
 
-### 可视化
-- Infographic 渲染器（AntV，支持 219 种模板）
-- 浮动大纲、状态栏统计、Focus UI
+### 📊 可视化引擎 (Visualization)
+无需安装额外插件，直接渲染专业图表：
+*   **Mermaid** & **Graphviz**: 流程图、架构图。
+*   **ECharts** & **Vega-Lite**: 交互式数据图表、统计图。
+*   **Infographic**: 简易信息图组件。
 
-### 小工具
-- 脚注助手、行内计算、随机生成器（UUID/骰子）
-- 文本转换器、选区查找替换
+---
 
-## 安装
+## 📚 文档指南 (Documentation)
 
-把构建产物复制到你的 vault：
+*   📖 **[用户指南 (User Guide)](docs/USER_GUIDE.md)**: 完整的功能使用手册。
+*   🏗️ **[项目架构 (Agents & Architecture)](AGENTS.md)**: 技术架构与 AI 协作说明。
+*   🛠️ **[开发规范 (SOP)](docs/SOP.md)**: 贡献代码与 Bug 修复流程。
 
-```
-<Vault>/.obsidian/plugins/editor-pro/
-  main.js
-  manifest.json
-  styles.css
-```
+---
 
-## 使用
+## 📥 安装 (Installation)
 
-### 斜杠命令
+### 通过 BRAT 安装 (Beta)
+1. 安装 **BRAT** 插件。
+2. 添加仓库：`chyax98/editor-pro`。
+3. 启用插件并选择你的 **Preset**。
 
-在编辑器中输入 `/`、`、` 或 `\\` 即可唤起命令菜单。
+### 手动安装
+1. 从 [Releases](https://github.com/chyax98/editor-pro/releases) 下载 `main.js`, `manifest.json`, `styles.css`。
+2. 放入 `.obsidian/plugins/editor-pro/` 文件夹。
+3. 重启 Obsidian。
 
-### 快捷键
+---
 
-Editor Pro **不会内置默认快捷键**（避免冲突）。请在 Obsidian 中自行绑定：
+## 🤝 贡献 (Contributing)
+欢迎提交 Issue 或 PR！在提交代码前，请务必阅读 **[开发规范 (SOP)](docs/SOP.md)** 以确保代码符合规范。
 
-**Settings → Hotkeys** → 搜索 "Editor Pro"
+---
 
-## 开发
-
-```bash
-npm install
-npm run dev    # watch
-npm run build  # 生产构建
-npm test       # 测试
-npm run lint   # 代码检查
-```
-
-详见 `DEVELOPMENT.md`。
-
-## 文档
-
-- `CHANGELOG.md` - 版本变更记录
-- `DEVELOPMENT.md` - 开发指南
+## 📄 License
+MIT License

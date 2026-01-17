@@ -1,22 +1,44 @@
-# vscode
-.vscode 
+# System
+.DS_Store
+Thumbs.db
+._*
 
-# Intellij
+# IDE / Editors
+.idea/
+.vscode/
+*.swp
+*.swo
 *.iml
-.idea
 
-# npm
-node_modules
+# Node / NPM
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
 
-# Don't include the compiled main.js file in the repo.
-# They should be uploaded to GitHub releases instead.
+# Build Outputs (Obsidian Plugin)
 main.js
-
-# Exclude sourcemaps
+styles.css.map
 *.map
 
-# obsidian
-data.json
+# Testing
+coverage/
+.nyc_output/
+junit.xml
 
-# Exclude macOS Finder (System Explorer) View States
-.DS_Store
+# Archives
+*.zip
+*.tar
+*.gz
+
+# Temporary
+tmp/
+dist/
+
+# Configuration (Sensitive)
+.env
+.env.local
+
+# Obsidian User Data (Do not commit your own settings)
+data.json
