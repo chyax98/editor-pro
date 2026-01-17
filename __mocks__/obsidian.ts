@@ -182,6 +182,18 @@ export class TFile {
     }
 }
 
+export class TFolder {
+    path: string;
+    basename: string;
+    name: string;
+    children: any[] = [];
+    constructor(path: string) {
+        this.path = path;
+        this.basename = path.split('/').pop() || '';
+        this.name = this.basename;
+    }
+}
+
 export class Vault {
     listeners: Record<string, Function[]> = {};
 

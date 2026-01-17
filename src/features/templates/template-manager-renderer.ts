@@ -1,15 +1,13 @@
 
-/* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
-/* eslint-disable @typescript-eslint/no-unsafe-return */
-/* eslint-disable @typescript-eslint/no-unsafe-argument */
 import { App, Notice, Setting, ButtonComponent } from "obsidian";
 import EditorProPlugin from "../../main";
-import { UserTemplate, EditorProSettings, DEFAULT_SETTINGS } from "../../settings";
+import { UserTemplate } from "../../config";
 import { ConfirmationModal } from "../ui/confirmation-modal";
 import { InputModal } from "../ui/input-modal";
 import { SaveTemplateModal } from "./save-template-modal";
+import { extractSettings, sanitizeSettings } from "./template-utils";
 
 export class TemplateManagerRenderer {
     constructor(
@@ -184,7 +182,9 @@ export class TemplateManagerRenderer {
 
     private openSaveModal() {
         new SaveTemplateModal(this.app, async (meta) => {
-            const data = this.extractSettings(meta.type);
+            // REFACTORED: Use pure utility function
+            const data = extractSettings(this.plugin.settings, meta.type);
+
             const newTemplate: UserTemplate = {
                 id: Date.now().toString(),
                 name: meta.name,
@@ -231,55 +231,13 @@ export class TemplateManagerRenderer {
         }).open();
     }
 
-    private extractSettings(
-        type: "full" | "homepage" | "guardian"
-    ): Partial<EditorProSettings> {
-        // Deep copy to avoid mutating original settings when deleting
-        const current: any = JSON.parse(JSON.stringify(this.plugin.settings));
-
-        // CRITICAL: Exclude userTemplates from the snapshot to prevent storing backups within backups
-        // and to prevent restoring an old state that wipes out newer templates.
-        if (current && typeof current === 'object' && 'userTemplates' in current) {
-            delete current.userTemplates;
-        }
-
-        if (type === "full") return current;
-
-        const subset: Partial<EditorProSettings> = {};
-        const keys = Object.keys(current) as (keyof EditorProSettings)[];
-
-        for (const key of keys) {
-            if (type === "homepage") {
-                if (key.startsWith("homepage") || key === "enableHomepage") {
-                    (subset as any)[key] = current[key];
-                }
-            } else if (type === "guardian") {
-                if (
-                    key.startsWith("vaultGuardian") ||
-                    key === "enableVaultGuardian"
-                ) {
-                    (subset as any)[key] = current[key];
-                }
-            }
-        }
-        return subset;
-    }
-
     private async applyTemplate(tpl: UserTemplate) {
         new ConfirmationModal(this.app, {
             title: `应用模板：${tpl.name}`,
             message: `确认应用此模板？\n类型：${tpl.type}\n这将覆盖当前的相关设置。`,
             onConfirm: async () => {
-                // SANITIZATION: Only allow keys that exist in DEFAULT_SETTINGS
-                const cleanData: any = {};
-                const validKeys = Object.keys(DEFAULT_SETTINGS);
-
-                for (const key in tpl.data) {
-                    if (key === 'userTemplates') continue;
-                    if (validKeys.includes(key)) {
-                        cleanData[key] = (tpl.data as any)[key];
-                    }
-                }
+                // REFACTORED: Use pure utility function for secure sanitization
+                const cleanData = sanitizeSettings(tpl.data);
 
                 Object.assign(this.plugin.settings, cleanData);
                 await this.plugin.saveSettings();

@@ -87,9 +87,12 @@ describe('Homepage Utils', () => {
             }
         } as unknown as App;
 
-        const mockFile = new TFile();
-        const mockFolder = new TFolder();
-        const mockSubFolder = new TFolder();
+        // @ts-ignore
+        const mockFile = new TFile("dummypath/test.md");
+        // @ts-ignore
+        const mockFolder = new TFolder("dummypath/folder");
+        // @ts-ignore
+        const mockSubFolder = new TFolder("dummypath/subfolder");
 
         // Setup structure:
         // Folder
