@@ -60,6 +60,9 @@ function isPluginDataV2(value: unknown): value is {
     return isRecord(settings);
 }
 
+// Track IME composition state for editor-change events
+let isComposing = false;
+
 export default class EditorProPlugin extends Plugin {
     settings: EditorProSettings;
     yamlManager: YamlManager;
@@ -444,10 +447,17 @@ export default class EditorProPlugin extends Plugin {
         );
 
         // 8. 表格 Tab 导航 & 块跳出 (Shift+Enter) & 自动配对 & 智能退格
+        // Track IME composition state
+        this.registerDomEvent(document, 'compositionstart', () => { isComposing = true; });
+        this.registerDomEvent(document, 'compositionend', () => { isComposing = false; });
+
         this.registerDomEvent(document, 'keydown', (evt: KeyboardEvent) => {
             const view = this.app.workspace.getActiveViewOfType(MarkdownView);
             if (view) {
                 if (!this.settings.enableSmartTyping && !this.settings.enableEditorNavigation && !this.settings.enableOutliner) return;
+
+                // Skip if IME is composing (Chinese/Japanese/Korean input)
+                if (evt.isComposing) return;
 
                 // 1. 智能退格 (Backspace)
                 if (this.settings.enableSmartTyping && evt.key === 'Backspace') {
@@ -513,6 +523,9 @@ export default class EditorProPlugin extends Plugin {
         // 9. 智能输入展开 (@today, @time) + 智能排版 (Smart Spacing)
         this.registerEvent(
             this.app.workspace.on('editor-change', (editor: Editor) => {
+                // Skip if IME is composing (Chinese/Japanese/Korean input)
+                if (isComposing) return;
+
                 // A. 智能排版 (中英自动空格)
                 if (this.settings.enableSmartTyping) {
                     handleSmartSpacing(editor);
