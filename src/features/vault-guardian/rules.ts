@@ -20,7 +20,7 @@ export function checkCreationAllowed(
         return { allowed: true };
     }
 
-    const rootFolder = parts[0];
+    const rootFolder = parts[0] ?? '';
 
     // Check 1: Root folder whitelist
     if (allowedRootFolders.length > 0) {
@@ -71,7 +71,7 @@ export function checkCreationAllowed(
         }
 
         if (isFolder && rule.allowedSubfolderPattern && parts.length === 2) {
-            const subfolderName = parts[1];
+            const subfolderName = parts[1] ?? '';
             const pattern = new RegExp(rule.allowedSubfolderPattern);
             if (!pattern.test(subfolderName)) {
                 return {
@@ -108,31 +108,32 @@ export function runHealthCheck(
         if (depth > maxDepthFound) maxDepthFound = depth;
 
         const parts = folder.path.split('/').filter(Boolean);
-        if (parts.length > 0) {
-            rootFolders.add(parts[0]);
+        const rootName = parts[0] ?? '';
+
+        if (rootName) {
+            rootFolders.add(rootName);
         }
 
         // Check root folder whitelist
         if (parts.length === 1 && allowedRootFolders.length > 0) {
-            if (!allowedRootFolders.includes(parts[0])) {
+            if (!allowedRootFolders.includes(rootName)) {
                 violations.push({
                     type: 'root',
                     path: folder.path,
-                    message: `根目录 "${parts[0]}" 不在白名单中`,
+                    message: `根目录 "${rootName}" 不在白名单中`,
                 });
             }
         }
 
         // Check folder rules
-        if (parts.length > 1) {
-            const rootFolder = parts[0];
-            const rule = folderRules[rootFolder];
+        if (parts.length > 1 && rootName) {
+            const rule = folderRules[rootName];
             if (rule) {
                 if (!rule.allowSubfolders && parts.length > 1) {
                     violations.push({
                         type: 'subfolder',
                         path: folder.path,
-                        message: `"${rootFolder}" 内发现子目录 (违规)`,
+                        message: `"${rootName}" 内发现子目录 (违规)`,
                     });
                 }
 
@@ -146,8 +147,9 @@ export function runHealthCheck(
                 }
 
                 if (rule.allowedSubfolderPattern && parts.length === 2) {
+                    const subName = parts[1] ?? '';
                     const pattern = new RegExp(rule.allowedSubfolderPattern);
-                    if (!pattern.test(parts[1])) {
+                    if (!pattern.test(subName)) {
                         violations.push({
                             type: 'pattern',
                             path: folder.path,
