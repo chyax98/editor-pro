@@ -1,4 +1,4 @@
-import { transformEditorText } from '../src/features/editing/text-transformer';
+import { transformEditorText } from '../src/features/tools/text-transformer';
 import { Editor } from 'obsidian';
 
 describe('text-transformer', () => {

@@ -1,4 +1,4 @@
-import { checkMagicDateInput, checkMagicSymbols } from '../src/features/editing/magic-input';
+import { checkMagicDateInput, checkMagicSymbols } from '../src/features/input';
 
 describe('Magic Input - Symbol Replacement', () => {
     test('replaces --> with →', () => {

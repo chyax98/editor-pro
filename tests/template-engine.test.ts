@@ -10,7 +10,7 @@ jest.mock('obsidian', () => ({
 }));
 
 // Mock NLDateParser
-jest.mock('../src/features/nldates/parser', () => ({
+jest.mock('../src/features/visuals/nldates-parser', () => ({
     NLDateParser: {
         parse: (input: string) => {
             if (input === 'tomorrow') return { formatted: '2023-01-02' };

@@ -1,4 +1,4 @@
-import { toggleTask } from '../src/features/formatting/task-toggle';
+import { toggleTask } from '../src/features/editor';
 import { Editor } from 'obsidian';
 
 describe('toggleTask', () => {

@@ -1,4 +1,4 @@
-import { handleSmartSpacing, handleAutoPair, handleSmartBackspace, PAIR_MAP } from '../src/features/editing/smart-typography';
+import { handleSmartSpacing, handleAutoPair, handleSmartBackspace, PAIR_MAP } from '../src/features/editor';
 import { Editor } from 'obsidian';
 
 describe('smart-typography', () => {

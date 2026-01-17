@@ -1,4 +1,4 @@
-import { checkSmartInput } from '../src/features/smart-input/input-handler';
+import { checkSmartInput } from '../src/features/input';
 
 describe('Smart Input Handler', () => {
     // Mock Date

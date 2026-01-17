@@ -1,4 +1,4 @@
-import { moveLineUp, moveLineDown, duplicateLine, deleteLine, selectLine } from '../src/features/editing/keyshots';
+import { moveLineUp, moveLineDown, duplicateLine, deleteLine, selectLine } from '../src/features/editor';
 import { Editor } from 'obsidian';
 
 describe('keyshots', () => {

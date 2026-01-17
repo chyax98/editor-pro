@@ -1,4 +1,4 @@
-import { smartToggle } from '../src/features/formatting/smart-toggle';
+import { smartToggle } from '../src/features/editor';
 import { Editor } from 'obsidian';
 
 describe('smartToggle', () => {

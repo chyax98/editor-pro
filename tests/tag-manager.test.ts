@@ -1,4 +1,4 @@
-import { TagManager } from '../src/features/tags/tag-manager';
+import { TagManager } from '../src/features/file-ops/tag-manager';
 
 // Mocks
 const mockApp = {

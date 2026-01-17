@@ -1,4 +1,4 @@
-import { shouldTriggerSlashCommand, matchCommand } from '../src/features/slash-command/utils';
+import { shouldTriggerSlashCommand, matchCommand } from '../src/features/input/utils';
 
 // Mock commands structure for testing
 const testCommands = [

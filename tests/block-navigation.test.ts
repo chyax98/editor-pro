@@ -1,4 +1,4 @@
-import { handleBlockNavigation } from '../src/features/formatting/block-navigation';
+import { handleBlockNavigation } from '../src/features/editor';
 import { Editor } from 'obsidian';
 
 describe('Block Navigation (Smart Break)', () => {

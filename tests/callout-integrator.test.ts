@@ -11,7 +11,7 @@ jest.mock('obsidian', () => ({
 
 import { Editor } from 'obsidian';
 
-import { toggleBlockquote } from '../src/features/callout/callout-integrator';
+import { toggleBlockquote } from '../src/features/callout';
 
 /**
  * Mock Editor implementation for basic line/selection operations

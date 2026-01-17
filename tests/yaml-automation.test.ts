@@ -1,4 +1,4 @@
-import { YamlManager } from '../src/features/yaml/auto-update';
+import { YamlManager } from '../src/features/file-ops/yaml-manager';
 import { App, Plugin, TFile } from 'obsidian';
 
 // Mock generic debounce to execute immediately for tests, or use fake timers

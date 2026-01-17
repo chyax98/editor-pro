@@ -1,4 +1,4 @@
-import { evaluateArithmeticExpression } from "../src/features/editing/inline-calc";
+import { evaluateArithmeticExpression } from "../src/features/tools/inline-calc";
 
 describe("Inline calc", () => {
 	test("evaluates basic arithmetic", () => {

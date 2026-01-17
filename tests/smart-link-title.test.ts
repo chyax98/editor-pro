@@ -1,4 +1,4 @@
-import { extractTitleFromClipboardHtml, isHttpUrl } from "../src/features/editing/smart-link-title";
+import { extractTitleFromClipboardHtml, isHttpUrl } from "../src/features/editor/smart-link-title";
 
 describe("smart-link-title", () => {
 	test("detects http url", () => {

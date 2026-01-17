@@ -1,5 +1,5 @@
 import { Editor } from "obsidian";
-import { smartPasteUrlIntoSelection } from "../src/features/editing/smart-paste-url";
+import { smartPasteUrlIntoSelection } from "../src/features/editor";
 
 describe("smartPasteUrlIntoSelection", () => {
 	test("wraps selection with pasted URL", () => {

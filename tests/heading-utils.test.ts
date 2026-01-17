@@ -1,5 +1,5 @@
 import { Editor } from 'obsidian';
-import { setHeading } from '../src/features/formatting/heading-utils';
+import { setHeading } from '../src/features/editor';
 
 class MockEditor {
     private lines: string[];

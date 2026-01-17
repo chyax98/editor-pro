@@ -1,4 +1,4 @@
-import { insertFootnote } from '../src/features/editing/footnotes';
+import { insertFootnote } from '../src/features/tools/footnotes';
 
 // Mock Editor
 function createMockEditor(lines: string[], cursor: { line: number; ch: number }) {

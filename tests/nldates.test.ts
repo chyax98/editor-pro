@@ -1,4 +1,4 @@
-import { NLDateParser } from '../src/features/nldates/parser';
+import { NLDateParser } from '../src/features/visuals/nldates-parser';
 import { moment } from 'obsidian';
 
 // Mock moment
