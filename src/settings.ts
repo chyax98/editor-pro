@@ -142,10 +142,10 @@ const SECTIONS: SettingSection[] = [
         title: '基础编辑',
         icon: '✏️',
         settings: [
-            { name: '开启键盘行操作（Keyshots）', desc: '提供上移/下移/复制/删除/选中当前行等命令（需在 **Settings → Hotkeys** 绑定）。', key: 'enableKeyshots', type: 'toggle' },
-            { name: '开启输入增强（自动配对/智能退格/中英空格）', desc: '自动配对括号与引号；在 `(|)` 中退格删除一对；中英混排自动加空格。', key: 'enableSmartTyping', type: 'toggle' },
-            { name: '开启编辑器导航增强（Shift+Enter 跳出）', desc: '引用/Callout 内 Shift+Enter 快速跳出。', key: 'enableEditorNavigation', type: 'toggle' },
-            { name: '开启大纲编辑（Outliner）', desc: '在列表项上使用 Tab/Shift+Tab 缩进/反缩进；提供折叠命令。', key: 'enableOutliner', type: 'toggle' },
+            { name: '开启键盘行操作（Keyshots）', desc: '提供类 IDE 的行操作命令：上移/下移/复制/删除/选中当前行。在 Settings → Hotkeys 搜索 "Editor Pro" 绑定快捷键（推荐：Alt+↑/↓/D）。', key: 'enableKeyshots', type: 'toggle' },
+            { name: '开启输入增强（自动配对/智能退格/中英空格）', desc: '输入 `(` 自动补全 `)`；选中文字后输入 `(` 自动包裹；在 `(|)` 中按退格同时删除两个符号；中英文之间自动加空格。', key: 'enableSmartTyping', type: 'toggle' },
+            { name: '开启编辑器导航增强（Shift+Enter 跳出）', desc: '在引用块（> 开头）或 Callout 内按 Shift+Enter，快速跳出到下一行普通文本，无需手动删除 > 符号。', key: 'enableEditorNavigation', type: 'toggle' },
+            { name: '开启大纲编辑（Outliner）', desc: '在列表项上按 Tab 缩进，Shift+Tab 反缩进（会连带移动子项）。还提供“折叠/展开”命令用于快速缩放列表块。', key: 'enableOutliner', type: 'toggle' },
 
         ],
     },
@@ -153,8 +153,8 @@ const SECTIONS: SettingSection[] = [
         title: '格式化与转换',
         icon: '🎨',
         settings: [
-            { name: '开启智能格式切换', desc: '智能处理加粗、斜体、行内代码（按下快捷键时，若光标在标记内则自动取消，避免符号叠加）。', key: 'enableSmartToggle', type: 'toggle' },
-            { name: '开启文本转换器（Text transformer）', desc: '提供大小写/排序/去空行等转换命令，并可在右键菜单中使用。', key: 'enableTextTransformer', type: 'toggle' },
+            { name: '开启智能格式切换', desc: '智能切换加粗/斜体/删除线/高亮/行内代码：光标在已格式化文字内按快捷键会取消格式，而不是叠加符号。需在 Hotkeys 中绑定快捷键。', key: 'enableSmartToggle', type: 'toggle' },
+            { name: '开启文本转换器（Text transformer）', desc: '提供文本转换命令：大写/小写/标题格式/句首大写、排序行、去除空行、去除行尾空格、合并为一行。可通过命令面板或右键菜单使用。', key: 'enableTextTransformer', type: 'toggle' },
             {
                 name: '开启保存时清理（Save cleaner）',
                 desc: '保存时自动移除行尾空格，并确保文件以换行符结尾（尽量低侵入）。⚠️ 注意：与 YAML 自动更新同时使用可能产生冲突。',
@@ -240,8 +240,8 @@ const SECTIONS: SettingSection[] = [
         title: '文件与库管理',
         icon: '📁',
         settings: [
-            { name: '开启 Frontmatter 图标/头图（Inline decorator）', desc: '从 Frontmatter 读取 `icon`/`banner`，在文件列表展示图标，并在笔记顶部展示头图（轻量实现）。', key: 'enableInlineDecorator', type: 'toggle' },
-            { name: '开启文件树高亮（File tree highlight）', desc: '提供命令：为文件/文件夹加高亮标记（用于项目文件夹）。', key: 'enableFileTreeHighlight', type: 'toggle' },
+            { name: '开启 Frontmatter 图标/头图（Inline decorator）', desc: '在笔记的 Frontmatter 中添加 `icon: ❤️` 或 `banner: path/to/image.png`，插件会在文件列表显示图标，并在笔记顶部展示头图。', key: 'enableInlineDecorator', type: 'toggle' },
+            { name: '开启文件树高亮（File tree highlight）', desc: '在命令面板搜索 "文件树：高亮当前文件"，可为文件/文件夹设置 6 种颜色高亮标记，方便在文件列表中区分项目文件夹。', key: 'enableFileTreeHighlight', type: 'toggle' },
             {
                 name: '开启 YAML 自动更新',
                 desc: '自动维护笔记的 "创建时间" 和 "修改时间" 元数据（Frontmatter）。⚠️ 会自动修改文件内容，与 SaveCleaner 同时使用可能产生冲突。',
@@ -249,8 +249,8 @@ const SECTIONS: SettingSection[] = [
                 key: 'enableYaml',
                 type: 'toggle'
             },
-            { name: 'YAML 日期格式', desc: '时间戳的显示格式 (例如: YYYY-MM-DD HH:mm)。', key: 'yamlDateFormat', type: 'text', placeholder: 'YYYY-MM-DD HH:mm' },
-            { name: '模板文件夹路径', desc: '存放用户自定义模板的文件夹路径（例如 "Templates"）。', key: 'templateFolderPath', type: 'text', placeholder: 'Templates' },
+            { name: 'YAML 日期格式', desc: '时间戳的显示格式，使用 moment.js 语法。常用格式：YYYY-MM-DD（仅日期）或 YYYY-MM-DD HH:mm（日期+时间）。', key: 'yamlDateFormat', type: 'text', placeholder: 'YYYY-MM-DD HH:mm' },
+            { name: '模板文件夹路径', desc: '存放自定义模板的文件夹（相对于库根目录）。模板文件支持 `{{date}}`、`{{title}}`、`{{cursor}}` 等变量。在命令面板搜索 "插入模板" 使用。', key: 'templateFolderPath', type: 'text', placeholder: 'Templates' },
         ],
     },
     {
