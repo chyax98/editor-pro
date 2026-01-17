@@ -435,6 +435,69 @@ const SECTIONS: SettingSection[] = [
             },
         ],
     },
+    {
+        title: '首页仪表板',
+        icon: '🏠',
+        settings: [
+            {
+                name: '开启首页仪表板（Homepage）',
+                desc: '提供个性化首页，显示日记入口、目录统计、最近文件、清理提醒等。在命令面板搜索 "打开首页" 或点击左侧 Home 图标。',
+                longDesc: '首页仪表板功能：\n\n1. 智能问候：根据时间显示问候语和日期\n2. 今日日记：快速打开或创建今日日记\n3. 仓库状态：显示追踪目录的文件数量流向（如 Inbox → Working → Notes）\n4. 最近编辑：显示最近修改的文件\n5. 置顶笔记：右键文件可添加到首页置顶\n6. 清理提醒：Weekly/Monthly 清理提醒\n\n所有功能都可以单独开关。',
+                key: 'enableHomepage',
+                type: 'toggle'
+            },
+            { name: '替换新标签页', desc: '开启后，新建空白标签页时自动显示首页。', key: 'homepageReplaceNewTab', type: 'toggle' },
+            { name: '启动时打开首页', desc: 'Obsidian 启动时自动打开首页。', key: 'homepageShowOnStartup', type: 'toggle' },
+            { name: '显示问候语', desc: '显示时间问候语和日期。', key: 'homepageShowGreeting', type: 'toggle' },
+            { name: '显示今日日记入口', desc: '显示今日日记的快速入口。', key: 'homepageShowDailyNote', type: 'toggle' },
+            { name: '显示目录统计', desc: '显示追踪目录的文件数量和流向图。', key: 'homepageShowFolderStats', type: 'toggle' },
+            { name: '显示最近文件', desc: '显示最近编辑的文件列表。', key: 'homepageShowRecentFiles', type: 'toggle' },
+            { name: '显示置顶笔记', desc: '显示手动置顶的笔记。', key: 'homepageShowPinnedNotes', type: 'toggle' },
+            { name: '显示清理提醒', desc: '显示 Weekly/Monthly 清理提醒。', key: 'homepageShowReminders', type: 'toggle' },
+            { name: 'Daily Notes 目录', desc: '日记文件所在的目录路径。', key: 'homepageDailyNotesFolder', type: 'text', placeholder: 'Daily' },
+            {
+                name: '追踪目录配置',
+                desc: '每行一个目录，格式: path:name:icon:showInFlow:order',
+                longDesc: '追踪目录配置格式：每行一个目录\n\n格式：path:name:icon:showInFlow:order\n- path: 目录路径\n- name: 显示名称\n- icon: 图标（emoji）\n- showInFlow: 是否在流向图中显示（true/false）\n- order: 排序数字\n\n示例：\nInbox:Inbox:📥:true:1\nWorking:Working:🔧:true:2\nNotes:Notes:📚:true:3',
+                key: 'homepageTrackedFolders',
+                type: 'text',
+                placeholder: 'Inbox:Inbox:📥:true:1'
+            },
+            { name: '最近文件数量', desc: '显示的最近文件数量（5-20）。', key: 'homepageRecentFilesCount', type: 'text', placeholder: '5' },
+        ],
+    },
+    {
+        title: '目录结构守护',
+        icon: '🛡️',
+        settings: [
+            {
+                name: '开启目录结构守护（Vault Guardian）',
+                desc: '保护仓库目录结构，防止目录膨胀。在创建违规目录时给出警告或阻止。',
+                longDesc: 'Vault Guardian 功能：\n\n1. 根目录白名单：只允许指定的根目录存在\n2. 子目录控制：可禁止某些目录创建子目录（如 Inbox 保持扁平）\n3. 深度限制：限制目录嵌套深度\n4. 命名规则：子目录名称正则匹配\n5. 健康检查：命令面板搜索 "Vault Guardian: 目录结构检查" 查看报告\n\n⚠️ 此功能会监控目录创建，可能与某些自动化工具冲突。',
+                key: 'enableVaultGuardian',
+                type: 'toggle'
+            },
+            { name: '阻止创建违规目录', desc: '开启后直接阻止创建违规目录；关闭则仅显示警告。', key: 'vaultGuardianBlockCreation', type: 'toggle' },
+            { name: '显示违规通知', desc: '创建违规目录时显示桌面通知。', key: 'vaultGuardianShowNotification', type: 'toggle' },
+            { name: '启动时检查目录结构', desc: 'Obsidian 启动时自动运行目录健康检查。', key: 'vaultGuardianCheckOnStartup', type: 'toggle' },
+            {
+                name: '根目录白名单',
+                desc: '允许的根目录列表，每行一个。留空则不限制。',
+                longDesc: '每行填写一个允许的根目录名称。\n\n示例：\nDaily\nInbox\nWorking\nNotes\nResources\nArchive\n2026\n\n留空表示不限制根目录。',
+                key: 'vaultGuardianAllowedRoots',
+                type: 'text',
+                placeholder: 'Daily\nInbox\nWorking'
+            },
+            {
+                name: '目录规则配置',
+                desc: '每行一个目录规则，格式: path:allowSubfolders:maxDepth:pattern',
+                longDesc: '目录规则配置格式：每行一个规则\n\n格式：path:allowSubfolders:maxDepth:pattern\n- path: 目录路径\n- allowSubfolders: 是否允许子目录（true/false）\n- maxDepth: 最大嵌套深度（0=不限制）\n- pattern: 子目录名称正则模式（可选）\n\n示例：\nInbox:false:1:\nDaily:false:1:\nWorking:true:2:\nNotes:true:3:\n2026:true:3:^(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)$',
+                key: 'vaultGuardianFolderRules',
+                type: 'text',
+                placeholder: 'Inbox:false:1:'
+            },
+        ],
+    },
 ];
 
 
@@ -633,6 +696,18 @@ export class EditorProSettingTab extends PluginSettingTab {
                 title: '可视化',
                 icon: '📊',
                 sectionTitles: mapping(['可视化']),
+            },
+            {
+                id: 'homepage',
+                title: '首页',
+                icon: '🏠',
+                sectionTitles: mapping(['首页仪表板']),
+            },
+            {
+                id: 'guardian',
+                title: '结构守护',
+                icon: '🛡️',
+                sectionTitles: mapping(['目录结构守护']),
             },
             {
                 id: 'mcp',

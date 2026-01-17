@@ -44,6 +44,8 @@ import { InlineDecorator } from './features/ui/inline-decorator';
 import { FileTreeHighlightManager, HighlightColor } from './features/ui/file-tree-highlight';
 import { RemoteImageTaskScheduler } from './features/editing/remote-image-scheduler';
 import { McpFeature } from './features/mcp/mcp-feature';
+import { HomepageManager } from './features/homepage';
+import { VaultGuardianManager } from './features/vault-guardian';
 
 function isRecord(value: unknown): value is Record<string, unknown> {
     return typeof value === 'object' && value !== null;
@@ -76,6 +78,8 @@ export default class EditorProPlugin extends Plugin {
     fileTreeHighlightManager: FileTreeHighlightManager | null = null;
     fileTreeHighlights: Record<string, HighlightColor> = {};
     remoteImageScheduler: RemoteImageTaskScheduler;
+    private homepageManager: HomepageManager | null = null;
+    private vaultGuardianManager: VaultGuardianManager | null = null;
 
     async onload() {
         await this.loadSettings();
@@ -109,6 +113,18 @@ export default class EditorProPlugin extends Plugin {
         // 0.4 MCP Server
         this.mcpFeature = new McpFeature(this);
         void this.mcpFeature.load();
+
+        // 0.5 Homepage 首页仪表板
+        if (this.settings.enableHomepage) {
+            this.homepageManager = new HomepageManager(this);
+            this.homepageManager.register();
+        }
+
+        // 0.6 Vault Guardian 目录结构守护
+        if (this.settings.enableVaultGuardian) {
+            this.vaultGuardianManager = new VaultGuardianManager(this);
+            this.vaultGuardianManager.register();
+        }
 
         // 0.5 远程图片下载
         this.remoteImageScheduler = new RemoteImageTaskScheduler(this.app);
