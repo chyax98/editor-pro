@@ -9,9 +9,14 @@ export class VegaRenderChild extends MarkdownRenderChild {
     onload() {
         void (async () => {
             try {
+                // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
                 const spec = JSON.parse(this.source);
-                // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-assignment
-                await embed(this.containerEl, spec, { actions: false });
+                const isDark = document.body.classList.contains("theme-dark");
+                // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+                await embed(this.containerEl, spec, {
+                    actions: false,
+                    theme: isDark ? 'dark' : undefined
+                });
             } catch (e) {
                 const errorDiv = this.containerEl.createDiv({ cls: "editor-pro-chart-error" });
                 errorDiv.createEl("strong", { text: "Vega-Lite Error:" });

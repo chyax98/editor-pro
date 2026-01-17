@@ -1,5 +1,6 @@
 import { MarkdownRenderChild } from "obsidian";
 import * as echarts from "echarts";
+import "echarts/extension/dataTool";
 
 export class EChartsRenderChild extends MarkdownRenderChild {
     private chart: echarts.ECharts | null = null;
@@ -16,6 +17,7 @@ export class EChartsRenderChild extends MarkdownRenderChild {
                 let option: any;
                 try {
                     // Try JSON first
+                    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
                     option = JSON.parse(this.source);
                 } catch {
                     // Fallback to Function evaluation for advanced options (functions)
@@ -31,7 +33,11 @@ export class EChartsRenderChild extends MarkdownRenderChild {
                 // eslint-disable-next-line obsidianmd/no-static-styles-assignment
                 this.containerEl.style.setProperty("width", "100%");
 
-                this.chart = echarts.init(this.containerEl);
+                // Theme adaptation
+                const isDark = document.body.classList.contains("theme-dark");
+                const theme = isDark ? "dark" : undefined;
+
+                this.chart = echarts.init(this.containerEl, theme);
                 this.chart.setOption(option);
 
                 this.resizeObserver = new ResizeObserver(() => {

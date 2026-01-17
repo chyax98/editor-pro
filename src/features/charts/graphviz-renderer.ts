@@ -9,13 +9,21 @@ export class GraphvizRenderChild extends MarkdownRenderChild {
     onload() {
         void (async () => {
             try {
-                // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
+                // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
                 const graphviz = await Graphviz.load();
-                // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
-                const svg = graphviz.layout(this.source, "svg", "dot");
+
+                // Extract layout engine from source (e.g. layout=neato)
+                const engineMatch = this.source.match(/layout\s*=\s*(?:")?(\w+)(?:")?/);
+                let engine = "dot";
+                if (engineMatch && engineMatch[1] && ["dot", "neato", "fdp", "circo", "osage", "twopi"].includes(engineMatch[1])) {
+                    engine = engineMatch[1];
+                }
+
+                // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-explicit-any
+                const svg = graphviz.layout(this.source, "svg", engine as any);
                 // eslint-disable-next-line @microsoft/sdl/no-inner-html
                 this.containerEl.innerHTML = svg as string;
-                
+
                 // Ensure SVG scales correctly
                 const svgEl = this.containerEl.querySelector('svg');
                 if (svgEl) {
