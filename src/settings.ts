@@ -3,7 +3,9 @@ import EditorProPlugin from "./main";
 
 import { McpSettings, MCP_DEFAULT_SETTINGS } from "./features/mcp/mcp-types";
 import { McpFeature } from "./features/mcp/mcp-feature";
+import { TemplateManagerRenderer } from "./features/templates/template-manager-renderer";
 import { McpSettingsRenderer } from "./features/mcp/mcp-settings-tab";
+
 import { ConfirmationModal } from "./features/ui/confirmation-modal";
 import { InputModal } from "./features/ui/input-modal";
 
@@ -87,6 +89,18 @@ export interface EditorProSettings {
     vaultGuardianBlockCreation: boolean;
     vaultGuardianShowNotification: boolean;
     vaultGuardianCheckOnStartup: boolean;
+
+    // v0.3.0 Template Center
+    userTemplates: UserTemplate[];
+}
+
+export interface UserTemplate {
+    id: string;
+    name: string;
+    description: string;
+    type: "full" | "homepage" | "guardian";
+    data: Partial<EditorProSettings>;
+    created: number;
 }
 
 export const DEFAULT_SETTINGS: EditorProSettings = {
@@ -177,6 +191,8 @@ export const DEFAULT_SETTINGS: EditorProSettings = {
     vaultGuardianBlockCreation: false,
     vaultGuardianShowNotification: true,
     vaultGuardianCheckOnStartup: false,
+
+    userTemplates: [],
 };
 
 /**
@@ -1077,6 +1093,17 @@ export class EditorProSettingTab extends PluginSettingTab {
                     }
                     new McpSettingsRenderer(this.mcpFeature).render(container);
                 },
+            },
+            {
+                id: "templates",
+                title: "模板中心",
+                icon: "🎨",
+                render: (container) => {
+                    new TemplateManagerRenderer(this.app, this.plugin, () => {
+                        // Callback to refresh
+                        this.display();
+                    }).render(container);
+                }
             },
         ];
 
