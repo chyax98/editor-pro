@@ -23,7 +23,7 @@ editor-pro/
 │   └── types/               # 类型定义
 ├── tests/                   # 测试文件
 ├── __mocks__/               # Mock Obsidian API
-├── docs/                    # 设计文档（软链接到笔记库）
+├── docs/                    # 设计文档
 └── ...
 ```
 
@@ -316,6 +316,11 @@ npm run build      # 构建生产版本
 npm run lint       # 代码检查
 npm run test       # 运行测试（需配置 Jest）
 ```
+
+### 安装到本地测试 Vault
+构建完成后 (`npm run build`)，将项目根目录下的 `main.js`, `manifest.json`, `styles.css` 复制到你的测试仓库插件目录：
+`YourVault/.obsidian/plugins/editor-pro/`
+然后重启 Obsidian 或 Reload 插件即可。无需配置软链接。
 
 ---
 

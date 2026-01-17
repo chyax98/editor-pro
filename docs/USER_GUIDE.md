@@ -135,9 +135,17 @@ color: #4caf50
 *   **效果**: 保持光标始终垂直居中，你的视线无需上下移动。
 
 ### 快捷键 (Keyshots)
-*   `Alt + Up/Down`: 上下移动当前行。
-*   `Cmd/Ctrl + D`: 复制当前行（或选区）。
-*   `Alt + Click`: 多光标选择。
+
+以下是 Editor Pro 预设的、符合通用习惯的快捷键：
+
+| 功能 | Mac | Windows/Linux | 说明 |
+| :--- | :--- | :--- | :--- |
+| **行上移** | `Opt + ↑` | `Alt + ↑` | 快速移动当前行或选区 |
+| **行下移** | `Opt + ↓` | `Alt + ↓` | 快速移动当前行或选区 |
+| **复制行** | `Cmd + D` | `Ctrl + D` | 向下复制当前行或选区 |
+| **删除行** | `Cmd + Shift + K` | `Ctrl + Shift + K` | 删除当前行（VS Code 习惯） |
+| **纯文本粘贴** | `Cmd + Shift + V` | `Ctrl + Shift + V` | 清除格式粘贴 |
+| **多光标** | `Alt + Click` | `Alt + Click` | 在点击处添加光标 |
 
 ---
 
