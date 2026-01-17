@@ -1,168 +1,153 @@
-# Editor Pro 用户使用指南 (User Guide)
+# Editor Pro 使用指南 (User Guide)
 
-> **Editor Pro** 是 Obsidian 的"瑞士军刀"，旨在通过一系列精心设计的增强功能，提升您的写作流 (Flow) 体验。
-
----
-
-## 📚 目录
-
-1.  [🚀 快速开始](#-快速开始-quick-start)
-2.  [✍️ 写作体验增强](#-写作体验增强-writing-experience)
-    *   [智能输入 (Magic Input)](#1-智能输入-magic-input)
-    *   [打字机滚动 (Typewriter Scroll)](#2-打字机滚动-typewriter-scroll)
-    *   [专注模式 (Focus Mode)](#3-专注模式-focus-mode)
-    *   [智能排版 (Smart Typography)](#4-智能排版-smart-typography)
-3.  [🛠️ 编辑效率工具](#-编辑效率工具-editing-tools)
-    *   [行操作快捷键 (Keyshots)](#1-行操作快捷键-keyshots)
-    *   [智能粘贴 (Smart Paste)](#2-智能粘贴-smart-paste)
-    *   [大纲操作 (Outliner)](#3-大纲操作-outliner)
-    *   [智能配对 (Smart Toggle)](#4-智能配对-smart-toggle)
-4.  [🤖 智能辅助功能](#-智能辅助功能-intelligence)
-    *   [斜杠命令 (Slash Commands)](#1-斜杠命令-slash-commands)
-    *   [Callout 增强](#2-callout-增强)
-    *   [模板引擎 (Template Engine)](#3-模板引擎-template-engine)
-    *   [YAML 自动维护](#4-yaml-自动维护)
-5.  [📊 可视化与 UI](#-可视化与-ui-visualization)
-    *   [图表渲染 (Charts)](#1-图表渲染-charts)
-    *   [状态栏统计](#2-状态栏统计)
-    *   [悬浮大纲](#3-悬浮大纲)
-6.  [🔌 实用小工具](#-实用小工具-widgets)
+欢迎使用 Editor Pro！本指南将带你全面了解如何从零开始打造你的终极写作工作流。
 
 ---
 
-## 🚀 快速开始 (Quick Start)
+## 目录 (Table of Contents)
 
-安装插件后，请前往 **Settings** -> **Editor Pro** 顶部，选择一个适合您的**预设配置 (Preset)**：
-
-| 预设模式 | 图标 | 适用人群 | 开启功能 |
-| :--- | :--- | :--- | :--- |
-| **极简模式** | 🎯 | 纯粹主义者 | 仅开启快捷键和基础行操作，**0 侵入性**。 |
-| **写作模式** | ✍️ | 作家/博主 | 开启**打字机滚动**、**专注模式**、**光标记忆**，提供沉浸体验。 |
-| **全功能模式**| ⚡ | 极客/重度用户 | 开启**图表渲染**、**脚本执行**、**YAML自动化**等所有高级功能。 |
-
----
-
-## ✍️ 写作体验增强 (Writing Experience)
-
-### 1. 智能输入 (Magic Input)
-无需记忆 Markdown 语法，自然输入即可触发转换。
-*   **符号替换**：
-    *   `->` → `→`
-    *   `!=` → `≠`
-    *   `>=` → `≥`, `<=` → `≤`
-    *   `(c)` → `©`, `(tm)` → `™`
-*   **日期时间**：
-    *   `@today` → 插入今日日期 (e.g. `2024-03-21`)
-    *   `@tomorrow` / `@yesterday`
-    *   `@next fri` → 下个周五的日期
-    *   `@time` → 当前时间 (e.g. `14:30`)
-
-### 2. 打字机滚动 (Typewriter Scroll)
-*   **开启方式**：设置中开启 `Enable Typewriter Scroll`。
-*   **效果**：当您打字时，当前行始终保持在屏幕中央，避免视线频繁上下移动，保护颈椎。
-
-### 3. 专注模式 (Focus Mode)
-*   **开启方式**：设置中开启 `Enable Focus UI`。
-*   **效果**：自动隐藏侧边栏、状态栏和标题栏，让界面只剩下编辑器。鼠标移动到边缘时会自动显示。
-
-### 4. 智能排版 (Smart Typography)
-*   **功能**：自动在中英文、中文与数字之间添加空格。
-*   **示例**：输入 `正在使用Obsidian写作` → 自动变为 `正在使用 Obsidian 写作`。
+1.  [快速开始 (Quick Start)](#1-快速开始-quick-start)
+2.  [仪表板 (Homepage)](#2-%F0%9F%8F%A0-仪表板-homepage)
+3.  [结构守护 (Vault Guardian)](#3-%F0%9F%9B%A1%EF%B8%8F-结构守护-vault-guardian)
+4.  [智能写作 (Smart Writing)](#4-%E2%9C%8D%EF%B8%8F-智能写作-smart-writing)
+5.  [命令菜单 (Slash Commands)](#5-%E2%9A%A1-命令菜单-slash-commands)
+6.  [可视化图表 (Visualization)](#6-%F0%9F%93%8A-可视化图表-visualization)
+7.  [效率增强 (Productivity)](#7-%F0%9F%9B%A0%EF%B8%8F-效率增强-productivity)
+8.  [MCP 智能服务](#8-%F0%9F%A4%96-mcp-智能服务)
 
 ---
 
-## 🛠️ 编辑效率工具 (Editing Tools)
+## 1. 快速开始 (Quick Start)
 
-### 1. 行操作快捷键 (Keyshots)
-大幅提升编辑速度的核心快捷键：
-*   **`Alt + Up/Down`**：上下移动当前行（或选中的多行）。
-*   **`Alt + Shift + Up/Down`**：向上/下复制当前行。
-*   **`Mod + D`**：多光标选中下一个相同单词（类似 VSCode）。
-*   **`Mod + L`**：选中当前行。
+安装插件后，请并在设置中选择一个预设模式 (Setting Preset)：
 
-### 2. 智能粘贴 (Smart Paste)
-*   **链接增强**：复制 URL 后粘贴，自动获取网页标题并生成 `[标题](URL)` 格式。
-*   **图片增强**：(需开启) 粘贴网络图片链接时，自动下载图片到本地。
-
-### 3. 大纲操作 (Outliner)
-在列表 (`- `) 状态下：
-*   **`Tab` / `Shift + Tab`**：缩进/反缩进列表项。
-*   **`Enter`**：在当前层级新建列表项（包含 Checkbox 状态）。
-*   **`Cmd + Shift + Up/Down`**：移动列表项及其所有子项（整个分支移动）。
-
-### 4. 智能配对 (Smart Toggle)
-*   选中文字后按下 `[`，自动变为 `[[选中文本]]`。
-*   选中文字后按下 `*`，自动变为 `*选中文本*`。
-*   选中文字后按下 `` ` ``，自动变为 `` `选中文本` ``。
+*   🎯 **Minimal (极简)**: 仅启用核心快捷键，不改变 Obsidian 原生体验。
+*   ✍️ **Writer (写作)**: (推荐) 启用专注模式、智能输入和仪表板。
+*   ⚡ **Power (全能)**: 开启所有功能，包括图表渲染和脚本。
 
 ---
 
-## 🤖 智能辅助功能 (Intelligence)
+## 2. 🏠 仪表板 (Homepage)
 
-### 1. 斜杠命令 (Slash Commands)
-输入 `/` 即可呼出全能菜单：
-*   `/callout`：插入提示块。
-*   `/table`：插入 3x3 表格。
-*   `/mermaid` / `/echarts`：插入图表。
-*   `/daily` / `/weekly`：插入日记模板。
-*   `/h1` - `/h6`：快速设置标题。
+仪表板是你的 Obsidian 启动站，每次打开软件或点击侧边栏 "Home" 图标时显示。
 
-### 2. Callout 增强
-*   **快速插入**：使用 `/callout` 命令，支持 20+ 种官方类型（如 Note, Tip, Warning, Bug 等）。
-*   **类型切换**：在 Callout 标题行右键或使用命令，可快速更改颜色类型。
+### 核心模块
+*   **Greeting**: 显示当前的日期、时间和贴心的问候。
+*   **Pinned Notes (置顶笔记)**:
+    *   **添加/移除**: 在文件列表右键点击任意笔记，选择 "Pin to Homepage" 或 "Unpin from Homepage"。
+    *   **用途**: 放置最常用的索引页或当前正在进行的长期项目。
+*   **Workflow Flow**:
+    *   **Inbox**: 显示 `Inbox/` 目录下的文件数。
+    *   **Working**: 显示最近编辑过的 5 个文件。
+*   **Reminders**: 智能检测需要清理的目录（如 Inbox 超过 10 个文件）。
 
-### 3. 模板引擎 (Template Engine)
-支持执行 JavaScript 的动态模板：
-*   **语法**：`{{js: return new Date().getFullYear(); }}`
-*   **内置变量**：`{{date}}`, `{{time}}`, `{{title}}`
-*   **使用**：将模板文件放入 `Templates` 文件夹（可在设置中修改路径），然后使用 `/模板名` 插入。
-
-### 4. YAML 自动维护
-*(需在设置中手动开启)*
-*   自动在文档头部维护 `created` (创建时间) 和 `updated` (更新时间) 字段。
-*   **⚠️ 注意**：可能会影响第三方同步工具（如 Syncthing），请谨慎开启。
+### 设置
+在插件设置中，你可以自定义：
+*   **显示/隐藏模块**：按需开启 Pin、Recent、Reminder 等部分。
+*   **追踪文件夹**：配置要在首页显示的特定文件夹（如 `Projects/`）。
 
 ---
 
-## 📊 可视化与 UI (Visualization)
+## 3. 🛡️ 结构守护 (Vault Guardian)
 
-### 1. 图表渲染 (Charts)
-Editor Pro 内置了强大的渲染引擎，无需安装额外插件即可渲染代码块：
+Vault Guardian 帮助你维持文件结构的整洁，防止"熵增"。
 
-*   **Mermaid**: 流程图、时序图。
-*   **ECharts**: 交互式数据图表（需使用 JSON 格式）。
-*   **Graphviz (DOT)**: 结构图、网络拓扑。
-*   **Vega-Lite**: 统计图表。
+### 功能说明
+*   **Root Guard**: 当你在根目录创建新文件或文件夹时，如果不在白名单中，Guardian 会发出警告或阻止创建。
+*   **Folder Rules**:
+    *   你可以限制某个目录（如 `Inbox`）**不可以**包含子文件夹。
+    *   你可以限制目录最大深度（如 `Projects` 最多 2 层）。
+    *   你可以强制子目录命名规范（如 `Daily` 下只能是 `YYYY-MM`）。
 
-> 💡 **AI 辅助**：您可以询问 AI 助手 "帮我画一个季度销售额的柱状图"，它会为您生成对应的代码块。
-
-### 2. 状态栏统计
-在底部状态栏显示：
-*   字数统计 / 字符数
-*   阅读时间预估 (Reading Time)
-*   选区统计
-
-### 3. 悬浮大纲 (Floating Outline)
-*   在编辑器右侧（或左侧）显示当前文档的悬浮大纲，方便长文导航。
-*   支持点击跳转，不占用侧边栏空间。
+### 健康检查 (Health Check)
+使用命令 `Vault Guardian: Run Health Check`，可以扫描整个仓库，列出主要违规项（如根目录文件杂乱、目录嵌套过深）。
 
 ---
 
-## 🔌 实用小工具 (Widgets)
+## 4. ✍️ 智能写作 (Smart Writing)
 
-*   **行内计算器**：选中算式（如 `128 * 45`）并按下绑定的快捷键（默认未绑定，请在设置中配置），自动替换为结果。
-*   **搜索选区**：选中文字后，在右键菜单中选择 "Search in Selection"，快速在当前文档中搜索。
-*   **随机生成器**：使用命令生成 UUID、随机密码等。
+### Magic Input (魔法输入)
+在编辑时自动转换常用符号（输入后立即生效）：
+*   `->` 变为 `→`
+*   `!=` 变为 `≠`
+*   `(c)` 变为 `©`
+*   `@today` 变为 当前日期 (YYYY-MM-DD)
+*   `@now` 变为 当前时间 (HH:mm)
+
+### Smart Typing (智能排版)
+*   **自动空格**: 输入中文和英文之间时，自动插入空格（如 `Hello你好` -> `Hello 你好`）。
+*   **符号配对**: 输入 `【` 自动补全 `】`，输入 `《` 自动补全 `》`。
+*   **智能选择**: 选中文字后按符号键（如 `(`），会自动用括号包裹选中文本。
 
 ---
 
-## ❓ 常见问题 (FAQ)
+## 5. ⚡ 命令菜单 (Slash Commands)
 
-**Q: 为什么有些功能不起作用？**
-A: 请检查 **Settings** -> **Editor Pro**。为了保持轻量，很多高级功能（如图表、YAML）默认是关闭的。建议尝试切换到 **✨ 全功能模式 (Power Preset)**。
+在编辑器开头（或空格后）输入 `/` 即可呼出增强菜单：
 
-**Q: 如何自定义快捷键？**
-A: Editor Pro 的所有命令都注册在 Obsidian 的快捷键面板中。打开 **Settings** -> **Hotkeys**，搜索 "Editor Pro" 即可查看并绑定。
+*   `/callout` 或 `/warn` ...: 快速插入 Callout。
+*   `/table`: 插入 3x3 表格。
+*   `/mermaid`: 插入 Mermaid 流程图代码块。
+*   `/date`: 插入日期。
+*   `/daily`: 插入今日日记模板。
 
-**Q: 插件会修改我的文件吗？**
-A: 除了您主动触发的格式化（如 Smart Typography）和 YAML 自动更新（如果开启）外，插件**绝不会**在后台偷偷修改您的文件内容。
+---
+
+## 6. 📊 可视化图表 (Visualization)
+
+直接在代码块中使用以下语言，即可渲染图表：
+
+### Mermaid
+```mermaid
+graph TD;
+    A-->B;
+    A-->C;
+```
+
+### ECharts
+```echarts
+{
+  "xAxis": { "type": "category", "data": ["Mon", "Tue", "Wed"] },
+  "yAxis": { "type": "value" },
+  "series": [{ "data": [820, 932, 901], "type": "line" }]
+}
+```
+
+### Infographic (信息图)
+```infographic
+type: banner
+icon: 🚀
+title: Project Launch
+value: 85%
+color: #4caf50
+```
+
+---
+
+## 7. 🛠️ 效率增强 (Productivity)
+
+### Focus Mode (专注模式)
+*   **开启**: 命令 `Toggle Focus Mode`。
+*   **效果**: 高亮当前光标所在的段落，淡化其他段落，让你专注于当前思路。
+
+### Typewriter Mode (打字机模式)
+*   **开启**: 命令 `Toggle Typewriter Scroll`。
+*   **效果**: 保持光标始终垂直居中，你的视线无需上下移动。
+
+### 快捷键 (Keyshots)
+*   `Alt + Up/Down`: 上下移动当前行。
+*   `Cmd/Ctrl + D`: 复制当前行（或选区）。
+*   `Alt + Click`: 多光标选择。
+
+---
+
+## 8. 🤖 MCP 智能服务
+
+Editor Pro 内置了 MCP (Model Context Protocol) 客户端，允许你连接本地或远程的 AI Agent 服务。
+
+*   **配置**: 在设置 -> MCP Server 中配置 Endpoint。
+*   **使用**: 插件会自动通过 MCP 将你的笔记上下文提供给 AI，实现智能问答或操作。
+
+---
+
+*Editor Pro - 写作，从未如此顺滑。*
