@@ -4,6 +4,8 @@ import EditorProPlugin from "./main";
 import { McpSettings, MCP_DEFAULT_SETTINGS } from "./features/mcp/mcp-types";
 import { McpFeature } from "./features/mcp/mcp-feature";
 import { McpSettingsRenderer } from "./features/mcp/mcp-settings-tab";
+import { ConfirmationModal } from "./features/ui/confirmation-modal";
+import { InputModal } from "./features/ui/input-modal";
 
 export interface EditorProSettings {
     mcp: McpSettings;
@@ -843,6 +845,71 @@ export class EditorProSettingTab extends PluginSettingTab {
         const tabs = this.buildTabs();
         this.renderTabs(containerEl, tabs);
 
+        // Import/Export Zone
+        const ioContainer = containerEl.createDiv({
+            cls: "editor-pro-io",
+            attr: {
+                style: "margin: 20px 0; padding: 10px; border: 1px dashed var(--background-modifier-border); border-radius: 5px; display: flex; justify-content: space-between; align-items: center;",
+            },
+        });
+        ioContainer.createEl("span", {
+            text: "配置管理 (Backup/Restore)",
+            attr: { style: "font-weight: bold; color: var(--text-muted);" },
+        });
+        const ioBtnGroup = ioContainer.createDiv({
+            attr: { style: "display: flex; gap: 8px;" },
+        });
+
+        new Setting(ioBtnGroup)
+            .addButton((btn) =>
+                btn
+                    .setButtonText("导出配置")
+                    .setIcon("copy")
+                    .setTooltip("复制当前配置 JSON 到剪贴板")
+                    .onClick(async () => {
+                        const data = JSON.stringify(
+                            this.plugin.settings,
+                            null,
+                            2,
+                        );
+                        await navigator.clipboard.writeText(data);
+                        new Notice("配置 JSON 已复制到剪贴板");
+                    }),
+            )
+            .addButton((btn) =>
+                btn
+                    .setButtonText("导入配置")
+                    .setIcon("import")
+                    .setTooltip("从 JSON 恢复配置")
+                    .onClick(async () => {
+                        // Use InputModal instead of prompt
+                        new InputModal(this.app, {
+                            title: "导入配置 (Paste JSON)",
+                            placeholder: "在此粘贴 JSON 配置...",
+                            onSubmit: async (input) => {
+                                if (!input) return;
+                                try {
+                                    const newSettings = JSON.parse(
+                                        input,
+                                    ) as Partial<EditorProSettings>;
+                                    if (typeof newSettings !== "object")
+                                        throw new Error("Invalid format");
+                                    Object.assign(
+                                        this.plugin.settings,
+                                        newSettings,
+                                    );
+                                    await this.plugin.saveSettings();
+                                    this.display();
+                                    new Notice("配置导入成功！");
+                                } catch (error) {
+                                    console.error(error);
+                                    new Notice("导入失败：无效的 JSON 格式");
+                                }
+                            },
+                        }).open();
+                    }),
+            );
+
         // Search bar with accessibility support
         const searchContainer = containerEl.createDiv({
             cls: "editor-pro-settings-search",
@@ -1223,23 +1290,20 @@ export class EditorProSettingTab extends PluginSettingTab {
     }
 
     private async applyPreset(preset: SettingsPreset) {
-        // Confirm with user
-        // Note: Obsidian doesn't have a simple async confirm modal, so we'll just apply it
-        // and notify the user.
-
-        const settings = preset.settings;
-        this.plugin.settings = Object.assign(
-            {},
-            this.plugin.settings,
-            settings,
-        );
-
-        await this.plugin.saveSettings();
-
-        // Refresh UI
-        this.display();
-
-        // Notify
-        new Notice(`已应用预设：${preset.name}`);
+        new ConfirmationModal(this.app, {
+            title: `切换到${preset.name}`,
+            message: `您确定要应用"${preset.name}"预设吗？\n\n这将覆盖您当前的大部分设置（包括开启/关闭的功能）。此操作不可撤销。`,
+            onConfirm: async () => {
+                const settings = preset.settings;
+                this.plugin.settings = Object.assign(
+                    {},
+                    this.plugin.settings,
+                    settings
+                );
+                await this.plugin.saveSettings();
+                this.display(); // Refresh UI
+                new Notice(`已应用预设：${preset.name}`);
+            }
+        }).open();
     }
 }
