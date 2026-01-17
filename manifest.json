@@ -1,7 +1,7 @@
 {
 	"id": "editor-pro",
 	"name": "Editor Pro",
-	"version": "0.1.0",
+	"version": "0.2.0",
 	"minAppVersion": "1.5.0",
 	"description": "All-in-one editing enhancement - smart formatting, callout conversion, slash commands and more",
 	"author": "chyax",
