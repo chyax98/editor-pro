@@ -628,6 +628,27 @@ export default class EditorProPlugin extends Plugin {
 				() => this.settings.enableTypewriterScroll,
 			),
 		);
+		this.addCommand({
+			id: "toggle-typewriter-mode",
+			name: "切换打字机模式 (Toggle Typewriter Mode)",
+			callback: async () => {
+				this.settings.enableTypewriterScroll =
+					!this.settings.enableTypewriterScroll;
+				await this.saveSettings();
+				new Notice(
+					`打字机模式: ${this.settings.enableTypewriterScroll ? "开启" : "关闭"
+					}`,
+				);
+				// 触发更新
+				this.app.workspace.iterateAllLeaves((leaf) => {
+					if (leaf.view instanceof MarkdownView) {
+						// Micro-move cursor to trigger extension update
+						const cursor = leaf.view.editor.getCursor();
+						leaf.view.editor.setCursor(cursor);
+					}
+				});
+			},
+		});
 
 		// 8. 表格 Tab 导航 & 块跳出 (Shift+Enter) & 自动配对 & 智能退格
 		// Track IME composition state
@@ -741,6 +762,18 @@ export default class EditorProPlugin extends Plugin {
 				},
 			),
 		);
+
+		// 8.2 纯文本粘贴
+		this.addCommand({
+			id: "paste-as-plain-text",
+			name: "粘贴为纯文本 (Paste as Plain Text)",
+			editorCallback: async (editor: Editor) => {
+				const text = await navigator.clipboard.readText();
+				if (text) {
+					editor.replaceSelection(text);
+				}
+			},
+		});
 
 		// 9. 智能输入展开 (@today, @time) + 智能排版 (Smart Spacing)
 		this.registerEvent(
@@ -998,11 +1031,11 @@ export default class EditorProPlugin extends Plugin {
 		const base = isPluginDataV2(existing)
 			? existing
 			: {
-					version: 2,
-					settings: { ...this.settings },
-					cursorMemory: undefined,
-					fileTreeHighlights: undefined,
-				};
+				version: 2,
+				settings: { ...this.settings },
+				cursorMemory: undefined,
+				fileTreeHighlights: undefined,
+			};
 
 		const next = {
 			...base,
