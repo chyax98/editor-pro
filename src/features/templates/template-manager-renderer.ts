@@ -1,7 +1,6 @@
 
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
-import { App, Notice, Setting, ButtonComponent } from "obsidian";
+
+import { App, Notice, Setting, ButtonComponent, normalizePath } from "obsidian";
 import EditorProPlugin from "../../main";
 import { UserTemplate } from "../../config";
 import { ConfirmationModal } from "../ui/confirmation-modal";
@@ -16,7 +15,11 @@ export class TemplateManagerRenderer {
         private renderCallback: () => void
     ) { }
 
-    render(container: HTMLElement) {
+    private get presetsDir() {
+        return normalizePath(`${this.app.vault.configDir}/plugins/${this.plugin.manifest.id}/presets`);
+    }
+
+    async render(container: HTMLElement) {
         container.empty();
         container.addClass("template-manager-container");
 
@@ -24,7 +27,7 @@ export class TemplateManagerRenderer {
         const header = container.createDiv({ cls: "editor-pro-header" });
         header.createEl("h2", { text: "🎨 模板中心 (Template Center)" });
         header.createEl("p", {
-            text: "管理您的配置快照。您可以保存当前配置的不同状态，并在需要时一键切换。支持全量备份或仅模块配置。",
+            text: `管理您的配置模板。模板现作为独立文件存储在 ${this.presetsDir} 中，方便同步与分享。`,
             cls: "setting-item-description",
         });
 
@@ -53,9 +56,12 @@ export class TemplateManagerRenderer {
                     .onClick(() => { void this.openImportModal(); })
             );
 
+        // Load Templates from FS
+        const userTemplates = await this.listTemplates();
+
         // User Library
         container.createEl("h3", {
-            text: `我的模板库 (${this.plugin.settings.userTemplates.length})`,
+            text: `我的模板库 (${userTemplates.length})`,
         });
         const listContainer = container.createDiv({
             cls: "template-list-container",
@@ -64,16 +70,16 @@ export class TemplateManagerRenderer {
             },
         });
 
-        if (this.plugin.settings.userTemplates.length === 0) {
+        if (userTemplates.length === 0) {
             listContainer.createEl("p", {
-                text: "暂无保存的模板。",
+                text: "暂无保存的模板。保存的模板将以 JSON 文件形式出现在插件文件夹中。",
                 cls: "setting-item-description",
                 attr: {
                     style: "grid-column: 1/-1; text-align: center; padding: 20px;",
                 },
             });
         } else {
-            this.plugin.settings.userTemplates.forEach((tpl) => {
+            userTemplates.forEach((tpl) => {
                 this.renderTemplateCard(listContainer, tpl, false);
             });
         }
@@ -92,6 +98,31 @@ export class TemplateManagerRenderer {
         this.getGalleryTemplates().forEach((tpl) => {
             this.renderTemplateCard(galleryContainer, tpl, true);
         });
+    }
+
+    private async listTemplates(): Promise<UserTemplate[]> {
+        const adapter = this.app.vault.adapter;
+        if (!(await adapter.exists(this.presetsDir))) {
+            return [];
+        }
+
+        const result = await adapter.list(this.presetsDir);
+        const templates: UserTemplate[] = [];
+
+        for (const filePath of result.files) {
+            if (!filePath.endsWith(".json")) continue;
+            try {
+                const content = await adapter.read(filePath);
+                const tpl = JSON.parse(content) as UserTemplate;
+                // Ensure required fields exist
+                if (tpl.name && tpl.type && tpl.data) {
+                    templates.push(tpl);
+                }
+            } catch (e) {
+                console.warn(`[EditorPro] Failed to parse template: ${filePath}`, e);
+            }
+        }
+        return templates.sort((a, b) => b.created - a.created);
     }
 
     private renderTemplateCard(
@@ -167,14 +198,14 @@ export class TemplateManagerRenderer {
             .setIcon("copy")
             .setTooltip("导出/复制配置码")
             .onClick(async () => {
-                await navigator.clipboard.writeText(JSON.stringify(tpl));
-                new Notice("模板代码已复制到剪贴板");
+                await navigator.clipboard.writeText(JSON.stringify(tpl, null, 2));
+                new Notice("模板配置已复制到剪贴板");
             });
 
         if (!isReadOnly) {
             new ButtonComponent(btnGroup)
                 .setIcon("trash")
-                .setTooltip("删除")
+                .setTooltip("删除文件")
                 .setWarning()
                 .onClick(() => { void this.deleteTemplate(tpl); });
         }
@@ -182,7 +213,6 @@ export class TemplateManagerRenderer {
 
     private openSaveModal() {
         new SaveTemplateModal(this.app, async (meta) => {
-            // REFACTORED: Use pure utility function
             const data = extractSettings(this.plugin.settings, meta.type);
 
             const newTemplate: UserTemplate = {
@@ -194,35 +224,53 @@ export class TemplateManagerRenderer {
                 created: Date.now(),
             };
 
-            this.plugin.settings.userTemplates.push(newTemplate);
-            await this.plugin.saveSettings();
-            this.renderCallback();
-            new Notice("模板已保存");
+            // Save to FS
+            const adapter = this.app.vault.adapter;
+            if (!await adapter.exists(this.presetsDir)) {
+                await adapter.mkdir(this.presetsDir);
+            }
+
+            // Safe filename
+            const safeName = newTemplate.name.replace(/[^a-z0-9\u4e00-\u9fa5_-]/gi, "_") || newTemplate.id;
+            const filePath = normalizePath(`${this.presetsDir}/${safeName}.json`);
+
+            await adapter.write(filePath, JSON.stringify(newTemplate, null, 2));
+
+            this.renderCallback(); // Reload list
+            new Notice(`不再使用 data.json，模板已保存文件: ${safeName}.json`);
         }).open();
     }
 
     private openImportModal() {
         new InputModal(this.app, {
-            title: "导入模板",
+            title: "导入模板代码 (Import JSON)",
             placeholder: "在此粘贴模板 JSON 代码...",
             onSubmit: async (str) => {
                 try {
-                    const tpl = JSON.parse(str);
+                    const tpl = JSON.parse(str) as UserTemplate;
 
-                    // Basic validation
                     if (!tpl || typeof tpl !== 'object' || !tpl.data || !tpl.type || !tpl.name)
                         throw new Error("无效的模板格式");
 
-                    const settingsTpl = tpl as UserTemplate;
+                    // Save to FS
+                    const adapter = this.app.vault.adapter;
+                    if (!await adapter.exists(this.presetsDir)) {
+                        await adapter.mkdir(this.presetsDir);
+                    }
 
-                    // Regenerate ID to avoid collision
-                    settingsTpl.id = Date.now().toString();
-                    settingsTpl.created = Date.now();
+                    // Generate a new ID for the import but keep content
+                    tpl.id = Date.now().toString();
+                    const safeName = tpl.name.replace(/[^a-z0-9\u4e00-\u9fa5_-]/gi, "_") || tpl.id;
+                    const filePath = normalizePath(`${this.presetsDir}/${safeName}.json`);
 
-                    this.plugin.settings.userTemplates.push(settingsTpl);
-                    await this.plugin.saveSettings();
+                    // Check if exists to avoid overwrite? 
+                    // Simple logic: overwrite or append timestamp is handled by fs? 
+                    // Here we just write. If user imports same name, it updates.
+
+                    await adapter.write(filePath, JSON.stringify(tpl, null, 2));
+
                     this.renderCallback();
-                    new Notice("模板导入成功");
+                    new Notice("模板已保存到 presets 文件夹");
                 } catch (e) {
                     console.error(e);
                     new Notice("导入失败：格式错误");
@@ -236,9 +284,7 @@ export class TemplateManagerRenderer {
             title: `应用模板：${tpl.name}`,
             message: `确认应用此模板？\n类型：${tpl.type}\n这将覆盖当前的相关设置。`,
             onConfirm: async () => {
-                // REFACTORED: Use pure utility function for secure sanitization
                 const cleanData = sanitizeSettings(tpl.data);
-
                 Object.assign(this.plugin.settings, cleanData);
                 await this.plugin.saveSettings();
                 new Notice(`已应用模板：${tpl.name}`);
@@ -253,16 +299,33 @@ export class TemplateManagerRenderer {
 
     private async deleteTemplate(tpl: UserTemplate) {
         new ConfirmationModal(this.app, {
-            title: "删除模板",
-            message: `确定要删除模板 "${tpl.name}" 吗？`,
+            title: "删除模板文件",
+            message: `确定要删除模板文件 "${tpl.name}" 吗？\n此操作将永久删除对应的 JSON 文件。`,
             onConfirm: async () => {
-                this.plugin.settings.userTemplates =
-                    this.plugin.settings.userTemplates.filter(
-                        (t) => t.id !== tpl.id
-                    );
-                await this.plugin.saveSettings();
-                this.renderCallback();
-                new Notice("模板已删除");
+                const adapter = this.app.vault.adapter;
+                // We need to find the filename. Since we don't store filename in UserTemplate, 
+                // we iterate to find the matching file.
+                // Weakness of current design: listing creates UserTemplate without filename meta.
+                // Improvement: listTemplates should return object with path.
+
+                // Quick fix: loop list again to find match.
+                try {
+                    const files = await adapter.list(this.presetsDir);
+                    for (const f of files.files) {
+                        const content = await adapter.read(f);
+                        const json = JSON.parse(content) as UserTemplate;
+                        if (json.id === tpl.id) {
+                            await adapter.remove(f);
+                            this.renderCallback();
+                            new Notice("文件已删除");
+                            return;
+                        }
+                    }
+                    new Notice("未找到对应文件");
+                } catch (e) {
+                    console.error(e);
+                    new Notice("删除失败");
+                }
             },
         }).open();
     }

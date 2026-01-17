@@ -81,7 +81,6 @@ export interface EditorProSettings {
     vaultGuardianCheckOnStartup: boolean;
 
     // v0.3.0 Template Center
-    userTemplates: UserTemplate[];
 }
 
 export interface UserTemplate {
@@ -182,110 +181,7 @@ export const DEFAULT_SETTINGS: EditorProSettings = {
     vaultGuardianShowNotification: true,
     vaultGuardianCheckOnStartup: false,
 
-    userTemplates: [],
 };
-
-/**
- * 功能预设 - 帮助用户快速配置
- */
-export interface SettingsPreset {
-    id: string;
-    name: string;
-    icon: string;
-    description: string;
-    settings: Partial<EditorProSettings>;
-}
-
-export const SETTING_PRESETS: SettingsPreset[] = [
-    {
-        id: "minimal",
-        name: "极简模式",
-        icon: "🎯",
-        description: "只保留核心编辑增强，不修改任何文件",
-        settings: {
-            // 关闭所有可能修改文件的功能
-            enableYaml: false,
-            enableSaveCleaner: false,
-            enableAutoDownloadImages: false,
-            enableSmartImagePaste: false,
-            // 关闭 UI 增强
-            enableStatusBarStats: false,
-            enableFocusUi: false,
-            enableFloatingOutline: false,
-            enableInlineDecorator: false,
-            enableFileTreeHighlight: false,
-        },
-    },
-    {
-        id: "writer",
-        name: "写作模式",
-        icon: "✍️",
-        description: "适合长文写作，开启专注和沉浸式体验",
-        settings: {
-            enableTypewriterScroll: true,
-            enableFocusUi: true,
-            enableStatusBarStats: true,
-            enableCursorMemory: true,
-            enableMagicInput: true,
-            enableFloatingOutline: true,
-            // 写作模式开启 Homepage
-            enableHomepage: true,
-            homepageShowOnStartup: true,
-            homepageShowGreeting: true,
-            homepageShowDailyNote: true,
-            homepageShowFolderStats: true,
-            homepageShowPinnedNotes: true,
-            homepageShowRecentFiles: true,
-        },
-    },
-    {
-        id: "power",
-        name: "全功能模式",
-        icon: "⚡",
-        description: "开启所有功能，体验完整的 Editor Pro",
-        settings: {
-            enableSmartToggle: true,
-            enableKeyshots: true,
-            enableSmartTyping: true,
-            enableEditorNavigation: true,
-            enableOutliner: true,
-            enableTaskHotkeys: true,
-            enableHeadingHotkeys: true,
-            enableContextMenu: true,
-            enableSmartPasteUrl: true,
-            enableTextTransformer: true,
-            enableSmartInput: true,
-            enableSlashCommand: true,
-            enableSmartLinkTitle: true,
-            enableSmartImagePaste: true,
-            enableTypewriterScroll: true,
-            enableCursorMemory: true,
-            enableMagicInput: true,
-            enableOverdueHighlighter: true,
-            enableStatusBarStats: true,
-            enableFocusUi: true,
-            enableFloatingOutline: true,
-            enableZoom: true,
-            enableQuickHud: true,
-            enableFootnotes: true,
-            enableInlineCalc: true,
-            enableRandomGenerator: true,
-            enableSearchInSelection: true,
-            enableInlineDecorator: true,
-            enableFileTreeHighlight: true,
-            // Homepage
-            enableHomepage: true,
-            homepageShowOnStartup: true,
-            // Vault Guardian
-            enableVaultGuardian: true,
-            vaultGuardianShowNotification: true,
-            vaultGuardianCheckOnStartup: true,
-            // 注意：不开启 YAML 和 SaveCleaner，因为可能影响同步
-            // 注意：不开启图表渲染器，需要用户明确选择
-        },
-    },
-];
-
 
 export interface SettingItem {
     name: string;

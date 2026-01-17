@@ -1,3 +1,4 @@
+/* eslint-disable obsidianmd/no-static-styles-assignment */
 
 import { App, PluginSettingTab, Setting, Notice } from "obsidian";
 import EditorProPlugin from "./main";
@@ -6,10 +7,10 @@ import { McpFeature } from "./features/mcp/mcp-feature";
 import { TemplateManagerRenderer } from "./features/templates/template-manager-renderer";
 import { McpSettingsRenderer } from "./features/mcp/mcp-settings-tab";
 
-import { ConfirmationModal } from "./features/ui/confirmation-modal";
+
 import { InputModal } from "./features/ui/input-modal";
 
-import { EditorProSettings, SECTIONS, SettingItem, SettingSection, SettingsTabDefinition, SETTING_PRESETS, SettingsPreset } from "./config";
+import { EditorProSettings, SECTIONS, SettingItem, SettingSection, SettingsTabDefinition } from "./config";
 export * from "./config";
 export class EditorProSettingTab extends PluginSettingTab {
     plugin: EditorProPlugin;
@@ -33,16 +34,31 @@ export class EditorProSettingTab extends PluginSettingTab {
         const { containerEl } = this;
         containerEl.empty();
 
-        // Header with welcome message
+        // 1. Header
         const headerContainer = containerEl.createDiv({
             cls: "editor-pro-header",
         });
         headerContainer.createEl("h1", { text: "Editor Pro 插件设置" });
 
-        // Welcome message for new users (using safe DOM API)
-        const welcomeEl = headerContainer.createDiv({
+        // 2. Collapsible Welcome Message
+        const welcomeDetails = containerEl.createEl("details", {
+            cls: "editor-pro-welcome-details",
+        });
+        welcomeDetails.style.marginBottom = "16px";
+
+        const welcomeSummary = welcomeDetails.createEl("summary", {
+            text: "👋 欢迎使用 & 快速入门 (Welcome & Guide)",
+        });
+        welcomeSummary.style.cursor = "pointer";
+        welcomeSummary.style.fontWeight = "600";
+        welcomeSummary.style.color = "var(--text-muted)";
+
+        const welcomeEl = welcomeDetails.createDiv({
             cls: "editor-pro-welcome",
         });
+        welcomeEl.style.marginTop = "10px";
+        welcomeEl.style.padding = "0 8px";
+
         const welcomeTitle = welcomeEl.createEl("p");
         welcomeTitle.createEl("strong").setText("欢迎使用 Editor Pro！");
         welcomeEl
@@ -70,61 +86,74 @@ export class EditorProSettingTab extends PluginSettingTab {
         });
         helpLink.setText("💬 需要帮助？访问 GitHub 或查看文档。");
 
-        // 预设选择区域
-        const presetContainer = containerEl.createDiv({
-            cls: "editor-pro-presets",
+        // 3. Search Bar (Moved to Top)
+        const searchContainer = containerEl.createDiv({
+            cls: "editor-pro-settings-search",
         });
-        presetContainer.createEl("h3", { text: "⚡ 快速配置预设" });
-        presetContainer.createEl("p", {
-            text: "选择一个预设快速配置，或在下方手动调整各项设置。",
-            cls: "editor-pro-preset-desc",
-        });
+        searchContainer.createEl(
+            "input",
+            {
+                type: "text",
+                placeholder: "🔍 搜索设置... (输入关键词过滤)",
+                cls: "editor-pro-search-input",
+                attr: {
+                    "aria-label": "搜索设置",
+                    ROLE: "searchbox",
+                },
+            },
+            (el) => {
+                this.searchInput = el;
+                el.addEventListener("input", () => this.filterSettings());
+                // Add keyboard shortcut hint
+                el.setAttribute("title", "输入以过滤设置选项");
+            },
+        );
 
-        const presetButtons = presetContainer.createDiv({
-            cls: "editor-pro-preset-buttons",
-        });
-
-        for (const preset of SETTING_PRESETS) {
-            const btn = presetButtons.createEl("button", {
-                cls: "editor-pro-preset-btn",
-                attr: { "data-preset": preset.id },
-            });
-            btn.createEl("span", { text: preset.icon, cls: "preset-icon" });
-            btn.createEl("span", { text: preset.name, cls: "preset-name" });
-            btn.createEl("span", {
-                text: preset.description,
-                cls: "preset-desc",
-            });
-
-            btn.addEventListener("click", () => {
-                void this.applyPreset(preset);
-            });
-        }
-
+        // 4. Tabs
         const tabs = this.buildTabs();
         this.renderTabs(containerEl, tabs);
 
-        // Import/Export Zone
-        const ioContainer = containerEl.createDiv({
-            cls: "editor-pro-io",
-            attr: {
-                style: "margin: 20px 0; padding: 10px; border: 1px dashed var(--background-modifier-border); border-radius: 5px; display: flex; justify-content: space-between; align-items: center;",
-            },
+        // 5. Main Content
+        this.tabContent = containerEl.createDiv({
+            cls: "editor-pro-tab-content",
         });
-        ioContainer.createEl("span", {
-            text: "配置管理 (Backup/Restore)",
-            attr: { style: "font-weight: bold; color: var(--text-muted);" },
+        this.renderActiveTab();
+
+        // 6. Advanced Footer (Presets + Backup)
+        const footerDetails = containerEl.createEl("details", {
+            cls: "editor-pro-footer-details"
         });
-        const ioBtnGroup = ioContainer.createDiv({
-            attr: { style: "display: flex; gap: 8px;" },
+        footerDetails.style.marginTop = "48px";
+        footerDetails.style.borderTop = "1px solid var(--background-modifier-border)";
+        footerDetails.style.paddingTop = "24px";
+
+        const footerSummary = footerDetails.createEl("summary", {
+            text: "🛠️ 高级配置与管理 (Advanced & Reset)",
+        });
+        footerSummary.style.cursor = "pointer";
+        footerSummary.style.fontWeight = "600";
+        footerSummary.style.color = "var(--text-muted)";
+
+        const footerContent = footerDetails.createDiv();
+        footerContent.style.padding = "20px";
+        footerContent.style.background = "var(--background-secondary)";
+        footerContent.style.borderRadius = "8px";
+        footerContent.style.marginTop = "12px";
+
+        // Backup/Restore Section
+        footerContent.createEl("h3", { text: "📦 备份与恢复 (Backup/Restore)" });
+        footerContent.createEl("p", {
+            text: "您可以导出当前配置，或通过粘贴 JSON 来恢复备份/应用预设。",
+            cls: "setting-item-description"
         });
 
-        new Setting(ioBtnGroup)
+        const ioGroup = footerContent.createDiv({ attr: { style: "display: flex; gap: 12px; flex-wrap: wrap;" } });
+
+        new Setting(ioGroup)
             .addButton((btn) =>
                 btn
-                    .setButtonText("导出配置")
+                    .setButtonText("导出配置 (Copy JSON)")
                     .setIcon("copy")
-                    .setTooltip("复制当前配置 JSON 到剪贴板")
                     .onClick(async () => {
                         const data = JSON.stringify(
                             this.plugin.settings,
@@ -137,13 +166,11 @@ export class EditorProSettingTab extends PluginSettingTab {
             )
             .addButton((btn) =>
                 btn
-                    .setButtonText("导入配置")
+                    .setButtonText("导入配置 (Paste JSON)")
                     .setIcon("import")
-                    .setTooltip("从 JSON 恢复配置")
                     .onClick(async () => {
-                        // Use InputModal instead of prompt
                         new InputModal(this.app, {
-                            title: "导入配置 (Paste JSON)",
+                            title: "导入配置",
                             placeholder: "在此粘贴 JSON 配置...",
                             onSubmit: async (input) => {
                                 if (!input) return;
@@ -168,35 +195,6 @@ export class EditorProSettingTab extends PluginSettingTab {
                         }).open();
                     }),
             );
-
-        // Search bar with accessibility support
-        const searchContainer = containerEl.createDiv({
-            cls: "editor-pro-settings-search",
-        });
-        searchContainer.createEl(
-            "input",
-            {
-                type: "text",
-                placeholder: "🔍 搜索设置... (输入关键词过滤)",
-                cls: "editor-pro-search-input",
-                attr: {
-                    "aria-label": "搜索设置",
-                    "aria-describedby": "editor-pro-search-help",
-                    role: "searchbox",
-                },
-            },
-            (el) => {
-                this.searchInput = el;
-                el.addEventListener("input", () => this.filterSettings());
-                // Add keyboard shortcut hint
-                el.setAttribute("title", "输入以过滤设置选项");
-            },
-        );
-
-        this.tabContent = containerEl.createDiv({
-            cls: "editor-pro-tab-content",
-        });
-        this.renderActiveTab();
     }
 
     private renderAllSettings(container: HTMLElement): void {
@@ -342,7 +340,7 @@ export class EditorProSettingTab extends PluginSettingTab {
                 title: "模板中心",
                 icon: "🎨",
                 render: (container: HTMLElement) => {
-                    new TemplateManagerRenderer(this.app, this.plugin, () => {
+                    void new TemplateManagerRenderer(this.app, this.plugin, () => {
                         // Callback to refresh
                         this.display();
                     }).render(container);
@@ -471,7 +469,7 @@ export class EditorProSettingTab extends PluginSettingTab {
                                 setting.key === "enableYaml" &&
                                 this.plugin.yamlManager
                             ) {
-                                this.plugin.yamlManager.updateSettings({
+                                void this.plugin.yamlManager.updateSettings({
                                     enableYaml: value,
                                     createdKey:
                                         this.plugin.settings.yamlCreatedKey,
@@ -559,21 +557,5 @@ export class EditorProSettingTab extends PluginSettingTab {
         }
     }
 
-    private async applyPreset(preset: SettingsPreset) {
-        new ConfirmationModal(this.app, {
-            title: `切换到${preset.name}`,
-            message: `您确定要应用"${preset.name}"预设吗？\n\n这将覆盖您当前的大部分设置（包括开启/关闭的功能）。此操作不可撤销。`,
-            onConfirm: async () => {
-                const settings = preset.settings;
-                this.plugin.settings = Object.assign(
-                    {},
-                    this.plugin.settings,
-                    settings
-                );
-                await this.plugin.saveSettings();
-                this.display(); // Refresh UI
-                new Notice(`已应用预设：${preset.name}`);
-            }
-        }).open();
-    }
+
 }

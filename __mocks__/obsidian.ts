@@ -194,8 +194,23 @@ export class TFolder {
     }
 }
 
+export class DataAdapter {
+    async exists(normalizedPath: string, sensitive?: boolean): Promise<boolean> { return Promise.resolve(false); }
+    async list(normalizedPath: string): Promise<any> { return Promise.resolve({ files: [], folders: [] }); }
+    async read(normalizedPath: string): Promise<string> { return Promise.resolve(""); }
+    async write(normalizedPath: string, data: string, options?: any): Promise<void> { return Promise.resolve(); }
+    async remove(normalizedPath: string): Promise<void> { return Promise.resolve(); }
+    async mkdir(normalizedPath: string): Promise<void> { return Promise.resolve(); }
+}
+
 export class Vault {
+    adapter: DataAdapter;
+    configDir = ".obsidian";
     listeners: Record<string, Function[]> = {};
+
+    constructor() {
+        this.adapter = new DataAdapter();
+    }
 
     on(event: string, callback: Function) {
         if (!this.listeners[event]) this.listeners[event] = [];
@@ -244,8 +259,41 @@ export function debounce(func: Function, wait: number, immediate?: boolean) {
 }
 
 export class PluginSettingTab { }
-export class Setting { }
+export class Setting {
+    constructor(container: HTMLElement) { }
+    setName(name: string) { return this; }
+    setDesc(desc: string | DocumentFragment) { return this; }
+    addButton(cb: (btn: ButtonComponent) => any) {
+        cb(new ButtonComponent(null as any));
+        return this;
+    }
+    addToggle(cb: (toggle: any) => any) {
+        cb({ setValue: () => ({ onChange: () => { } }) });
+        return this;
+    }
+    addText(cb: (text: any) => any) {
+        cb({ setPlaceholder: () => ({ setValue: () => ({ onChange: () => { } }) }) });
+        return this;
+    }
+}
+
+export class ButtonComponent {
+    constructor(container: HTMLElement) { }
+    setButtonText(text: string) { return this; }
+    setIcon(icon: string) { return this; }
+    setCta() { return this; }
+    setWarning() { return this; }
+    setTooltip(tooltip: string) { return this; }
+    onClick(cb: () => any) { return this; }
+}
 export class MarkdownView { }
+
+export class Modal {
+    constructor(app: App) { }
+    open() { }
+    close() { }
+    setContent(content: string) { }
+}
 
 export class SuggestModal<T> {
     constructor(app: App) { }
@@ -260,4 +308,8 @@ export class EditorSuggest<T> {
 export class Menu {
     addItem(cb: (item: any) => any) { cb({ setTitle: () => { }, setIcon: () => { }, onClick: () => { } }); }
     showAtMouseEvent() { }
+}
+
+export function normalizePath(path: string): string {
+    return path.replace(/\\/g, '/').replace(/\/+/g, '/');
 }
