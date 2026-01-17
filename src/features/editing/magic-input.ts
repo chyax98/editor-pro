@@ -89,11 +89,30 @@ export function checkMagicSymbols(line: string, cursorCh: number): Replacement |
 	if (isInInlineCode(line, cursorCh)) return null;
 
 	const before = line.slice(0, cursorCh);
+
+	// 符号替换表
+	// 注意：较长的模式要放在前面，避免短模式先匹配
 	const table: Array<{ needle: string; replacement: string }> = [
+		// 箭头类（长的在前）
+		{ needle: "<==>", replacement: "⇔" },
+		{ needle: "==>", replacement: "⇒" },
+		{ needle: "<==", replacement: "⇐" },
+		{ needle: "<->", replacement: "↔" },
 		{ needle: "-->", replacement: "→" },
 		{ needle: "<--", replacement: "←" },
-		{ needle: "<->", replacement: "↔" },
+		// 比较运算符（注意，不要与 Markdown 的 > 冲突，需要完整匹配）
+		{ needle: ">=", replacement: "≥" },
+		{ needle: "<=", replacement: "≤" },
+		{ needle: "!=", replacement: "≠" },
+		// 省略号
 		{ needle: "...", replacement: "…" },
+		// 版权/商标
+		{ needle: "(c)", replacement: "©" },
+		{ needle: "(C)", replacement: "©" },
+		{ needle: "(r)", replacement: "®" },
+		{ needle: "(R)", replacement: "®" },
+		{ needle: "(tm)", replacement: "™" },
+		{ needle: "(TM)", replacement: "™" },
 	];
 
 	for (const { needle, replacement } of table) {

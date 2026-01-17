@@ -26,6 +26,63 @@ describe('Magic Input - Symbol Replacement', () => {
         expect(result?.replacement).toBe('…');
     });
 
+    // 新增：比较运算符
+    test('replaces >= with ≥', () => {
+        const result = checkMagicSymbols('x >= 5', 4);
+        expect(result).not.toBeNull();
+        expect(result?.replacement).toBe('≥');
+    });
+
+    test('replaces <= with ≤', () => {
+        const result = checkMagicSymbols('x <= 5', 4);
+        expect(result).not.toBeNull();
+        expect(result?.replacement).toBe('≤');
+    });
+
+    test('replaces != with ≠', () => {
+        const result = checkMagicSymbols('x != y', 4);
+        expect(result).not.toBeNull();
+        expect(result?.replacement).toBe('≠');
+    });
+
+    // 新增：双线箭头
+    test('replaces ==> with ⇒', () => {
+        const result = checkMagicSymbols('A ==> B', 5);
+        expect(result).not.toBeNull();
+        expect(result?.replacement).toBe('⇒');
+    });
+
+    test('replaces <== with ⇐', () => {
+        const result = checkMagicSymbols('A <== B', 5);
+        expect(result).not.toBeNull();
+        expect(result?.replacement).toBe('⇐');
+    });
+
+    test('replaces <==> with ⇔', () => {
+        const result = checkMagicSymbols('A <==> B', 6);
+        expect(result).not.toBeNull();
+        expect(result?.replacement).toBe('⇔');
+    });
+
+    // 新增：版权/商标符号
+    test('replaces (c) with ©', () => {
+        const result = checkMagicSymbols('Copyright (c)', 13);
+        expect(result).not.toBeNull();
+        expect(result?.replacement).toBe('©');
+    });
+
+    test('replaces (r) with ®', () => {
+        const result = checkMagicSymbols('Brand(r)', 8);
+        expect(result).not.toBeNull();
+        expect(result?.replacement).toBe('®');
+    });
+
+    test('replaces (tm) with ™', () => {
+        const result = checkMagicSymbols('Product(tm)', 11);
+        expect(result).not.toBeNull();
+        expect(result?.replacement).toBe('™');
+    });
+
     test('does not replace inside inline code', () => {
         const result = checkMagicSymbols('`code -->`', 9);
         expect(result).toBeNull();

@@ -43,6 +43,9 @@ const COMMANDS: SlashCommand[] = [
     { id: 'h1', name: '一级标题 (H1)', aliases: ['h1', 'yjbt'] },
     { id: 'h2', name: '二级标题 (H2)', aliases: ['h2', 'ejbt'] },
     { id: 'h3', name: '三级标题 (H3)', aliases: ['h3', 'sjbt'] },
+    { id: 'h4', name: '四级标题 (H4)', aliases: ['h4', 'sijbt'] },
+    { id: 'h5', name: '五级标题 (H5)', aliases: ['h5', 'wjbt'] },
+    { id: 'h6', name: '六级标题 (H6)', aliases: ['h6', 'ljbt'] },
     { id: 'quote', name: '引用 (Quote)', aliases: ['quote', 'yy'] },
 ];
 
@@ -121,15 +124,6 @@ export class SlashCommandMenu extends EditorSuggest<SlashCommand> {
             case 'weekly':
                 editor.replaceSelection(generateWeekly());
                 break;
-            default:
-                {
-                    const tpl = BUILTIN_TEMPLATES.find((t) => t.id === id);
-                    if (tpl) {
-                        new TemplateEngine(this.app).insert(editor, tpl.template);
-                    }
-                    break;
-                }
-                break;
             case 'html':
                 editor.replaceSelection(generateHTML());
                 editor.setCursor({ line: cursor.line + 1, ch: 0 });
@@ -138,22 +132,23 @@ export class SlashCommandMenu extends EditorSuggest<SlashCommand> {
                 {
                     const line = editor.getLine(cursor.line);
                     const newLine = setDueDate(line, generateDate('YYYY-MM-DD'));
-                    editor.setLine(cursor.line, newLine);
+                    if (newLine !== line) {
+                        editor.setLine(cursor.line, newLine);
+                    } else {
+                        // 如果不是任务行，在当前位置插入 @due
+                        editor.replaceSelection(`@due(${generateDate('YYYY-MM-DD')})`);
+                    }
                 }
                 break;
             case 'math':
                 editor.replaceSelection(generateMath());
                 editor.setCursor({ line: cursor.line + 1, ch: 0 });
                 break;
-            case 'quote': {
+            case 'quote':
                 toggleBlockquote(editor);
                 break;
-            }
             case 'table':
                 editor.replaceSelection(generateTable(3, 3));
-                // Move cursor to first cell: | | ...
-                // Table starts at current cursor line. Pipe is at 0. Space at 1.
-                // Target ch: 2
                 editor.setCursor({ line: cursor.line, ch: 2 });
                 break;
             case 'date':
@@ -186,6 +181,24 @@ export class SlashCommandMenu extends EditorSuggest<SlashCommand> {
                 break;
             case 'h3':
                 setHeading(editor, 3);
+                break;
+            case 'h4':
+                setHeading(editor, 4);
+                break;
+            case 'h5':
+                setHeading(editor, 5);
+                break;
+            case 'h6':
+                setHeading(editor, 6);
+                break;
+            default:
+                {
+                    // 处理自定义模板
+                    const tpl = BUILTIN_TEMPLATES.find((t) => t.id === id);
+                    if (tpl) {
+                        new TemplateEngine(this.app).insert(editor, tpl.template);
+                    }
+                }
                 break;
         }
     }
