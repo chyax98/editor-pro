@@ -1,48 +1,86 @@
 import { Editor, MarkdownView, Menu, Notice, Plugin, TFolder, WorkspaceLeaf } from 'obsidian';
-import { smartToggle } from './features/formatting/smart-toggle';
-import { toggleTask } from './features/formatting/task-toggle';
-import { wrapWithCallout, wrapWithCodeBlock } from './features/callout/wrap-callout';
-import { CalloutTypePicker } from './features/callout/callout-picker';
-import { SlashCommandMenu } from './features/slash-command/menu';
+
+// 编辑器核心功能
+import {
+    smartToggle,
+    toggleTask,
+    moveLineUp,
+    moveLineDown,
+    duplicateLine,
+    deleteLine,
+    selectLine,
+    handleAutoPair,
+    handleSmartBackspace,
+    handleSmartSpacing,
+    handleOutlinerIndent,
+    toggleFold,
+    createTypewriterScrollExtension,
+    setHeading,
+    handleBlockNavigation,
+    smartPasteUrlIntoSelection,
+    handleSmartImagePaste,
+    extractTitleFromClipboardHtml,
+    fetchPageTitle,
+    isHttpUrl,
+    RemoteImageTaskScheduler,
+} from './features/editor';
+
+// 输入增强
+import {
+    checkSmartInput,
+    checkMagicDateInput,
+    checkMagicSymbols,
+    applyReplacementAtCursor,
+    SlashCommandMenu,
+} from './features/input';
+
+// Callout
+import {
+    CalloutTypePicker,
+    wrapWithCallout,
+    wrapWithCodeBlock,
+    changeCalloutType,
+    toggleCalloutPrefix,
+} from './features/callout';
+
+// 模板
+import { TemplateModal } from './features/templates';
+
+// 导航
+import { CursorMemoryManager, CursorMemoryState, RecentFilesHud } from './features/navigation';
+
+// UI 增强
+import {
+    FocusUiManager,
+    StatusBarStats,
+    FloatingOutline,
+    FileTreeHighlightManager,
+    HighlightColor,
+    zoomCurrentHeading,
+    zoomCurrentListBlock,
+    SearchInSelectionModal,
+} from './features/ui';
+
+// 文件操作
+import { YamlManager, TagRenameModal, SaveCleaner, InlineDecorator } from './features/file-ops';
+
+// 小工具
+import {
+    insertFootnote,
+    inlineCalcReplaceSelection,
+    insertUuid,
+    insertRandomIntPrompt,
+    insertDiceRollPrompt,
+    transformEditorText,
+} from './features/tools';
+
+// 可视化
+import { registerChartRenderers, createOverdueHighlighter, registerInfographicRenderer } from './features/visuals';
+
+// 其他
 import { insertRow } from './utils/markdown-generators';
-import { YamlManager } from './features/yaml/auto-update';
-import { handleBlockNavigation } from './features/formatting/block-navigation';
-import { checkSmartInput } from './features/smart-input/input-handler';
-import { changeCalloutType, toggleCalloutPrefix } from './features/callout/callout-integrator';
-import { setHeading } from './features/formatting/heading-utils';
-import { TemplateModal } from './features/templates/template-modal';
-import { TagRenameModal } from './features/tags/tag-modal';
 import { CalendarView, CALENDAR_VIEW_TYPE } from './views/calendar-view';
-
-import { createOverdueHighlighter } from './features/visuals/overdue-highlighter';
-
-import { registerInfographicRenderer } from './features/infographic/renderer';
-import { registerChartRenderers } from './features/charts/chart-renderer';
 import { DEFAULT_SETTINGS, EditorProSettings, EditorProSettingTab } from "./settings";
-import { deleteLine, duplicateLine, moveLineDown, moveLineUp, selectLine } from './features/editing/keyshots';
-import { handleAutoPair, handleSmartBackspace, handleSmartSpacing } from './features/editing/smart-typography';
-import { smartPasteUrlIntoSelection } from './features/editing/smart-paste-url';
-import { createTypewriterScrollExtension } from './features/editing/typewriter-mode';
-import { handleOutlinerIndent, toggleFold } from './features/editing/outliner';
-
-import { handleSmartImagePaste } from './features/editing/smart-image-paste';
-import { extractTitleFromClipboardHtml, fetchPageTitle, isHttpUrl } from './features/editing/smart-link-title';
-import { CursorMemoryManager, CursorMemoryState } from './features/navigation/cursor-memory';
-import { RecentFilesHud } from './features/navigation/recent-files-hud';
-import { SaveCleaner } from './features/editing/save-cleaner';
-import { transformEditorText } from './features/editing/text-transformer';
-import { SearchInSelectionModal } from './ui/search-selection-modal';
-import { applyReplacementAtCursor, checkMagicDateInput, checkMagicSymbols } from './features/editing/magic-input';
-import { FocusUiManager } from './features/ui/focus-ui';
-import { StatusBarStats } from './features/ui/status-bar-stats';
-import { FloatingOutline } from './features/ui/floating-outline';
-import { zoomCurrentHeading, zoomCurrentListBlock } from './ui/zoom-modal';
-import { insertFootnote } from './features/editing/footnotes';
-import { inlineCalcReplaceSelection } from './features/editing/inline-calc';
-import { insertDiceRollPrompt, insertRandomIntPrompt, insertUuid } from './features/editing/random-generator';
-import { InlineDecorator } from './features/ui/inline-decorator';
-import { FileTreeHighlightManager, HighlightColor } from './features/ui/file-tree-highlight';
-import { RemoteImageTaskScheduler } from './features/editing/remote-image-scheduler';
 import { McpFeature } from './features/mcp/mcp-feature';
 import { HomepageManager } from './features/homepage';
 import { VaultGuardianManager } from './features/vault-guardian';

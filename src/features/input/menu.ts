@@ -3,12 +3,12 @@ import { SlashCommand, shouldTriggerSlashCommand, matchCommand } from "./utils";
 import { wrapWithCallout, wrapWithCodeBlock } from "../callout/wrap-callout";
 import { CalloutTypePicker } from "../callout/callout-picker";
 import { toggleBlockquote } from "../callout/callout-integrator";
-import { setHeading } from "../formatting/heading-utils";
+import { setHeading } from "../editor";
 
 import { generateFencedCodeBlock, generateTable, generateDate, generateMath, generateDaily, generateWeekly, generateHTML } from "../../utils/markdown-generators";
 import { BUILTIN_TEMPLATES } from "../templates/snippets";
 import { TemplateEngine } from "../templates/template-engine";
-import { NLDateParser } from "../nldates/parser";
+import { NLDateParser } from "../visuals/nldates-parser";
 
 // Inline helper for due date (previously from kanban module)
 function setDueDate(line: string, date: string): string {

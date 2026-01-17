@@ -11,7 +11,50 @@
 
 ---
 
-## 🚀 一、新功能开发流程
+## 📁 一、目录结构规范
+
+### Feature 分类原则
+
+| 分类 | 目录 | 职责 | 示例 |
+|------|------|------|------|
+| **编辑器核心** | `editor/` | 直接操作编辑器内容 | keyshots, smart-toggle, outliner |
+| **输入增强** | `input/` | 拦截/增强用户输入 | smart-input, slash-command |
+| **Callout** | `callout/` | Callout 相关 | picker, wrapper |
+| **图表** | `charts/` | 代码块图表渲染 | ECharts, Graphviz, Vega |
+| **模板** | `templates/` | 模板和代码片段 | template-modal, snippets |
+| **导航** | `navigation/` | 光标/文件导航 | cursor-memory, recent-files |
+| **UI** | `ui/` | 界面增强组件 | focus-mode, outline, status-bar |
+| **文件操作** | `file-ops/` | 文件元数据管理 | YAML, tags, save-cleaner |
+| **小工具** | `tools/` | 独立小功能 | footnotes, calc, random |
+| **可视化** | `visuals/` | 阅读模式渲染 | overdue, infographic |
+| **首页** | `homepage/` | 首页仪表板 | homepage-view |
+| **守护** | `vault-guardian/` | 目录结构守护 | rules, health-check |
+| **MCP** | `mcp/` | AI Agent 服务 | mcp-server |
+
+### Feature 目录结构
+
+每个 Feature 目录**必须**包含：
+
+```
+feature-name/
+├── index.ts           # 必须：模块统一导出
+├── types.ts           # 可选：私有类型定义
+├── [feature]-manager.ts # 可选：功能管理器
+├── [component].ts     # 功能实现文件
+└── [component].tsx    # React 组件（如有）
+```
+
+### 类型定义规范
+
+| 类型范围 | 位置 | 说明 |
+|----------|------|------|
+| **全局类型** | `src/types/` | 多模块共用的类型 |
+| **私有类型** | `feature/types.ts` | 仅该功能使用的类型 |
+| **Settings** | `settings.ts` | 插件配置接口 |
+
+---
+
+## 🚀 二、新功能开发流程
 
 ### 1. 设计与评估
 *   **侵入性评估**：
@@ -21,6 +64,9 @@
 *   **性能评估**：
     *   避免在主线程进行繁重计算（如全库扫描）。
     *   耗时操作必须异步执行，并提供 UI 反馈（如 Notice）。
+*   **目录评估**：
+    *   确定功能属于哪个分类（参考上表）。
+    *   如果功能跨越多个分类，放入**主要职责**对应的目录。
 
 ### 2. 配置项设计 (Settings)
 *   **开关控制**：所有新功能必须可以通过设置关闭。
@@ -32,8 +78,8 @@
 *   **文案规范**：
     *   `name`: 简明扼要。
     *   `desc`: 一句话说明作用。
-    *   `longDesc`: 详细说明副作用、依赖关系或使用技巧（支持 `\n` 换行）。
-    *   **一致性检查**：代码行为必须与设置描述**严格一致**（例如：描述承诺了替换 `>=` 为 `≥`，代码必须实现）。
+    *   `longDesc`: 详细说明副作用、依赖关系或使用技巧（支持 `\\n` 换行）。
+    *   **一致性检查**：代码行为必须与设置描述**严格一致**。
 
 ### 3. 代码实现规范 (Implementation)
 *   **输入法兼容性 (IME)**：
@@ -48,6 +94,9 @@
 *   **避免硬编码 (Hardcoding)**：
     *   ❌ 硬编码下拉列表（如 Callout 类型）。
     *   ✅ 尽量完整支持官方标准，或提供扩展能力。
+*   **模块导出**：
+    *   每个 Feature 目录必须有 `index.ts` 统一导出。
+    *   外部模块应通过 `index.ts` 导入，而非直接引用内部文件。
 
 ### 4. 测试规范 (Testing)
 *   **单元测试**：
@@ -59,60 +108,60 @@
 
 ---
 
-## 🔗 二、文件联动指南 (File Linkage Guide)
+## 🔗 三、文件联动指南 (File Linkage Guide)
 
 当你进行以下操作时，**必须**检查并修改对应的相关文件，切勿遗漏。
 
-### 场景 A：开发一个新的编辑器增强功能
-如果你的功能位于 `src/features/xxx/feature.ts`：
+### 场景 A：开发一个新功能
 
-1.  **`src/settings.ts`**
+1.  **确定目录**：根据分类原则选择正确的 Feature 目录。
+2.  **创建文件**：
+    *   `src/features/[category]/[feature].ts` - 功能实现
+    *   更新 `src/features/[category]/index.ts` - 添加导出
+3.  **`src/settings.ts`**：
     *   `EditorProSettings` 接口：添加 `enableFeature` 开关。
     *   `DEFAULT_SETTINGS`：设置合理的默认值。
     *   `SETTING_PRESETS`：**关键！** 将此开关加入 `minimal` / `writer` / `power` 等合适的预设中。
-    *   `display()`：在设置面板添加开关 UI。
-2.  **`src/main.ts`**
+    *   `SECTIONS`：在设置面板添加开关 UI。
+4.  **`src/main.ts`**：
     *   `onload()`：添加功能初始化的入口点。
     *   `onunload()`：**关键！** 确保调用功能的 cleanup 方法。
-    *   事件监听：如果功能需要监听 `editor-change`，在此处统一管理。
 
 ### 场景 B：添加新的 Slash Command (斜杠命令)
-1.  **`src/features/slash-command/menu.ts`**
+1.  **`src/features/input/menu.ts`**：
     *   `COMMANDS` 数组：添加命令定义 (id, name, aliases)。
     *   `executeCommand()`：在 switch case 中添加执行逻辑。
-2.  **`src/features/slash-command/utils.ts`** (可选)
-    *   如果命令触发条件特殊，可能需要修改匹配逻辑。
 
 ### 场景 C：添加新的快捷键命令
-1.  **`src/main.ts`**
+1.  **`src/main.ts`**：
     *   `addCommand()`：注册 Obsidian 官方命令面板命令。
-2.  **`src/settings.ts`**
+2.  **`src/settings.ts`**：
     *   如果该快捷键功能有对应的 toggle 开关，确保开关状态与命令可用性联动。
 
 ### 场景 D：添加新的模板/片段
-1.  **`src/features/templates/snippets.ts`**
+1.  **`src/features/templates/snippets.ts`**：
     *   `BUILTIN_TEMPLATES`：添加新的模板定义。
-2.  **`src/features/slash-command/menu.ts`**
-    *   通常模板会自动出现在斜杠菜单中，但如果需要特殊处理（如动态日期），需要修改 `executeCommand`。
 
 ---
 
-## 🐛 三、Bug 修复流程
+## 🐛 四、Bug 修复流程
 1. **复现与定位**：不要猜测，先在测试用例中复现问题。
 2. **分析根因**：
     *   是逻辑错误？
-    *   还是并没有真正理解用户的需求？（例如：用户抱怨 `/html` 无效，是因为 switch case 顺序错了）。
+    *   还是并没有真正理解用户的需求？
 3. **修复与回归**：
     *   修复代码。
     *   运行所有测试 (`npm test`) 确保没有引入新 Bug。
 
 ---
 
-## ✅ 四、发布前检查清单 (Checklist)
+## ✅ 五、发布前检查清单 (Checklist)
 
 在提交代码前，请逐一核对：
 
-- [ ] **文件联动**：是否按照文件联动指南修改了所有相关文件？（特别是 Presets！）
+- [ ] **目录规范**：新功能是否放入了正确的 Feature 分类？
+- [ ] **模块导出**：是否更新了 `index.ts` 导出？
+- [ ] **文件联动**：是否按照文件联动指南修改了所有相关文件？
 - [ ] **用户体验**：是否解决了痛点？默认值是否合理？
 - [ ] **设置同步**：新功能是否已加入 `SETTING_PRESETS`？
 - [ ] **IME 兼容**：是否在中文输入法下测试过？

@@ -1,5 +1,5 @@
 import { App, Editor, TFile, moment } from "obsidian";
-import { NLDateParser } from "../nldates/parser";
+import { NLDateParser } from "../visuals/nldates-parser";
 
 export interface TemplateContext {
 	app: App;

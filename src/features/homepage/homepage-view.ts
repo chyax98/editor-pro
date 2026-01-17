@@ -47,8 +47,8 @@ export class HomepageView extends ItemView {
         const element = React.createElement(HomepageComponent, {
             app: this.app,
             settings: this.plugin.settings,
-            onOpenFile: this.handleOpenFile.bind(this),
-            onCreateDailyNote: this.handleCreateDailyNote.bind(this),
+            onOpenFile: (path: string) => { void this.handleOpenFile(path); },
+            onCreateDailyNote: () => { void this.handleCreateDailyNote(); },
             onOpenFolder: this.handleOpenFolder.bind(this),
             onRefresh: this.handleRefresh.bind(this),
         });
@@ -85,9 +85,8 @@ export class HomepageView extends ItemView {
         if (folder instanceof TFolder) {
             // Reveal folder in file explorer
             const fileExplorer = this.app.workspace.getLeavesOfType('file-explorer')[0];
-            if (fileExplorer) {
-                // @ts-expect-error - internal API
-                fileExplorer.view.revealInFolder?.(folder);
+            if (fileExplorer && fileExplorer.view) {
+                (fileExplorer.view as { revealInFolder?: (f: TFolder) => void }).revealInFolder?.(folder);
             }
         }
     }

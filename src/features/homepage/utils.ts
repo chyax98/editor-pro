@@ -70,7 +70,7 @@ export function getTodayDisplay(): { date: string; weekday: string; full: string
     const weekdays = ['周日', '周一', '周二', '周三', '周四', '周五', '周六'];
     return {
         date: now.format('M月D日'),
-        weekday: weekdays[now.day()],
+        weekday: weekdays[now.day()] ?? '周日',
         full: now.format('YYYY年M月D日'),
     };
 }

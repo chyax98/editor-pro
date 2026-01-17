@@ -3,7 +3,7 @@
  * 管理首页视图的注册、命令、右键菜单
  */
 
-import { Plugin, WorkspaceLeaf, Notice, TFile, Menu } from 'obsidian';
+import { WorkspaceLeaf, Notice, TFile, Menu } from 'obsidian';
 import { HomepageView, HOMEPAGE_VIEW_TYPE } from './homepage-view';
 import type EditorProPluginType from '../../main';
 
@@ -106,8 +106,8 @@ export class HomepageManager {
         const { workspace } = this.plugin.app;
         const leaves = workspace.getLeavesOfType(HOMEPAGE_VIEW_TYPE);
 
-        if (leaves.length > 0) {
-            workspace.revealLeaf(leaves[0]);
+        if (leaves.length > 0 && leaves[0]) {
+            void workspace.revealLeaf(leaves[0]);
         } else {
             const leaf = workspace.getLeaf(false);
             if (leaf) {

@@ -3,7 +3,7 @@
  * 管理目录结构守护功能
  */
 
-import { Plugin, TFolder, Notice } from 'obsidian';
+import { TFolder, Notice } from 'obsidian';
 import { ViolationReport, parseAllowedRootFolders, parseFolderRules } from './types';
 import { checkCreationAllowed, runHealthCheck } from './rules';
 import { VaultGuardianWarningModal } from './warning-modal';
@@ -77,7 +77,7 @@ export class VaultGuardianManager {
                     // Delete the created folder
                     const folder = this.plugin.app.vault.getAbstractFileByPath(path);
                     if (folder instanceof TFolder) {
-                        void this.plugin.app.vault.delete(folder);
+                        void this.plugin.app.fileManager.trashFile(folder);
                     }
                 }
             ).open();
@@ -92,7 +92,7 @@ export class VaultGuardianManager {
                     // Delete on cancel
                     const folder = this.plugin.app.vault.getAbstractFileByPath(path);
                     if (folder instanceof TFolder) {
-                        void this.plugin.app.vault.delete(folder);
+                        void this.plugin.app.fileManager.trashFile(folder);
                     }
                 }
             ).open();

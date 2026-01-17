@@ -11,24 +11,50 @@ Editor Pro 采用 **Core-Feature-UI 分层** 的模块化架构，确保高内�
 ```
 src/
 ├── core/                   # 核心基础层
-│   └── manager/            # 插件管理器 (生命周期管理)
-├── features/               # 功能模块层（业务核心）
-│   ├── editing/            # 核心编辑增强 (Magic Input, Keyshots, Outliner)
-│   ├── callout/            # Callout 增强 (Smart Picker, Wrapper)
-│   ├── charts/             # 可视化渲染器 (ECharts, Graphviz, Vega-Lite)
-│   ├── slash-command/      # 斜杠命令系统 (Menu, Trigger)
-│   ├── templates/          # 模板引擎 (JS Execution, Snippets)
-│   ├── nldates/            # 自然语言日期解析
-│   ├── yaml/               # YAML 自动维护 (Auto Update)
-│   ├── formatting/         # 文本格式化 (Smart Typography)
-│   ├── navigation/         # 导航增强 (Cursor History)
-│   ├── infographic/        # 信息图组件
-│   ├── ui/                 # 界面增强 (Focus Mode, Status Bar)
-│   └── ...                 # 其他模块 (formatting, table, tags)
-├── ui/                     # 通用 UI 组件层 (Modals, Settings Components)
-├── views/                  # 自定义视图 (Custom Views)
-├── utils/                  # 工具库 (DOM, Markdown, Async)
-├── main.ts                 # 插件入口 (Bootstrapper & Event Bus)
+│   ├── FeatureRegistry.ts  # 功能注册器
+│   └── index.ts            # 核心导出
+│
+├── types/                  # 全局类型定义
+│   ├── index.ts            # 类型主导出
+│   ├── plugin.ts           # 插件相关类型
+│   └── common.ts           # 通用工具类型
+│
+├── features/               # 功能模块层（按域分类）
+│   ├── editor/             # 编辑器核心增强
+│   │   ├── keyshots.ts     # 行操作快捷键
+│   │   ├── smart-toggle.ts # 智能格式切换
+│   │   ├── outliner.ts     # 大纲编辑
+│   │   ├── typewriter-mode.ts # 打字机模式
+│   │   └── index.ts        # 模块导出
+│   │
+│   ├── input/              # 输入增强
+│   │   ├── input-handler.ts # 智能输入
+│   │   ├── magic-input.ts  # 魔法输入
+│   │   ├── menu.ts         # 斜杠命令
+│   │   └── index.ts
+│   │
+│   ├── callout/            # Callout 增强
+│   ├── charts/             # 图表渲染 (ECharts, Graphviz, Vega-Lite)
+│   ├── templates/          # 模板系统
+│   ├── navigation/         # 导航功能 (光标记忆, 最近文件)
+│   ├── ui/                 # 界面增强 (专注模式, 浮动大纲, 状态栏)
+│   ├── file-ops/           # 文件操作 (YAML, 标签, 保存清理)
+│   ├── tools/              # 小工具 (脚注, 计算, 随机生成)
+│   ├── visuals/            # 可视化 (过期高亮, 信息图)
+│   ├── homepage/           # 首页仪表板
+│   ├── vault-guardian/     # 目录结构守护
+│   └── mcp/                # MCP Server (AI Agent 接口)
+│
+├── utils/                  # 工具函数
+│   ├── editor-utils.ts     # 编辑器工具
+│   ├── markdown-generators.ts # Markdown 生成器
+│   └── table-generators.ts # 表格生成器
+│
+├── views/                  # 自定义视图
+│   ├── calendar-view.tsx   # 日历视图
+│   └── calendar-component.tsx
+│
+├── main.ts                 # 插件入口 (Bootstrapper)
 └── settings.ts             # 设置管理 (Configuration & Presets)
 ```
 
@@ -36,10 +62,46 @@ src/
 *   **Feature Isolation**: 每个 Feature 都是独立的，通过 `main.ts` 注册，拥有独立的生命周期 (`load`/`unload`)。
 *   **Zero-Config Start**: 默认预设 (Presets) 必须让 80% 的用户开箱即用。
 *   **Resource Safety**: 所有 Feature 必须实现资源清理 (`cleanup`)，禁止全局污染。
+*   **Type Safety**: 全局类型放 `src/types/`，私有类型放 `feature/types.ts`。
 
 ---
 
-## 🤖 2. Agent 协作体系 (Agent Ecosystem)
+## 📁 2. 目录分类规范 (Directory Guidelines)
+
+### Feature 分类原则
+
+| 分类 | 目录 | 职责 | 示例 |
+|------|------|------|------|
+| **编辑器核心** | `editor/` | 直接操作编辑器内容的功能 | keyshots, smart-toggle, outliner |
+| **输入增强** | `input/` | 拦截/增强用户输入 | smart-input, slash-command |
+| **Callout** | `callout/` | Callout 相关功能 | picker, wrapper |
+| **图表** | `charts/` | 代码块图表渲染 | ECharts, Graphviz, Vega |
+| **模板** | `templates/` | 模板和代码片段 | template-modal, snippets |
+| **导航** | `navigation/` | 光标/文件导航 | cursor-memory, recent-files |
+| **UI** | `ui/` | 界面增强组件 | focus-mode, outline, status-bar |
+| **文件操作** | `file-ops/` | 文件元数据管理 | YAML, tags, save-cleaner |
+| **小工具** | `tools/` | 独立小功能 | footnotes, calc, random |
+| **可视化** | `visuals/` | 阅读模式渲染 | overdue, infographic |
+| **首页** | `homepage/` | 首页仪表板 | homepage-view |
+| **守护** | `vault-guardian/` | 目录结构守护 | rules, health-check |
+| **MCP** | `mcp/` | AI Agent 服务 | mcp-server |
+
+### Feature 目录结构
+
+每个 Feature 目录应该包含：
+
+```
+feature-name/
+├── index.ts           # 必须：模块导出
+├── types.ts           # 可选：私有类型定义
+├── [feature]-manager.ts # 可选：功能管理器
+├── [component].ts     # 功能实现文件
+└── [component].tsx    # React 组件（如有）
+```
+
+---
+
+## 🤖 3. Agent 协作体系 (Agent Ecosystem)
 
 本项目设计了专门的 **Skill System**，以增强 AI 辅助开发的能力。
 
@@ -56,10 +118,11 @@ Agent 在参与项目开发时，必须严格遵守 `docs/SOP.md` 定义的流�
 1.  **用户优先**：思考功能痛点。
 2.  **文件联动**：改动功能时同步更新 Settings 和 Presets。
 3.  **代码质量**：禁止魔法数字，确保资源清理。
+4.  **目录规范**：新功能放入正确的 Feature 分类。
 
 ---
 
-## 🗺️ 3. 关键文档导航
+## 🗺️ 4. 关键文档导航
 
 | 文档 | 说明 | 适用对象 |
 |------|------|----------|

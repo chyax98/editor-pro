@@ -1,5 +1,5 @@
 import { App, Editor, Menu, Notice } from "obsidian";
-import { TextPromptModal } from "../../ui/modals";
+import { TextPromptModal } from "../ui/modals";
 
 type CryptoLike = {
 	getRandomValues: (array: Uint8Array) => Uint8Array;
