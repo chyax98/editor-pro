@@ -33,6 +33,7 @@ export {
 	handleAutoPair,
 	handleSmartBackspace,
 	handleSmartSpacing,
+	PAIR_MAP,
 } from "./smart-typography";
 
 // 大纲编辑

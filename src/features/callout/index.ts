@@ -14,4 +14,4 @@ export { CalloutTypePicker } from "./callout-picker";
 export { wrapWithCallout, wrapWithCodeBlock } from "./wrap-callout";
 
 // 集成功能
-export { changeCalloutType, toggleCalloutPrefix } from "./callout-integrator";
+export { changeCalloutType, toggleCalloutPrefix, toggleBlockquote } from "./callout-integrator";
