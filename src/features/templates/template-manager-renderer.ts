@@ -2,9 +2,11 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
+/* eslint-disable @typescript-eslint/no-unsafe-return */
+/* eslint-disable @typescript-eslint/no-unsafe-argument */
 import { App, Notice, Setting, ButtonComponent } from "obsidian";
 import EditorProPlugin from "../../main";
-import { UserTemplate, EditorProSettings } from "../../settings";
+import { UserTemplate, EditorProSettings, DEFAULT_SETTINGS } from "../../settings";
 import { ConfirmationModal } from "../ui/confirmation-modal";
 import { InputModal } from "../ui/input-modal";
 import { SaveTemplateModal } from "./save-template-modal";
@@ -44,13 +46,13 @@ export class TemplateManagerRenderer {
                     .setButtonText("保存当前配置为模板")
                     .setCta()
                     .setIcon("save")
-                    .onClick(() => { this.openSaveModal(); })
+                    .onClick(() => { void this.openSaveModal(); })
             )
             .addButton((btn) =>
                 btn
                     .setButtonText("导入模板代码")
                     .setIcon("import")
-                    .onClick(() => { this.openImportModal(); })
+                    .onClick(() => { void this.openImportModal(); })
             );
 
         // User Library
@@ -205,7 +207,6 @@ export class TemplateManagerRenderer {
             placeholder: "在此粘贴模板 JSON 代码...",
             onSubmit: async (str) => {
                 try {
-                     
                     const tpl = JSON.parse(str);
 
                     // Basic validation
@@ -233,8 +234,16 @@ export class TemplateManagerRenderer {
     private extractSettings(
         type: "full" | "homepage" | "guardian"
     ): Partial<EditorProSettings> {
-        const current = this.plugin.settings;
-        if (type === "full") return { ...current };
+        // Deep copy to avoid mutating original settings when deleting
+        const current: any = JSON.parse(JSON.stringify(this.plugin.settings));
+
+        // CRITICAL: Exclude userTemplates from the snapshot to prevent storing backups within backups
+        // and to prevent restoring an old state that wipes out newer templates.
+        if (current && typeof current === 'object' && 'userTemplates' in current) {
+            delete current.userTemplates;
+        }
+
+        if (type === "full") return current;
 
         const subset: Partial<EditorProSettings> = {};
         const keys = Object.keys(current) as (keyof EditorProSettings)[];
@@ -261,7 +270,18 @@ export class TemplateManagerRenderer {
             title: `应用模板：${tpl.name}`,
             message: `确认应用此模板？\n类型：${tpl.type}\n这将覆盖当前的相关设置。`,
             onConfirm: async () => {
-                Object.assign(this.plugin.settings, tpl.data);
+                // SANITIZATION: Only allow keys that exist in DEFAULT_SETTINGS
+                const cleanData: any = {};
+                const validKeys = Object.keys(DEFAULT_SETTINGS);
+
+                for (const key in tpl.data) {
+                    if (key === 'userTemplates') continue;
+                    if (validKeys.includes(key)) {
+                        cleanData[key] = (tpl.data as any)[key];
+                    }
+                }
+
+                Object.assign(this.plugin.settings, cleanData);
                 await this.plugin.saveSettings();
                 new Notice(`已应用模板：${tpl.name}`);
                 this.displayReload();
