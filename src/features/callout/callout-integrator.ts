@@ -88,15 +88,16 @@ export function changeCalloutType(editor: Editor, app: any) {
     let headerLineNum = -1;
     let headerContent = '';
 
-    // 向上找最多 50 行（避免性能问题）
-    for (let i = currentLineNum; i >= Math.max(0, currentLineNum - 50); i--) {
+    // 向上查找 Callout 头部行
+    // 注意：Callout 块是连续的，遇到非 > 开头的行必然停止，不存在性能问题
+    for (let i = currentLineNum; i >= 0; i--) {
         const line = editor.getLine(i);
         if (line.match(/^\s*>\s*\[!(\w+)\]/)) {
             headerLineNum = i;
             headerContent = line;
             break;
         }
-        // 如果遇到非引用行，说明断了，停止查找
+        // 如果遇到非引用行，说明不在 Callout 块内，停止查找
         if (!line.trim().startsWith('>')) {
             break;
         }
