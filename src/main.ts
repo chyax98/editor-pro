@@ -681,6 +681,9 @@ export default class EditorProPlugin extends Plugin {
         // Cleanup CursorMemoryManager (has pending timeouts)
         this.cursorMemory?.cleanup();
 
+        // Cleanup RemoteImageTaskScheduler (has pending downloads and timeouts)
+        this.remoteImageScheduler?.cleanup();
+
         // Cleanup other managers that may have resources
         this.focusUi?.cleanup();
         this.floatingOutline?.cleanup();

@@ -244,8 +244,8 @@ const SECTIONS: SettingSection[] = [
             { name: '开启文件树高亮（File tree highlight）', desc: '在命令面板搜索 "文件树：高亮当前文件"，可为文件/文件夹设置 6 种颜色高亮标记，方便在文件列表中区分项目文件夹。', key: 'enableFileTreeHighlight', type: 'toggle' },
             {
                 name: '开启 YAML 自动更新',
-                desc: '自动维护笔记的 "创建时间" 和 "修改时间" 元数据（Frontmatter）。⚠️ 会自动修改文件内容，与 SaveCleaner 同时使用可能产生冲突。',
-                longDesc: '此功能会监控文件修改事件。\n\n- 新建文件时：自动添加 `created` 字段。\n- 修改文件时：自动更新 `updated` 字段。\n\n注意：这会直接修改文件开头的 YAML Frontmatter 区域。如果您的工作流依赖外部工具同步文件，请确保此行为不会造成干扰。',
+                desc: '自动维护笔记的 "创建时间" 和 "修改时间" 元数据。⚠️ 会自动修改文件，多设备同步时可能产生冲突。',
+                longDesc: '此功能会监控文件修改事件。\n\n- 新建文件时：自动添加 `created` 字段。\n- 修改文件时：自动更新 `updated` 字段（防抖 2 秒）。\n\n⚠️ 重要警告：\n1. 多设备同步：如果您使用 iCloud / Dropbox / Syncthing 等同步工具，每次编辑都会更新时间戳，可能导致同步冲突。\n2. 与其他插件冲突：与 SaveCleaner、Linter 等会在保存时修改文件的插件同时使用可能产生竞争。\n3. 外部编辑：如果您用外部编辑器修改文件，时间戳不会自动更新。\n\n建议仅在单设备使用或明确了解影响的情况下开启。',
                 key: 'enableYaml',
                 type: 'toggle'
             },

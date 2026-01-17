@@ -13,12 +13,16 @@ interface ImageTask {
 const MAX_CONCURRENCY = 3; // 最大并发数
 const MAX_RETRIES = 3;     // 最大重试次数
 const RETRY_DELAY_BASE = 2000; // 重试基础延迟 (ms)
+const DOWNLOAD_TIMEOUT = 30000; // 下载超时 30s
+const MAX_CACHE_SIZE = 100; // 最大缓存 URL 数量
 
 export class RemoteImageTaskScheduler {
     private app: App;
     private queue: ImageTask[] = [];
     private activeDownloads = 0;
     private processedUrls = new Map<string, string>(); // URL -> 本地文件名缓存
+    private pendingTimeouts = new Set<ReturnType<typeof setTimeout>>(); // 追踪定时器
+    private isShuttingDown = false; // 是否正在关闭
 
     constructor(app: App) {
         this.app = app;
@@ -74,6 +78,8 @@ export class RemoteImageTaskScheduler {
     }
 
     private async processQueue() {
+        // 如果正在关闭，不再处理
+        if (this.isShuttingDown) return;
         if (this.activeDownloads >= MAX_CONCURRENCY || this.queue.length === 0) {
             return;
         }
@@ -87,23 +93,28 @@ export class RemoteImageTaskScheduler {
             await this.executeTask(task);
         } catch (error) {
             console.error(`Download failed for ${task.url}:`, error);
-            
-            if (task.retries < MAX_RETRIES) {
+
+            if (!this.isShuttingDown && task.retries < MAX_RETRIES) {
                 task.retries++;
                 const delay = RETRY_DELAY_BASE * Math.pow(2, task.retries - 1); // 2s, 4s, 8s
-                // eslint-disable-next-line no-console
                 console.log(`Retrying task ${task.id} in ${delay}ms...`);
-                
-                setTimeout(() => {
-                    this.queue.push(task);
-                    void this.processQueue();
+
+                const timeoutId = setTimeout(() => {
+                    this.pendingTimeouts.delete(timeoutId);
+                    if (!this.isShuttingDown) {
+                        this.queue.push(task);
+                        void this.processQueue();
+                    }
                 }, delay);
-            } else {
+                this.pendingTimeouts.add(timeoutId);
+            } else if (!this.isShuttingDown) {
                 new Notice(`图片下载失败 (重试耗尽): ${task.alt || '未命名'}`);
             }
         } finally {
             this.activeDownloads--;
-            void this.processQueue(); // 处理下一个
+            if (!this.isShuttingDown) {
+                void this.processQueue(); // 处理下一个
+            }
         }
     }
 
@@ -115,16 +126,40 @@ export class RemoteImageTaskScheduler {
             return;
         }
 
-        // 2. 下载
-        const arrayBuffer = await this.fetchImage(task.url);
+        // 2. 下载（带超时）
+        const arrayBuffer = await this.fetchImageWithTimeout(task.url, DOWNLOAD_TIMEOUT);
         const ext = this.getExtension(task.url) || 'png';
-        
+
         // 3. 保存
         const filename = await this.saveImage(arrayBuffer, ext, task.alt);
+
+        // 4. 更新缓存（限制大小）
+        if (this.processedUrls.size >= MAX_CACHE_SIZE) {
+            // 删除最早的条目
+            const firstKey = this.processedUrls.keys().next().value;
+            if (firstKey) this.processedUrls.delete(firstKey);
+        }
         this.processedUrls.set(task.url, filename);
 
-        // 4. 替换
+        // 5. 替换
         await this.finalizeTask(task, filename);
+    }
+
+    /**
+     * 带超时的图片下载
+     */
+    private async fetchImageWithTimeout(url: string, timeout: number): Promise<ArrayBuffer> {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), timeout);
+        this.pendingTimeouts.add(timeoutId);
+
+        try {
+            const res = await requestUrl({ url });
+            return res.arrayBuffer;
+        } finally {
+            clearTimeout(timeoutId);
+            this.pendingTimeouts.delete(timeoutId);
+        }
     }
 
     private async finalizeTask(task: ImageTask, filename: string) {
@@ -167,11 +202,6 @@ export class RemoteImageTaskScheduler {
         }
     }
 
-    private async fetchImage(url: string): Promise<ArrayBuffer> {
-        const res = await requestUrl({ url });
-        return res.arrayBuffer;
-    }
-
     private getExtension(url: string): string | null {
         try {
             const cleanUrl = url.split('?')[0]?.split('#')[0];
@@ -192,13 +222,13 @@ export class RemoteImageTaskScheduler {
         await this.ensureFolder(assetsFolder);
 
         const now = new Date();
-        const timestamp = `${now.getFullYear()}${String(now.getMonth()+1).padStart(2, '0')}${String(now.getDate()).padStart(2, '0')}${String(now.getHours()).padStart(2, '0')}${String(now.getMinutes()).padStart(2, '0')}${String(now.getSeconds()).padStart(2, '0')}`;
-        
+        const timestamp = `${now.getFullYear()}${String(now.getMonth() + 1).padStart(2, '0')}${String(now.getDate()).padStart(2, '0')}${String(now.getHours()).padStart(2, '0')}${String(now.getMinutes()).padStart(2, '0')}${String(now.getSeconds()).padStart(2, '0')}`;
+
         const safePrefix = (prefix || 'image').replace(/[\\/:*?"<>|]/g, '-').trim() || 'image';
-        
+
         let filename = `${safePrefix}-${timestamp}.${ext}`;
         let path = `${assetsFolder}/${filename}`;
-        
+
         let counter = 1;
         while (await this.app.vault.adapter.exists(path)) {
             filename = `${safePrefix}-${timestamp}-${counter}.${ext}`;
@@ -222,11 +252,45 @@ export class RemoteImageTaskScheduler {
             try {
                 await this.app.vault.createFolder(path);
             } catch (error) {
-                 // Folder might have been created concurrently
-                 if (!(await this.app.vault.adapter.exists(path))) {
-                     throw error as Error;
-                 }
+                // Folder might have been created concurrently
+                if (!(await this.app.vault.adapter.exists(path))) {
+                    throw error as Error;
+                }
             }
         }
+    }
+
+    /**
+     * 清理资源：取消所有待处理任务和定时器
+     * 在插件卸载时调用
+     */
+    public cleanup() {
+        this.isShuttingDown = true;
+
+        // 清空队列
+        this.queue.length = 0;
+
+        // 取消所有待处理的定时器
+        for (const timeoutId of this.pendingTimeouts) {
+            clearTimeout(timeoutId);
+        }
+        this.pendingTimeouts.clear();
+
+        // 清空缓存
+        this.processedUrls.clear();
+
+        // 重置计数器
+        this.activeDownloads = 0;
+    }
+
+    /**
+     * 获取当前队列状态（用于调试或状态显示）
+     */
+    public getStatus(): { queueLength: number; activeDownloads: number; cacheSize: number } {
+        return {
+            queueLength: this.queue.length,
+            activeDownloads: this.activeDownloads,
+            cacheSize: this.processedUrls.size
+        };
     }
 }
