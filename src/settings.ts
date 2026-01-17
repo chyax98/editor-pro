@@ -1,4 +1,4 @@
-import { App, PluginSettingTab, Setting } from "obsidian";
+import { App, PluginSettingTab, Setting, Notice } from "obsidian";
 import EditorProPlugin from "./main";
 
 export interface EditorProSettings {
@@ -119,6 +119,93 @@ export const DEFAULT_SETTINGS: EditorProSettings = {
     // 模板配置
     templateFolderPath: 'Templates',
 }
+
+/**
+ * 功能预设 - 帮助用户快速配置
+ */
+interface SettingsPreset {
+    id: string;
+    name: string;
+    icon: string;
+    description: string;
+    settings: Partial<EditorProSettings>;
+}
+
+export const SETTING_PRESETS: SettingsPreset[] = [
+    {
+        id: 'minimal',
+        name: '极简模式',
+        icon: '🎯',
+        description: '只保留核心编辑增强，不修改任何文件',
+        settings: {
+            // 关闭所有可能修改文件的功能
+            enableYaml: false,
+            enableSaveCleaner: false,
+            enableAutoDownloadImages: false,
+            enableSmartImagePaste: false,
+            // 关闭 UI 增强
+            enableStatusBarStats: false,
+            enableFocusUi: false,
+            enableFloatingOutline: false,
+            enableInlineDecorator: false,
+            enableFileTreeHighlight: false,
+        }
+    },
+    {
+        id: 'writer',
+        name: '写作模式',
+        icon: '✍️',
+        description: '适合长文写作，开启专注和沉浸式体验',
+        settings: {
+            enableTypewriterScroll: true,
+            enableFocusUi: true,
+            enableStatusBarStats: true,
+            enableCursorMemory: true,
+            enableMagicInput: true,
+            enableFloatingOutline: true,
+        }
+    },
+    {
+        id: 'power',
+        name: '全功能模式',
+        icon: '⚡',
+        description: '开启所有功能，体验完整的 Editor Pro',
+        settings: {
+            enableSmartToggle: true,
+            enableKeyshots: true,
+            enableSmartTyping: true,
+            enableEditorNavigation: true,
+            enableOutliner: true,
+            enableTaskHotkeys: true,
+            enableHeadingHotkeys: true,
+            enableContextMenu: true,
+            enableSmartPasteUrl: true,
+            enableTextTransformer: true,
+            enableSmartInput: true,
+            enableSlashCommand: true,
+            enableSmartLinkTitle: true,
+            enableSmartImagePaste: true,
+            enableTypewriterScroll: true,
+            enableCursorMemory: true,
+            enableMagicInput: true,
+            enableOverdueHighlighter: true,
+            enableStatusBarStats: true,
+            enableFocusUi: true,
+            enableFloatingOutline: true,
+            enableZoom: true,
+            enableQuickHud: true,
+            enableFootnotes: true,
+            enableInlineCalc: true,
+            enableRandomGenerator: true,
+            enableSearchInSelection: true,
+            enableInlineDecorator: true,
+            enableFileTreeHighlight: true,
+            // 注意：不开启 YAML 和 SaveCleaner，因为可能影响同步
+            // 注意：不开启图表渲染器，需要用户明确选择
+        }
+    },
+];
+
 
 
 interface SettingItem {
@@ -325,8 +412,33 @@ export class EditorProSettingTab extends PluginSettingTab {
         const helpLink = welcomeEl.createEl('p', { cls: 'editor-pro-help-link' });
         helpLink.setText('💬 需要帮助？访问 GitHub 或查看文档。');
 
+        // 预设选择区域
+        const presetContainer = containerEl.createDiv({ cls: 'editor-pro-presets' });
+        presetContainer.createEl('h3', { text: '⚡ 快速配置预设' });
+        presetContainer.createEl('p', {
+            text: '选择一个预设快速配置，或在下方手动调整各项设置。',
+            cls: 'editor-pro-preset-desc'
+        });
+
+        const presetButtons = presetContainer.createDiv({ cls: 'editor-pro-preset-buttons' });
+
+        for (const preset of SETTING_PRESETS) {
+            const btn = presetButtons.createEl('button', {
+                cls: 'editor-pro-preset-btn',
+                attr: { 'data-preset': preset.id }
+            });
+            btn.createEl('span', { text: preset.icon, cls: 'preset-icon' });
+            btn.createEl('span', { text: preset.name, cls: 'preset-name' });
+            btn.createEl('span', { text: preset.description, cls: 'preset-desc' });
+
+            btn.addEventListener('click', async () => {
+                await this.applyPreset(preset);
+            });
+        }
+
         // Add welcome styles
         this.addWelcomeStyles(containerEl);
+        this.addPresetStyles(containerEl);
 
         // Search bar with accessibility support
         const searchContainer = containerEl.createDiv({ cls: 'editor-pro-settings-search' });
@@ -636,4 +748,82 @@ export class EditorProSettingTab extends PluginSettingTab {
             }
         }
     }
+
+    private async applyPreset(preset: SettingsPreset) {
+        // Confirm with user
+        // Note: Obsidian doesn't have a simple async confirm modal, so we'll just apply it
+        // and notify the user.
+
+        const settings = preset.settings;
+        for (const key in settings) {
+            // @ts-ignore
+            if (Object.prototype.hasOwnProperty.call(settings, key)) {
+                // @ts-ignore
+                this.plugin.settings[key] = settings[key];
+            }
+        }
+
+        await this.plugin.saveSettings();
+
+        // Refresh UI
+        this.display();
+
+        // Notify
+        new Notice(`已应用预设：${preset.name}`);
+    }
+
+
+
+    private addPresetStyles(containerEl: HTMLElement) {
+        containerEl.createEl('style', {
+            text: `
+                .editor-pro-presets {
+                    margin-top: 16px;
+                    margin-bottom: 24px;
+                }
+                .editor-pro-preset-desc {
+                    color: var(--text-muted);
+                    font-size: 0.9em;
+                    margin-bottom: 12px;
+                }
+                .editor-pro-preset-buttons {
+                    display: grid;
+                    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+                    gap: 12px;
+                }
+                .editor-pro-preset-btn {
+                    display: flex;
+                    flex-direction: column;
+                    align-items: center;
+                    text-align: center;
+                    padding: 12px;
+                    height: 100%;
+                    cursor: pointer;
+                    background-color: var(--interactive-normal);
+                    border: 1px solid var(--background-modifier-border);
+                    border-radius: 8px;
+                    transition: all 0.2s ease;
+                }
+                .editor-pro-preset-btn:hover {
+                    background-color: var(--interactive-hover);
+                    transform: translateY(-2px);
+                    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+                }
+                .preset-icon {
+                    font-size: 24px;
+                    margin-bottom: 8px;
+                }
+                .preset-name {
+                    font-weight: bold;
+                    margin-bottom: 4px;
+                }
+                .preset-desc {
+                    font-size: 0.8em;
+                    color: var(--text-muted);
+                }
+            `
+        });
+    }
+
+
 }
